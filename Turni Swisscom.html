@@ -239,7 +239,6 @@ button:disabled{opacity:.35;cursor:default;filter:none}
     <span id="drop">
       <button id="aggiorna" class="tbtn" title="Aggiorna dal link"></button>
       <button class="tbtn sec" id="pdfb" title="Scarica il PDF"></button>
-      <button class="iconbtn" id="tema"></button>
       <button class="iconbtn" id="canc" title="Cancella turni"></button>
     </span>
   </div>
@@ -447,8 +446,7 @@ function readTemaGlobale(){
 }
 function setTema(t, notifyParent=true){document.documentElement.dataset.theme=t;localStorage.setItem(LS_TEMA,t);
   try{localStorage.setItem(LS_TEMA_GLOBALE,t==='dark'?'dark':'light');}catch(e){}
-  $('tema').innerHTML=(t==='dark'?IC.sun:IC.moon)+'<span class="lbl">Tema</span>';
-  $('tema').title=t==='dark'?'Tema chiaro':'Tema scuro';
+  const tb=$('tema'); if(tb){tb.innerHTML=(t==='dark'?IC.sun:IC.moon)+'<span class="lbl">Tema</span>';tb.title=t==='dark'?'Tema chiaro':'Tema scuro';}
   if(notifyParent){try{window.parent?.postMessage({type:LS_TEMA_GLOBALE,theme:t==='dark'?'dark':'light'},'*');}catch(e){}}}
 window.addEventListener('message',e=>{
   if(e?.data?.type===LS_TEMA_GLOBALE&&(e.data.theme==='dark'||e.data.theme==='light')){
@@ -790,7 +788,6 @@ const COPY='© Copyright 2026&nbsp; | &nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2';
 /* ===== Avvio ===== */
 function init(){
   setTema(readTemaGlobale(),false);
-  $('tema').onclick=()=>setTema(document.documentElement.dataset.theme==='dark'?'white':'dark');
   $('aggiorna').innerHTML=IC.sync+'<span class="lbl">Aggiorna</span>'; $('aggiorna').onclick=()=>sync(true);
   $('pdfb').innerHTML=IC.pdf+'<span class="lbl">PDF</span>'; $('pdfb').onclick=apriPdf;
   $('pico').innerHTML=IC.pdf; $('pchiudi').innerHTML=IC.x; $('pchiudi').onclick=chiudiPdf;

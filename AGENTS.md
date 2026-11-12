@@ -28,9 +28,9 @@ Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#the
 
 Dettagli per file (palette unica DataSales — dark `#0D0D10/#141417/#1A1A1F`, light `#F3F4F6/#FFFFFF/#F9FAFB`; testo dark `#EEEEF0`, light `#1F2937`; accent `#3B82F6`/`#60A5FA` dark, `#2563EB` light; bordi dark `#2A2A35`, light `#E5E7EB`):
 
-- LolloTool: `body.dark`. Usa variabile `GLOBAL_KEY`, non stringa letterale (grep cerca `GLOBAL_KEY`). Listener `message` + `applyTheme(t, notifyParent)`.
-- Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale.
-- DataSales: `:root.light-theme` (assenza classe = dark). Helper `applyThemeFromGlobal()`. Non chiamare `renderStats()` prima del boot (`chMonthly/chTypes` in TDZ): usare try/catch esistente.
+- LolloTool: `body.dark`. Usa variabile `GLOBAL_KEY`, non stringa letterale (grep cerca `GLOBAL_KEY`). Listener `message` + `applyTheme(t, notifyParent)`. Pulsante tema rimosso (2026-11-12): fonte unica nel menu di `index.html`; JS con guard su `btn` nullo.
+- Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale. Pulsante `#tema` rimosso (2026-11-12): `setTema` con guard su elemento mancante.
+- DataSales: `:root.light-theme` (assenza classe = dark). Helper `applyThemeFromGlobal()`. Non chiamare `renderStats()` prima del boot (`chMonthly/chTypes` in TDZ): usare try/catch esistente. Pulsante `#themeToggleBtn` rimosso (2026-11-12): `updateThemeIcon()` no-op, sync solo da `index.html`.
 - agenti: `body.dark` (CSS aggiunto in questo repo). Solo ricezione + lettura iniziale, nessun bottone tema nella pagina.
 
 ## Test locale

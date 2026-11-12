@@ -465,7 +465,6 @@
           <label><input type="checkbox" id="chk-longmeasure" checked> <span id="lbl-longmeasure">Monitoring</span></label>
         </div>
       </div>
-      <button class="theme-toggle" id="themeBtn" title="Cambia tema">🌙</button>
       <button class="lang-toggle" id="langBtn" title="Cambia lingua">IT</button>
       <button class="expand-toggle" id="expandBtn" title="Espandi / Riduci">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -585,9 +584,10 @@
         body.classList.add('dark');
       }
       function updateBtn() {
+        if (!btn) return;
         btn.innerHTML = body.classList.contains('dark') ? moonSvg : sunSvg;
       }
-      btn.addEventListener('click', () => {
+      if (btn) btn.addEventListener('click', () => {
         applyTheme(body.classList.contains('dark') ? 'light' : 'dark', true);
       });
       // Cambio tema comandato dal menu laterale di index.html
