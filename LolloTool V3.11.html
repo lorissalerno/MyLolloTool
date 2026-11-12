@@ -1,0 +1,2608 @@
+<!-- SCT Tool — Sviluppato da Loris Salerno | Proprietà riservata
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  AGENT INSTRUCTIONS — READ THIS FIRST (then ignore until next session)       ║
+║  ──────────────────────────────────────────────────────────────────────────  ║
+║  This is a single-file HTML tool called "SCT TOOL" by Loris Salerno.         ║
+║                                                                              ║
+║  STRUCTURE (line ranges are approximate, search for the IDs/markers):        ║
+║  ┌──────────────────────────────────────────────────────────────────────────┐║
+║  │ <head>           : meta, <style> (CSS variables, dark/light theme)       │║
+║  │ <body>           : .page-wrap container                                  │║
+║  │   ├─ .header-row : logo, title "SCT TOOL", theme/lang/expand btns        │║
+║  │   ├─ .grid       : 5 tool cards in 2-col layout                          │║
+║  │   │   ├─ #tool-clima1    → Clima COPPER (legacy, revL2)                  │║
+║  │   │   ├─ #tool-clima2    → Clima FIBRA (revF1)                           │║
+║  │   │   ├─ #tool-clima3    → Clima3 Router (1 input: clima only)           │║
+║  │   │   ├─ #tool-tvbox     → TV-BOX (Big Screen Devices)                   │║
+║  │   │   └─ #tool-longmeasure → Monitoring (CSV or Real-Time Diagnosis)     │║
+║  │   └─ <footer>     : copyright Loris Salerno                              │║
+║  │ <script>         : all logic below                                       │║
+║  │   ├─ Theme toggle (localStorage 'sct-theme')                             │║
+║  │   ├─ Expand/Collapse toggle (localStorage 'sct-expanded')                │║
+║  │   ├─ i18n translations {it,de,fr,en} (localStorage 'sct-lang')           │║
+║  │   ├─ initClima1()  → paste→_rawDataLS, extractInfo/extractBetween        │║
+║  │   ├─ initClima2()  → paste→_rawDataLS, getSection/getValueAfterLabel     │║
+║  │   ├─ initLongMeasure() → paste→_csvRawDataLS, CSV chunk parser,          │║
+║  │   │                     detectFormat (csv vs instant), buildSummary      │║
+║  │   ├─ initTVBox()   → paste→_rawDataLS, parseAllBoxes, formatOutput       │║
+║  │   └─ initClima3()  → paste→_rawClimaLS, parseClima                       │║
+║  └──────────────────────────────────────────────────────────────────────────┘║
+║                                                                              ║
+║  TOOL SECTION MARKERS (search these in the code):                            ║
+║  • "// Tool 1: Clima COPPER"  → (function initClima1(){...})                 ║
+║  • "// Tool 2: Informazioni Clima (FIBRA)" → (function initClima2(){...})    ║
+║  • "// Tool 3: Long Measure Parser" → (function initLongMeasure(){...})      ║
+║  • "// Tool 4: TV-BOX" → (function initTVBox(){...})                         ║
+║  • "// Tool 5: Clima3 → Riepilogo" → (function initClima3(){...})            ║
+║                                                                              ║
+║  KEY PATTERNS:                                                               ║
+║  • ALL tools use the "store in JS" paste pattern: intercept paste event,     ║
+║    save to _raw* variable, show ✔ status in textarea (avoids WinChrome       ║
+║    freeze from huge textarea values).                                        ║
+║  • Each tool has: Process / Copy / Clear buttons.                            ║
+║  • Status messages use i18n __() function with keys like stDone, stError…    ║
+║  • Output uses monospace pre-wrap; Monitoring output is .pre (no wrap).      ║
+║  • Language toggle cycles: it→de→fr→en→it.                                   ║
+║  • Theme toggle: body.dark class + localStorage.                             ║
+║                                                                              ║
+║  WHEN EDITING:                                                               ║
+║  • Search for the tool's section marker (e.g. "// Tool 1: Clima COPPER")     ║
+║  • CSS vars are in :root / body.dark — no inline colors.                     ║
+║  • Do NOT change watermark comments (they mark ownership).                   ║
+║  • Keep the "store in JS" paste pattern when modifying any tool.             ║
+╚══════════════════════════════════════════════════════════════════════════════╝ -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"/>
+  <!-- Author: Loris Salerno | SCS-B2C-CUC-SCT-OP2 | 2026 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SCT TOOL</title>
+  <link rel="icon" type="image/png" href="https://avatars.githubusercontent.com/u/5754111?s=280&v=4"/>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --bg-line: rgba(75, 75, 75, 0.04);
+      --panel: #ffffff;
+      --panel-2: #e8eaed;
+      --text: #1a1a2e;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --accent: #1a73e8;
+      --accent-2: #4285f4;
+      --good: #137333;
+      --bad: #c5221f;
+      --danger: #dc3545;
+      --danger-2: #b02a37;
+    }
+    body.dark {
+      color-scheme: dark;
+      --bg: #000000;
+      --bg-line: rgba(64, 64, 64, 0.22);
+      --panel: #141922;
+      --panel-2: #0f141b;
+      --text: #e6edf3;
+      --muted: #9aa7b3;
+      --border: #222a36;
+      --accent: #3ea6ff;
+      --accent-2: #7dc3ff;
+      --good: #6ee7b7;
+      --bad: #fca5a5;
+      --danger: #dc3545;
+      --danger-2: #b02a37;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(45deg, transparent 49%, var(--bg-line) 49%, var(--bg-line) 51%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, var(--bg-line) 49%, var(--bg-line) 51%, transparent 51%);
+      background-size: 20px 20px;
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.45;
+    }
+    /* Wrapper del contenuto, gestisce min-width e overflow orizzontale */
+    .page-wrap,
+    .page-wrap-taasalo3 {
+      padding: 18px;
+      padding-bottom: 72px;
+      min-width: 720px;
+      max-width: 900px;
+      margin: 0 auto;
+      transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .page-wrap.expanded,
+    .page-wrap-taasalo3.expanded {
+      max-width: 100vw;
+    }
+    .header-row { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; position: relative; }
+    .header-tools { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
+    .header-logo { width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0; }
+    .header-text h1 { margin: 0; font-size: 22px; color: var(--accent); }
+    .header-text .subtle { margin: 2px 0 0; }
+    h2 { margin: 0 0 10px; font-size: 16px; color: var(--accent-2); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .page-wrap.expanded .grid,
+    .page-wrap-taasalo3.expanded .grid {
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px; color: var(--accent-2); font-weight: 600;
+    }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+    label { font-size: 12px; color: var(--muted); }
+    textarea {
+      width: 100%;
+      min-height: 56px;
+      resize: vertical;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    /* Stile per tutti i textarea che usano il metodo "store in JS" */
+    #lm-csv, #clima1-input, #clima2-input, #tv-src, #c3-clima, #c3-speed {
+      color: var(--muted);
+      font-style: italic;
+    }
+    /* Speed test textarea: più stretto / schiacciato */
+    #c3-speed {
+      min-height: 28px;
+      padding: 4px 10px;
+    }
+    .output {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 90px;
+      color: var(--text);
+      font-size: 11px;
+    }
+    .output.pre { white-space: pre; }
+    /* Output Monitoring: monospace obbligatorio per allineamento colonne DS/US */
+    /* LS-taasalo3 */
+    #lm-output {
+      font-family: "Courier New", Courier, monospace !important;
+      font-size: 11px;
+    }
+    /* Nasconde l'output quando vuoto */
+    .output:empty {
+      min-height: 0;
+      padding: 0;
+      border: none;
+    }
+    .muted { color: var(--muted); font-size: 12px; }
+    button {
+      padding: 8px 12px; border-radius: 8px; cursor: pointer;
+      font-weight: 600; letter-spacing: 0.2px; border: 1px solid var(--accent);
+      background: var(--accent); color: #fff;
+    }
+    button.secondary { background: transparent; color: var(--accent); }
+    /* Pulsante rosso "cestino" — Loris Salerno taasalo3 */
+    button.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+    button.danger:hover { background: var(--danger-2); border-color: var(--danger-2); }
+    .status {
+      min-height: 1.2em; color: var(--muted); font-size: 12px; margin: 6px 0;
+    }
+    /* Spinner di caricamento — by Loris Salerno */
+    .spinner {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 20px auto;
+    }
+    .spinner.active { display: block; }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .subtle { font-size: 12px; color: var(--muted); margin: 4px 0 8px; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .thin { min-height: 48px; } /* LS-taasalo3 */
+    .small { font-size: 11px; } /* Loris Salerno */
+    .sep { height: 1px; background: var(--border); margin: 8px 0; }
+    /* Loris Salerno — taasalo3 — watermark CSS */
+
+    /* Footer fisso */
+    .footer,
+    .footer-taasalo3 {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      border-top: 1px solid var(--border);
+      background: var(--panel);
+      padding: 5px 18px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    /* taasalo3-signature: watermark CSS */
+
+/* Icone a destra dei titoli dei riquadri — Loris Salerno taasalo3 */
+.card h3 {
+  display: flex;
+  align-items: center;
+}
+
+/* Stile comune alle icone */
+.card h3::after {
+  margin-left: auto;
+  font-size: 30px;
+  opacity: 0.9;
+}
+
+/* Icone per ogni tool */
+#tool-clima1 h3::after { content: ""; }          /* Clima COPPER (usa img) */
+#tool-clima1 { position: relative; }
+#tool-clima1 .card-icon { position: absolute; right: 14px; top: 5px; width: 64px; height: 64px; object-fit: contain; border-radius: 6px; }
+#tool-clima2 h3::after { content: ""; }          /* Clima FIBER (usa img) */
+#tool-clima2 { position: relative; }
+#tool-clima2 .card-icon { position: absolute; right: 14px; top: 5px; width: 64px; height: 64px; object-fit: contain; border-radius: 6px; }
+#tool-clima3 h3::after { content: ""; }          /* Clima3 Router (usa img) */
+#tool-clima3 { position: relative; }
+#tool-clima3 .card-icon { position: absolute; right: 14px; top: 5px; width: 64px; height: 64px; object-fit: contain; border-radius: 6px; }
+#tool-tvbox { position: relative; }
+#tool-tvbox .card-icon { position: absolute; right: 14px; top: -10px; width: 80px; height: 80px; object-fit: contain; border-radius: 6px; }
+#tool-longmeasure h3::after { content: ""; } /* Monitoring (usa img) */
+#tool-longmeasure { position: relative; grid-column: span 2; }
+#tool-longmeasure .card-icon { position: absolute; right: 25px; top: 5px; width: 40px; height: 64px; object-fit: contain; border-radius: 6px; }
+
+    /* Theme toggle button — by Loris Salerno | taasalo3 */
+    .theme-toggle {
+      padding: 6px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .theme-toggle svg {
+      width: 22px;
+      height: 22px;
+      color: var(--text);
+    }
+
+    /* Expand toggle button — by Loris Salerno | taasalo3 */
+    .expand-toggle {
+      padding: 6px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .expand-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .expand-toggle svg {
+      width: 20px;
+      height: 20px;
+      color: var(--text);
+    }
+
+    /* Language toggle button — by Loris Salerno | taasalo3 */
+    .lang-toggle {
+      padding: 6px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      position: relative;
+      z-index: 10;
+    }
+    .lang-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    /* Settings container */
+    .settings-container {
+      margin-left: auto;
+      position: relative;
+      display: inline-block;
+      z-index: 1000;
+    }
+    
+    /* Settings toggle button */
+    .settings-toggle {
+      padding: 6px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .settings-toggle:hover {
+      transform: scale(1.08) rotate(45deg);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .settings-toggle svg {
+      width: 20px;
+      height: 20px;
+      color: var(--text);
+    }
+    
+    /* Settings Popup */
+    .settings-popup {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.08);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 200px;
+    }
+    .settings-popup.show { display: flex; }
+    .settings-popup .popup-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      color: var(--accent-2);
+    }
+    .settings-popup label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      user-select: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .settings-popup label:hover {
+      background: var(--panel-2);
+    }
+  </style>
+</head>
+<!-- Firma: Loris Salerno | taasalo3 | 2026 -->
+<body data-author="Loris-Salerno" data-tool="SCT-taasalo3">
+  <div class="page-wrap" id="main-wrapper-taasalo3" data-build="LS-2026"><!-- watermark: proprietà Loris Salerno -->
+  <div class="header-row">
+    <img class="header-logo" src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt=""/>
+    <div class="header-text">
+      <h1>SCT TOOL V3.11</h1>
+      <div class="subtle">Semplifica in pochi click la tua analisi per i ticket oneItsm</div>
+    </div>
+    <div class="header-tools">
+      <div class="settings-container">
+        <button class="settings-toggle" id="settingsBtn" title="Impostazioni Tool">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+        <!-- Popup Impostazioni -->
+        <div class="settings-popup" id="settingsPopup">
+          <div class="popup-title">Visibilità Tool</div>
+          <label><input type="checkbox" id="chk-clima1" checked> <span id="lbl-clima1">Clima Copper</span></label>
+          <label><input type="checkbox" id="chk-clima2" checked> <span id="lbl-clima2">Clima Fiber</span></label>
+          <label><input type="checkbox" id="chk-clima3" checked> <span id="lbl-clima3">Clima3 Router</span></label>
+          <label><input type="checkbox" id="chk-tvbox" checked> <span id="lbl-tvbox">TV-BOX</span></label>
+          <label><input type="checkbox" id="chk-longmeasure" checked> <span id="lbl-longmeasure">Monitoring</span></label>
+        </div>
+      </div>
+      <button class="theme-toggle" id="themeBtn" title="Cambia tema">🌙</button>
+      <button class="lang-toggle" id="langBtn" title="Cambia lingua">IT</button>
+      <button class="expand-toggle" id="expandBtn" title="Espandi / Riduci">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Griglia tool — Loris Salerno | taasalo3 -->
+  <div class="grid">
+    <!-- Tool 1: Clima COPPER — Loris Salerno taasalo3 -->
+    <section class="card" id="tool-clima1" data-ls="loris-salerno">
+      <h3>Clima COPPER</h3>
+      <img class="card-icon" src="https://i.postimg.cc/RFypPRZh/rame.png" alt=""/>
+      <div class="row">
+        <button id="clima1-process">Elabora</button>
+        <button id="clima1-copy" class="secondary">Copia</button>
+        <button id="clima1-clear" class="danger" title="Svuota"><b>✕</b></button>
+      </div>
+      <textarea id="clima1-input" class="thin" placeholder="Incolla qui le informazioni..."></textarea>
+      <div id="clima1-output" class="output"></div>
+      <div id="clima1-status" class="status"></div>
+    </section>
+
+    <!-- Tool 2: Clima FIBER — Loris Salerno taasalo3 -->
+    <section class="card" id="tool-clima2" data-ls="loris-salerno">
+      <h3>Clima FIBER</h3>
+      <img class="card-icon" src="https://i.postimg.cc/1ttK1Njk/fibre.png" alt=""/>
+      <div class="row">
+        <button id="clima2-process">Elabora</button>
+        <button id="clima2-copy" class="secondary">Copia</button>
+        <button id="clima2-clear" class="danger" title="Svuota"><b>✕</b></button>
+      </div>
+      <textarea id="clima2-input" class="thin" placeholder="Incolla qui le informazioni..."></textarea>
+      <div id="clima2-output" class="output"></div>
+      <div id="clima2-status" class="status"></div>
+    </section>
+
+    <!-- Tool 5: Clima3 Router — Loris Salerno taasalo3 -->
+    <section class="card" id="tool-clima3" data-ls="loris-salerno">
+      <h3>Clima3 Router</h3>
+      <img class="card-icon" src="https://rcp.scsstatic.ch/content/dam/assets/b2c/products/internet/devices/ib5-pro-device-updated.png" alt=""/>
+      <div class="row">
+        <button id="c3-process">Elabora</button>
+        <button id="c3-copy" class="secondary">Copia</button>
+        <button id="c3-clear" class="danger" title="Svuota"><b>✕</b></button>
+      </div>
+      <div>
+        <textarea id="c3-clima" class="thin" placeholder="Incolla qui il testo CLIMA..."></textarea>
+      </div>
+      <div>
+        <textarea id="c3-speed" class="thin" placeholder="Incolla qui la riga di speed test..."></textarea>
+      </div>
+      <div id="c3-output" class="output pre"></div>
+      <div id="c3-status" class="status"></div>
+    </section>
+
+    <!-- Tool 4: TV-BOX — Loris Salerno taasalo3 -->
+    <section class="card" id="tool-tvbox" data-ls="loris-salerno">
+      <h3>TV-BOX</h3>
+      <img class="card-icon" src="https://media.swisscom.ch/6ca17793-d8c1-4304-84e0-b3630088429c/web/scs-11060154-de-180.png?width=400&height=400&format=webp&quality=90" alt=""/>
+      <div class="row">
+        <button id="tv-process">Elabora</button>
+        <button id="tv-copy" class="secondary">Copia</button>
+        <button id="tv-clear" class="danger" title="Svuota"><b>✕</b></button>
+      </div>
+      <textarea id="tv-src" class="thin" placeholder="Incolla qui il testo CLIMA3 o P42"></textarea>
+      <div id="tv-output" class="output pre"></div>
+      <div id="tv-status" class="status"></div>
+    </section>
+
+    <!-- Tool 3: Monitoring — Loris Salerno taasalo3 -->
+    <section class="card" id="tool-longmeasure" data-ls="loris-salerno">
+      <h3>Monitoring</h3>
+      <img class="card-icon" src="https://cdn-icons-png.freepik.com/512/5329/5329119.png" alt=""/>
+      <div class="row">
+        <button id="lm-process">Elabora</button>
+        <button id="lm-copy" class="secondary">Copia</button>
+        <button id="lm-clear" class="danger" title="Svuota"><b>✕</b></button>
+      </div>
+      <textarea id="lm-csv" class="thin" placeholder="Incolla qui il CSV o il testo Real-Time Diagnosis..."></textarea>
+      <div id="lm-spinner" class="spinner"></div>
+      <div id="lm-output" class="output pre"></div>
+      <div id="lm-status" class="status"></div>
+    </section>
+  </div>
+
+  <!-- Inizio script — Loris Salerno taasalo3 -->
+  <script>
+    // ---- Theme toggle — Loris Salerno | taasalo3 ----
+    (function(){
+      /* watermark: Loris Salerno — taasalo3 */
+      const btn = document.getElementById('themeBtn');
+      const body = document.body;
+      const moonSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      const sunSvg  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+      // Ripristina il tema salvato (default: light)
+      const saved = localStorage.getItem('sct-theme');
+      if (saved === 'dark') {
+        body.classList.add('dark');
+      }
+      function updateBtn() {
+        btn.innerHTML = body.classList.contains('dark') ? moonSvg : sunSvg;
+      }
+      btn.addEventListener('click', () => {
+        body.classList.toggle('dark');
+        localStorage.setItem('sct-theme', body.classList.contains('dark') ? 'dark' : 'light');
+        updateBtn();
+      });
+      updateBtn();
+    })();
+
+    // ---- Expand / Collapse toggle — Loris Salerno | taasalo3 ----
+    (function(){
+      const btn = document.getElementById('expandBtn');
+      const wrap = document.getElementById('main-wrapper-taasalo3');
+      const expandSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+      const collapseSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+      // Restore saved state
+      const saved = localStorage.getItem('sct-expanded');
+      if (saved === '1') {
+        wrap.classList.add('expanded');
+      }
+      function updateBtn() {
+        btn.innerHTML = wrap.classList.contains('expanded') ? collapseSvg : expandSvg;
+      }
+      updateBtn();
+
+      const DURATION = 500;
+
+      btn.addEventListener('click', () => {
+        if (wrap.classList.contains('expanded')) {
+          // === COLLAPSE ===
+          // Step 1: lock current width, switch grid to 2-col FIRST
+          const currentWidth = wrap.offsetWidth;
+          wrap.style.maxWidth = currentWidth + 'px';
+          void wrap.offsetWidth; // force reflow
+          wrap.classList.remove('expanded');
+          updateBtn();
+          // Step 2: after grid snaps to 2-col, animate width down to CSS value (900px)
+          setTimeout(() => {
+            wrap.style.maxWidth = '900px';
+          }, 30);
+          localStorage.setItem('sct-expanded', '0');
+        } else {
+          // === EXPAND ===
+          // Step 1: lock current width, switch grid to auto-fit FIRST
+          const currentWidth = wrap.offsetWidth;
+          wrap.style.maxWidth = currentWidth + 'px';
+          void wrap.offsetWidth; // force reflow
+          wrap.classList.add('expanded');
+          updateBtn();
+          // Step 2: animate width to full viewport
+          setTimeout(() => {
+            wrap.style.maxWidth = '100vw';
+          }, 30);
+          localStorage.setItem('sct-expanded', '1');
+        }
+      });
+    })();
+
+    // ---- i18n translations — Loris Salerno | taasalo3 ----
+    const i18n = {
+      // Header
+      subtitle: {
+        it: 'Semplifica in pochi click la tua analisi per i ticket oneItsm',
+        de: 'Vereinfacht Ihre Analyse für oneItsm-Tickets mit wenigen Klicks',
+        fr: 'Simplifiez votre analyse pour les tickets oneItsm en quelques clics',
+        en: 'Simplifies your analysis for oneItsm tickets in a few clicks'
+      },
+      // Tool titles
+      titleClimaCopper: {
+        it: 'Clima RAME', de: 'Clima COPPER', fr: 'Clima COPPER', en: 'Clima COPPER'
+      },
+      titleClimaFiber: {
+        it: 'Clima FIBRA', de: 'Clima FIBER', fr: 'Clima FIBER', en: 'Clima FIBER'
+      },
+      titleClima3: {
+        it: 'Clima3 Router', de: 'Clima3 Router', fr: 'Clima3 Router', en: 'Clima3 Router'
+      },
+      titleTvBox: {
+        it: 'TV-BOX', de: 'TV-BOX', fr: 'TV-BOX', en: 'TV-BOX'
+      },
+      titleMonitoring: {
+        it: 'Monitoring', de: 'Monitoring', fr: 'Monitoring', en: 'Monitoring'
+      },
+      // Button labels
+      btnProcess: {
+        it: 'Elabora', de: 'Verarbeiten', fr: 'Traiter', en: 'Process'
+      },
+      btnProcessCSV: {
+        it: 'Elabora', de: 'Verarbeiten', fr: 'Traiter', en: 'Process'
+      },
+      btnCopy: {
+        it: 'Copia', de: 'Kopieren', fr: 'Copier', en: 'Copy'
+      },
+      btnClear: {
+        it: 'Svuota', de: 'Leeren', fr: 'Vider', en: 'Clear'
+      },
+      // Placeholders
+      phPasteInfo: {
+        it: 'Incolla qui le informazioni...',
+        de: 'Informationen hier einfügen...',
+        fr: 'Collez les informations ici...',
+        en: 'Paste the information here...'
+      },
+      phPasteClima: {
+        it: 'Incolla qui il testo CLIMA...',
+        de: 'CLIMA-Text hier einfügen...',
+        fr: 'Collez le texte CLIMA ici...',
+        en: 'Paste the CLIMA text here...'
+      },
+      phPasteSpeed: {
+        it: 'Incolla qui la riga di speed test...',
+        de: 'Speedtest-Zeile hier einfügen...',
+        fr: 'Collez la ligne de test de vitesse ici...',
+        en: 'Paste the speed test line here...'
+      },
+      phPasteClimaTv: {
+        it: 'Incolla qui il testo CLIMA3 o P42',
+        de: 'CLIMA-Text hier einfügen',
+        fr: 'Collez le texte CLIMA ici',
+        en: 'Paste the CLIMA text here'
+      },
+      phPasteCsv: {
+        it: 'Incolla qui il CSV o il testo Real-Time Diagnosis...',
+        de: 'Exportierte CSV oder Real-Time-Diagnose-Text hier einfügen...',
+        fr: 'Collez le CSV ou le texte de diagnostic en temps réel ici...',
+        en: 'Paste CSV or Real-Time Diagnosis text here...'
+      },
+      // Status messages — generic
+      stTextReady: {
+        it: 'Testo pronto. Clicca "Elabora".',
+        de: 'Text bereit. Klicken Sie auf "Verarbeiten".',
+        fr: 'Texte prêt. Cliquez sur "Traiter".',
+        en: 'Text ready. Click "Process".'
+      },
+      stNothingProcess: {
+        it: 'Niente da elaborare. Incolla prima il testo.',
+        de: 'Nichts zu verarbeiten. Fügen Sie zuerst den Text ein.',
+        fr: 'Rien à traiter. Collez d\'abord le texte.',
+        en: 'Nothing to process. Paste the text first.'
+      },
+      stNothingProcessGeneric: {
+        it: 'Niente da elaborare.',
+        de: 'Nichts zu verarbeiten.',
+        fr: 'Rien à traiter.',
+        en: 'Nothing to process.'
+      },
+      stDone: {
+        it: 'Fatto.',
+        de: 'Fertig.',
+        fr: 'Terminé.',
+        en: 'Done.'
+      },
+      stError: {
+        it: 'Errore', de: 'Fehler', fr: 'Erreur', en: 'Error'
+      },
+      stNothingCopy: {
+        it: 'Niente da copiare.',
+        de: 'Nichts zu kopieren.',
+        fr: 'Rien à copier.',
+        en: 'Nothing to copy.'
+      },
+      stNothingCopyElaborate: {
+        it: 'Niente da copiare: elabora prima.',
+        de: 'Nichts zu kopieren: zuerst verarbeiten.',
+        fr: 'Rien à copier: traitez d\'abord.',
+        en: 'Nothing to copy: process first.'
+      },
+      stResultCopied: {
+        it: 'Risultato copiato negli appunti.',
+        de: 'Ergebnis in die Zwischenablage kopiert.',
+        fr: 'Résultat copié dans le presse-papiers.',
+        en: 'Result copied to clipboard.'
+      },
+      stCopyFailed: {
+        it: 'Copia non riuscita.',
+        de: 'Kopieren fehlgeschlagen.',
+        fr: 'Échec de la copie.',
+        en: 'Copy failed.'
+      },
+      stCleared: {
+        it: 'Cancellato.',
+        de: 'Gelöscht.',
+        fr: 'Effacé.',
+        en: 'Cleared.'
+      },
+      // Status — Monitoring / CSV specific
+      stCsvReady: {
+        it: 'Testo pronto. Clicca "Elabora".',
+        de: 'Text bereit. Klicken Sie auf "Verarbeiten".',
+        fr: 'Texte prêt. Cliquez sur "Traiter".',
+        en: 'Text ready. Click "Process".'
+      },
+      stNothingProcessCsv: {
+        it: 'Niente da elaborare. Incolla prima il testo.',
+        de: 'Nichts zu verarbeiten. Fügen Sie zuerst den Text ein.',
+        fr: 'Rien à traiter. Collez d\'abord le texte.',
+        en: 'Nothing to process. Paste the text first.'
+      },
+      stProcessing: {
+        it: 'Elaboro...', de: 'Verarbeite...', fr: 'Traitement...', en: 'Processing...'
+      },
+      stParsingError: {
+        it: 'Errore di parsing', de: 'Parsing-Fehler', fr: 'Erreur d\'analyse', en: 'Parsing error'
+      },
+      // Status — Clima3 specific
+      stClimaReady: {
+        it: 'Clima pronto.', de: 'Clima bereit.', fr: 'Clima prêt.', en: 'Clima ready.'
+      },
+      stSpeedReady: {
+        it: 'Speed test pronto.', de: 'Speedtest bereit.', fr: 'Test de vitesse prêt.', en: 'Speed test ready.'
+      },
+      // Status — TV-Box specific
+      stFoundDevices: {
+        it: 'Trovati', de: 'Gefunden', fr: 'Trouvés', en: 'Found'
+      },
+      stTvBox: {
+        it: 'TV-Box', de: 'TV-Box', fr: 'TV-Box', en: 'TV-Box'
+      },
+      // Title attributes
+      titleClear: {
+        it: 'Svuota', de: 'Leeren', fr: 'Vider', en: 'Clear'
+      },
+      titleTheme: {
+        it: 'Cambia tema', de: 'Thema wechseln', fr: 'Changer de thème', en: 'Toggle theme'
+      },
+      titleLang: {
+        it: 'Cambia lingua', de: 'Sprache wechseln', fr: 'Changer de langue', en: 'Change language'
+      },
+      titleSettings: {
+        it: 'Impostazioni Tool', de: 'Werkzeugeinstellungen', fr: 'Paramètres des outils', en: 'Tool settings'
+      },
+      titleSettingsPopup: {
+        it: 'Visibilità Tool', de: 'Sichtbarkeit der Werkzeuge', fr: 'Visibilité des outils', en: 'Tool visibility'
+      },
+      lblClimaCopper: {
+        it: 'Clima Copper', de: 'Clima Copper', fr: 'Clima Copper', en: 'Clima Copper'
+      },
+      lblClimaFiber: {
+        it: 'Clima Fiber', de: 'Clima Fiber', fr: 'Clima Fiber', en: 'Clima Fiber'
+      },
+      lblClima3: {
+        it: 'Clima3 Router', de: 'Clima3 Router', fr: 'Clima3 Routeur', en: 'Clima3 Router'
+      },
+      lblTvBox: {
+        it: 'TV-BOX', de: 'TV-BOX', fr: 'TV-BOX', en: 'TV-BOX'
+      },
+      lblMonitoring: {
+        it: 'Monitoring', de: 'Monitoring', fr: 'Monitoring', en: 'Monitoring'
+      }
+    };
+
+    // Initialize language from localStorage ASAP so __() and applyTranslations() can use it
+    const _savedLang = localStorage.getItem('sct-lang') || 'it';
+    window.__sctLang = function() { return _savedLang; };
+
+    window.__ = function(key) {
+      const lang = window.__sctLang ? window.__sctLang() : 'it';
+      const entry = i18n[key];
+      if (!entry) return key;
+      return entry[lang] || entry['it'] || key;
+    };
+
+    function applyTranslations() {
+      const lang = window.__sctLang ? window.__sctLang() : 'it';
+      console.log('[SCT] applyTranslations chiamata, lang:', lang);
+
+      // Header subtitle
+      const subtitleEl = document.querySelector('.header-text .subtle');
+      if (subtitleEl) subtitleEl.textContent = __('subtitle');
+
+      // Tool titles
+      const tClima1 = document.querySelector('#tool-clima1 h3');
+      if (tClima1) tClima1.childNodes[0].textContent = ' ' + __('titleClimaCopper');
+      const tClima2 = document.querySelector('#tool-clima2 h3');
+      if (tClima2) tClima2.childNodes[0].textContent = ' ' + __('titleClimaFiber');
+      const tClima3 = document.querySelector('#tool-clima3 h3');
+      if (tClima3) tClima3.childNodes[0].textContent = ' ' + __('titleClima3');
+      const tTvBox = document.querySelector('#tool-tvbox h3');
+      if (tTvBox) tTvBox.childNodes[0].textContent = ' ' + __('titleTvBox');
+      const tMon = document.querySelector('#tool-longmeasure h3');
+      if (tMon) tMon.childNodes[0].textContent = ' ' + __('titleMonitoring');
+
+      // Button labels — Clima COPPER
+      const b1p = document.getElementById('clima1-process');
+      if (b1p) b1p.textContent = __('btnProcess');
+      const b1c = document.getElementById('clima1-copy');
+      if (b1c) b1c.textContent = __('btnCopy');
+      const b1x = document.getElementById('clima1-clear');
+      if (b1x) b1x.title = __('titleClear');
+
+      // Button labels — Clima FIBER
+      const b2p = document.getElementById('clima2-process');
+      if (b2p) b2p.textContent = __('btnProcess');
+      const b2c = document.getElementById('clima2-copy');
+      if (b2c) b2c.textContent = __('btnCopy');
+      const b2x = document.getElementById('clima2-clear');
+      if (b2x) b2x.title = __('titleClear');
+
+      // Button labels — Clima3 Router
+      const b3p = document.getElementById('c3-process');
+      if (b3p) b3p.textContent = __('btnProcess');
+      const b3c = document.getElementById('c3-copy');
+      if (b3c) b3c.textContent = __('btnCopy');
+      const b3x = document.getElementById('c3-clear');
+      if (b3x) b3x.title = __('titleClear');
+
+      // Button labels — TV-Box
+      const b4p = document.getElementById('tv-process');
+      if (b4p) b4p.textContent = __('btnProcess');
+      const b4c = document.getElementById('tv-copy');
+      if (b4c) b4c.textContent = __('btnCopy');
+      const b4x = document.getElementById('tv-clear');
+      if (b4x) b4x.title = __('titleClear');
+
+      // Button labels — Monitoring
+      const b5p = document.getElementById('lm-process');
+      if (b5p) b5p.textContent = __('btnProcess');
+      const b5c = document.getElementById('lm-copy');
+      if (b5c) b5c.textContent = __('btnCopy');
+      const b5x = document.getElementById('lm-clear');
+      if (b5x) b5x.title = __('titleClear');
+
+      // Placeholders
+      const p1 = document.getElementById('clima1-input');
+      if (p1) p1.placeholder = __('phPasteInfo');
+      const p2 = document.getElementById('clima2-input');
+      if (p2) p2.placeholder = __('phPasteInfo');
+      const p3a = document.getElementById('c3-clima');
+      if (p3a) p3a.placeholder = __('phPasteClima');
+      const p3b = document.getElementById('c3-speed');
+      if (p3b) p3b.placeholder = __('phPasteSpeed');
+      const p4 = document.getElementById('tv-src');
+      if (p4) p4.placeholder = __('phPasteClimaTv');
+      const p5 = document.getElementById('lm-csv');
+      if (p5) p5.placeholder = __('phPasteCsv');
+
+      // Theme button title
+      const themeBtn = document.getElementById('themeBtn');
+      if (themeBtn) themeBtn.title = __('titleTheme');
+
+      // Lang button title
+      const langBtn = document.getElementById('langBtn');
+      if (langBtn) langBtn.title = __('titleLang');
+
+      // Settings translations
+      const settingsBtn = document.getElementById('settingsBtn');
+      if (settingsBtn) settingsBtn.title = __('titleSettings');
+      
+      const popupTitleEl = document.querySelector('.settings-popup .popup-title');
+      if (popupTitleEl) popupTitleEl.textContent = __('titleSettingsPopup');
+
+      const lblClima1 = document.getElementById('lbl-clima1');
+      if (lblClima1) lblClima1.textContent = __('lblClimaCopper');
+      const lblClima2 = document.getElementById('lbl-clima2');
+      if (lblClima2) lblClima2.textContent = __('lblClimaFiber');
+      const lblClima3 = document.getElementById('lbl-clima3');
+      if (lblClima3) lblClima3.textContent = __('lblClima3');
+      const lblTvBox = document.getElementById('lbl-tvbox');
+      if (lblTvBox) lblTvBox.textContent = __('lblTvBox');
+      const lblMon = document.getElementById('lbl-longmeasure');
+      if (lblMon) lblMon.textContent = __('lblMonitoring');
+    }
+
+    // ---- Language toggle — Loris Salerno | taasalo3 ----
+    (function(){
+      const langBtn = document.getElementById('langBtn');
+      const langs = ['it', 'de', 'fr', 'en'];
+      const langLabels = { it: 'IT', de: 'DE', fr: 'FR', en: 'EN' };
+      // Read the already-initialized lang from window.__sctLang
+      let currentLang = window.__sctLang ? window.__sctLang() : 'it';
+
+      function setLang(lang) {
+        currentLang = lang;
+        langBtn.textContent = langLabels[lang];
+        localStorage.setItem('sct-lang', lang);
+        document.documentElement.lang = lang;
+        // Update the global getter so __() returns the right language
+        window.__sctLang = function() { return currentLang; };
+        if (typeof applyTranslations === 'function') applyTranslations();
+      }
+
+      langBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = langs.indexOf(currentLang);
+        const next = langs[(idx + 1) % langs.length];
+        setLang(next);
+        console.log('[SCT] Lingua cambiata in:', next);
+      });
+
+      // Apply saved language on load (updates button text and translations)
+      setLang(currentLang);
+    })();
+
+    // ---- Utilità globali semplici — Loris Salerno taasalo3 ----
+    /* watermark: proprietà Loris Salerno */
+    async function copyTextToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select(); ta.setSelectionRange(0, ta.value.length);
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch {
+          return false;
+        }
+      }
+    }
+
+
+
+
+
+// =========================
+// Tool 1: Clima COPPER – versione legacy (revL2)
+// =========================
+// Loris Salerno — taasalo3 — watermark
+(function initClima1(){
+  const inputEl = document.getElementById('clima1-input');
+  const outEl   = document.getElementById('clima1-output');
+  const statusEl= document.getElementById('clima1-status');
+
+  // FIX Windows Chrome freeze: salva testo in variabile JS, non nel textarea
+  /* watermark: variabili LS */
+  let _rawDataLS = '';
+  inputEl.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text || !text.trim()) return;
+    _rawDataLS = text;
+    inputEl.value = `\u2714 ${__('stTextReady')}`;
+    statusEl.textContent = __('stTextReady');
+  });
+
+  document.getElementById('clima1-process').addEventListener('click', () => {
+    try {
+      inputEl.style.display = 'none';
+      const input = _rawDataLS || (inputEl.value || '');
+      if (!input.trim() || input.startsWith('\u2714')) {
+        if (!_rawDataLS) {
+          statusEl.textContent = __('stNothingProcess');
+          outEl.textContent = '';
+          inputEl.focus();
+          return;
+        }
+      }
+      let inputText = _rawDataLS || input;
+      // Rimuovo l'intestazione del menu che confonde la ricerca di Access ID e NSN
+      inputText = inputText.replace(/Dial Number \/ NSN \/ Access ID[^\n\r]*/gi, '');
+      if (!inputText.trim()) {
+        statusEl.textContent = __('stNothingProcessGeneric');
+        outEl.textContent = '';
+        inputEl.focus();
+        return;
+      }
+
+      let output = '';
+
+      // --- Helpers legacy + fallback riga successiva — Loris Salerno ---
+      /* taasalo3 */
+      function extractInfo(text, startStr, startOffset, length) {
+        const startIndex = text.indexOf(startStr);
+        if (startIndex === -1) return 'xxxxx';
+        const from = startIndex + startOffset;
+        if (from < 0 || from >= text.length) return 'xxxxx';
+        const len = Math.max(0, length || 0);
+        const chunk = text.substr(from, len).trim();
+        return chunk || 'xxxxx';
+      }
+
+      function firstNonEmptyLineAfter(text, from) {
+        const after = text.slice(from);
+        const lines = after.split(/\r?\n/);
+        for (const l of lines) {
+          const t = l.trim();
+          if (t) return t;
+        }
+        return 'xxxxx';
+      }
+
+      // come il vecchio calcolo ma se non trova l'endMarker prende la prima riga non vuota
+      function extractBetween(text, startStr, startOffset, endMarker) {
+        const sIdx = text.indexOf(startStr);
+        if (sIdx === -1) return 'xxxxx';
+        const from = sIdx + startOffset;
+        if (from < 0 || from >= text.length) return 'xxxxx';
+        const eIdx = endMarker ? text.indexOf(endMarker, from) : -1;
+        if (eIdx !== -1) {
+          return (text.slice(from, eIdx).trim() || 'xxxxx');
+        }
+        // fallback: valore su riga successiva
+        return firstNonEmptyLineAfter(text, from);
+      }
+
+      // Fallback mirato per il Router — Loris Salerno taasalo3
+      function extractRouterTypeSmart(text) {
+        const rIdx = text.indexOf('Router');
+        const start = rIdx !== -1 ? rIdx : 0;
+        const chunk = text.slice(start, Math.min(text.length, start + 600));
+        // "Type/Manufacturer" su riga e valore sulla/e riga/e successive
+        let m = chunk.match(/Type\/Manufacturer[^\n\r]*\n+([^\n\r|]+)(?:\s*\|[^\n\r]*)?/i);
+        if (m && m[1]) return m[1].trim();
+        // Variante con valore sulla stessa riga dopo ":"
+        m = chunk.match(/Type\/Manufacturer\s*:\s*([^\n\r|]+)(?:\s*\|[^\n\r]*)?/i);
+        if (m && m[1]) return m[1].trim();
+        return 'xxxxx';
+      }
+
+      function extractFirmwareSmart(text) { /* by Loris Salerno */
+        const rIdx = text.indexOf('Router');
+        const start = rIdx !== -1 ? rIdx : 0;
+        const chunk = text.slice(start, Math.min(text.length, start + 600));
+        let m = chunk.match(/Firmware Version[^\n\r]*\n+([^\n\r]+)/i);
+        if (m && m[1]) return m[1].trim();
+        m = text.match(/Firmware Version\s*:\s*([^\n\r]+)/i);
+        if (m && m[1]) return m[1].trim();
+        return 'xxxxx';
+      }
+
+      function extractLastContactSmart(text) { /* by Loris Salerno — Last Contact per Status Offline */
+        let m = text.match(/HDM Last Contact\s*[:\s]*\n+\s*([^\n\r]+)/i);
+        if (m && m[1]) return m[1].trim();
+        m = text.match(/HDM Last Contact\s*[:\s]*([^\n\r]+)/i);
+        if (m && m[1]) {
+          const v = m[1].trim().replace(/^[:\s]+/, '');
+          if (v) return v;
+        }
+        const idx = text.indexOf('HDM Last Contact');
+        if (idx !== -1) {
+          const after = text.slice(idx + 'HDM Last Contact'.length);
+          const lines = after.split(/\r?\n/);
+          for (const l of lines) {
+            const t = (l || '').trim().replace(/^[:\s]+/, '');
+            if (t) return t;
+          }
+        }
+        return '';
+      }
+
+      // --- Clima ---
+      const accessId = extractInfo(inputText, 'Access ID', 11, 17);
+      const nsn      = extractInfo(inputText, 'NSN', 4, 13);
+      output += `Clima: ( ${accessId} - ${nsn} )\n`;
+
+      // --- Router ---
+      let routerType = extractBetween(inputText, 'Type/Manufacturer', 18, '| A');
+      if (routerType === 'xxxxx') {
+        routerType = extractRouterTypeSmart(inputText);
+      }
+
+      let firstContact = 'xxxxx';
+      const fcMatch = inputText.match(/HDM Activation\/First Contact\s*[:\s]\s*([^\s\r\n|]+)/i);
+      if (fcMatch) {
+        firstContact = fcMatch[1].trim();
+      }
+
+      let firmware = extractBetween(inputText, 'Firmware Version', 17, 'HDM Activation');
+      if (firmware === 'xxxxx') {
+        firmware = extractFirmwareSmart(inputText);
+      }
+
+      // costruzione riga router: ometti "1° Contact" se mancante
+      let routerLine = `  >Router ${routerType}`;
+      if (firstContact && firstContact !== 'xxxxx') {
+        routerLine += ` - 1° Contact ${firstContact}`;
+      }
+      if (firmware && firmware !== 'xxxxx') {
+        routerLine += ` - FW ${firmware}`;
+      }
+      output += routerLine + '\n';
+
+      // --- Status --- (con Last Contact se Offline — Loris Salerno)
+      const portStatus = extractInfo(inputText, 'Port Status', 0, 20);
+      const isOnline = portStatus.includes('Up');
+      const status = isOnline ? 'Online' : 'Offline';
+      if (!isOnline) {
+        const lastContact = extractLastContactSmart(inputText);
+        if (lastContact) {
+          output += `  >Status: ${status} (Last Contact ${lastContact})\n`;
+        } else {
+          output += `  >Status: ${status}\n`;
+        }
+      } else {
+        output += `  >Status: ${status}\n`;
+      }
+
+      // --- LQS e Shaping ---
+      const lqsMaxSpeed = extractBetween(inputText, 'LQS Max', 13, 'NA Max');
+      output += `  >LQS Max Speed ${lqsMaxSpeed}\n`;
+
+      const shapingSpeed = extractBetween(inputText, 'Shaping', 15, 'LQS Max');
+      output += `  >Shaping Speed ${shapingSpeed}\n`;
+
+      // --- TNM ---
+      const tnm = extractInfo(inputText, 'G.INP Noise Margin', 19, 5);
+      output += `  >TNM ${tnm}\n`;
+
+      // --- Access Technology + Line Length (euristiche legacy) ---
+      let accessTechRaw = extractBetween(inputText, 'Access Technology', 17, 'Possible Access');
+      const lineLength = extractBetween(inputText, 'Line Length', 12, ' m | PTA');
+
+      let accessTech = '';
+      if (accessTechRaw.includes('VDSL') || accessTechRaw.includes('Vectoring')) {
+        accessTech = 'Vectoring';
+      } else if (accessTechRaw.includes('G.fast')) {
+        accessTech = 'G.fast';
+      } else {
+        // Access Technology è N/A: decide in base alla velocità LQS Max Speed
+        const lqsMatch = lqsMaxSpeed.match(/(\d+)/);
+        const lqsDownload = lqsMatch ? parseInt(lqsMatch[1]) : 0;
+        if (lqsDownload > 0 && lqsDownload < 300) {
+          accessTech = 'Vectoring';
+        } else if (inputText.includes('Spec_VDSL2_FAST') && parseInt(lineLength) < 300) {
+          accessTech = 'G.fast';
+        } else {
+          accessTech = 'G.fast';
+        }
+      }
+      output += `  >${accessTech} (${lineLength}m)\n`;
+
+      // --- Line (In/Out) ---
+      const inOut = extractInfo(inputText, 'In/Out', 0, 50);
+      const line = inOut.includes('GS') ? 'GS' : 'Underground';
+      output += `  >Line: ${line}\n`;
+
+      // --- Footer ---
+      output += `  >Access ok/nok\n`;
+      output += `   • Melt ok/nok\n`;
+      output += `   • Bridgetap no/yes`;
+
+      outEl.textContent = output;
+      statusEl.textContent = __('stDone');
+    } catch (e) {
+      console.error(e);
+      statusEl.textContent = __('stError') + ': ' + (e.message || e);
+    }
+  });
+
+  document.getElementById('clima1-copy').addEventListener('click', async () => {
+    const t = outEl.textContent || '';
+    if (!t.trim()) { statusEl.textContent = __('stNothingCopy'); return; }
+    const ok = await copyTextToClipboard(t);
+    statusEl.textContent = ok ? __('stResultCopied') : __('stCopyFailed');
+  });
+
+  document.getElementById('clima1-clear').addEventListener('click', () => {
+    _rawDataLS = '';
+    inputEl.value = '';
+    inputEl.style.display = '';
+    outEl.textContent = '';
+    statusEl.textContent = __('stCleared');
+    inputEl.focus();
+  });
+})();
+
+// =========================
+// Tool 2: Informazioni Clima (FIBRA) – revF1
+// =========================
+// Loris Salerno — taasalo3 — watermark
+(function initClima2(){
+  const inputEl = document.getElementById('clima2-input');
+  const outEl   = document.getElementById('clima2-output');
+  const statusEl= document.getElementById('clima2-status');
+
+  /* watermark: variabili LS */
+  let _rawDataLS = '';
+  inputEl.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text || !text.trim()) return;
+    _rawDataLS = text;
+    inputEl.value = `\u2714 ${__('stTextReady')}`;
+    statusEl.textContent = __('stTextReady');
+  });
+
+  const clearBtnLS = document.getElementById('clima2-clear') || document.getElementById('clima2-delete');
+  if (clearBtnLS) {
+    clearBtnLS.type = clearBtnLS.type || 'button';
+    clearBtnLS.addEventListener('click', (e) => {
+      e.preventDefault();
+      _rawDataLS = '';
+      inputEl.value = '';
+      inputEl.style.display = '';
+      outEl.textContent = '';
+      statusEl.textContent = __('stCleared');
+      inputEl.focus();
+    });
+  } else {
+    console.warn('Bottone clear/delete di Clima2 non trovato.');
+  }
+
+  document.getElementById('clima2-process').addEventListener('click', () => {
+    try {
+      inputEl.style.display = 'none';
+      const rawVal = _rawDataLS || (inputEl.value || '');
+      if (!rawVal.trim() || (rawVal.startsWith('\u2714') && !_rawDataLS)) {
+        outEl.textContent = '';
+        statusEl.textContent = __('stNothingProcess');
+        inputEl.focus();
+        return;
+      }
+      let input = (_rawDataLS || rawVal).replace(/\r\n/g, '\n');
+      // Rimuovo l'intestazione del menu che confonde la ricerca di Access ID e OTO ID
+      input = input.replace(/Dial Number \/ NSN \/ Access ID[^\n\r]*/gi, '');
+
+      if (!/\S/.test(input)) {
+        outEl.textContent = '';
+        statusEl.textContent = __('stNothingProcessGeneric');
+        inputEl.focus();
+        return;
+      }
+
+      let output = '';
+
+      const subAccess = getValueAfterLabel(input, 'Subscriber/Access');
+      const rawAccessId = getValueAfterLabel(input, 'Access ID');
+      // Su AC9/AC0 il campo "Subscriber/Access" non contiene l'Access ID corretto
+      // (può essere SCN numerico o OTO ID con prefisso B.), quindi lo usiamo
+      // solo se non è AC9/AC0. Per AC9/AC0 usiamo sempre "Access ID".
+      const isAc9orAc0 = /AC9|AC0/i.test(input);
+      const accessId = firstNonEmpty(
+        (isAc9orAc0 ? '' : subAccess),
+        rawAccessId
+      ) || 'N/A';
+
+      const otoId = getValueAfterLabel(input, 'OTO ID') || 'N/A';
+      output += `Clima: ( ${accessId} - ${otoId} )\n`;
+
+      const routerSection = getSection(input, 'Router', [
+        'ONT Type/Manufacturer',
+        'Access Infrastructure Availability',
+        'OTO/Fiber Details'
+      ]);
+
+      const routerTypeFull = getValueAfterLabel(routerSection, 'Type/Manufacturer') || '';
+      const routerType = routerTypeFull ? routerTypeFull.split('|')[0].trim() : 'N/A';
+      const firmware = getValueAfterLabel(routerSection, 'Firmware Version') || 'N/A';
+
+      let firstContact = 'N/A';
+      const fcMatch = routerSection.match(/HDM Activation\/First Contact\s*[:\s]\s*([^\s\r\n|]+)/i);
+      if (fcMatch) {
+        firstContact = fcMatch[1].trim();
+      }
+
+      output += `  >Router ${routerType || 'N/A'} - 1° Contact ${firstContact || 'N/A'}  - FW ${firmware || 'N/A'}\n`;
+
+      const isUp = /Virtual Port Status\s*(?::)?\s*(?:\n|\r\n)*\s*Up/i.test(input) || /Status\s*(?::)?\s*(?:\n|\r\n)*\s*Up/i.test(input);
+
+      if (isUp) {
+        output += `  >Status: Online\n`;
+        const tx = getOntOptical(input, 'TX Power');
+        const rx = getOntOptical(input, 'RX Power');
+        output += `  >TX Power : ${tx ? tx + ' dBm' : 'N/A'}\n`;
+        output += `  >RX Power : ${rx ? rx + ' dBm' : 'N/A'}\n`;
+      } else {
+        const lastContact = getValueAfterLabel(routerSection, 'HDM Last Contact') || getValueAfterLabel(input, 'HDM Last Contact') || 'N/A';
+        if (lastContact && lastContact !== 'N/A') {
+          output += `  >Status: Offline (Last Contact ${lastContact})\n`;
+        } else {
+          output += `  >Status: Offline\n`;
+        }
+      }
+
+      if (/AC9/i.test(input)) {
+        output += `  >Performance History: ok/nok\n`;
+      }
+
+      if (/AC9|AC0/i.test(input)) {
+        // Estrai tutte le osservazioni tra "Observations" e "Power Autonomy"
+        const obsMatch = input.match(/Observations\s*\n([\s\S]*?)\n\s*Power Autonomy/i);
+        if (obsMatch) {
+          const obsLines = obsMatch[1].split('\n')
+            .map(l => l.trim())
+            .filter(l => l.length > 0)
+            .map(l => l.replace(/\s+since\s+\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}\s*$/i, '').trim())
+            .filter(l => l.length > 0);
+          if (obsLines.length > 0) {
+            output += `  >Observation:\n`;
+            for (const obs of obsLines) {
+              output += `   • ${obs}\n`;
+            }
+          }
+        }
+      }
+
+      outEl.textContent = output;
+      statusEl.textContent = __('stDone');
+    } catch (e) {
+      console.error(e);
+      statusEl.textContent = __('stError') + ': ' + (e.message || e);
+    }
+  });
+
+  document.getElementById('clima2-copy').addEventListener('click', async () => {
+    const t = outEl.textContent || '';
+    if (!t.trim()) { statusEl.textContent = __('stNothingCopy'); return; }
+    const ok = await copyTextToClipboard(t);
+    statusEl.textContent = ok ? __('stResultCopied') : __('stCopyFailed');
+  });
+
+  /* watermark: Loris Salerno taasalo3 */
+  function firstNonEmpty(...vals) {
+    for (const v of vals) {
+      if (v && String(v).trim()) return String(v).trim();
+    }
+    return '';
+  }
+
+  /* by Loris Salerno */
+  function getSection(text, startMarker, endMarkers = []) {
+    if (!text) return '';
+    const startIdx = text.indexOf(startMarker);
+    if (startIdx === -1) return '';
+    let endIdx = -1;
+    for (const end of endMarkers) {
+      const i = text.indexOf(end, startIdx + startMarker.length);
+      if (i !== -1) endIdx = endIdx === -1 ? i : Math.min(endIdx, i);
+    }
+    if (endIdx === -1) endIdx = Math.min(text.length, startIdx + 5000);
+    return text.slice(startIdx, endIdx);
+  }
+
+  /* taasalo3 — Loris Salerno */
+  function getValueAfterLabel(text, label) {
+    if (!text) return '';
+    const idx = text.indexOf(label);
+    if (idx === -1) return '';
+    const after = text.slice(idx + label.length);
+    const eol = after.indexOf('\n');
+    const sameLine = (eol === -1 ? after : after.slice(0, eol)).replace(/^[\s:]+/, '').trim();
+    if (sameLine) return sameLine;
+    const rest = eol === -1 ? '' : after.slice(eol + 1);
+    const lines = rest.split('\n');
+    for (const l of lines) {
+      const t = (l || '').trim();
+      if (t) return t;
+    }
+    return '';
+  }
+
+  /* Loris Salerno | taasalo3 */
+  function getOntOptical(text, key) {
+    // 1. Prova con le sezioni originali
+    let region = getSection(text, 'Optical State ONT (Router)', [
+      'Optical State OLT',
+      'OLT (NG-FAN)',
+      'NG-FAN Virtual Port Status',
+      'Performance Stats'
+    ]);
+    let m = region && region.match(new RegExp(`${escapeReg(key)}\\s*:\\s*([+-]?\\d+(?:\\.\\d+)?)\\s*dBm`, 'i'));
+    if (m) return m[1];
+
+    if (!m) {
+      region = getSection(text, 'ONT (Router)', [
+        'OLT (NG-FAN)',
+        'Performance Stats',
+        'Optical State OLT'
+      ]);
+      m = region && region.match(new RegExp(`${escapeReg(key)}\\s*(?::)?\\s*(?:\\n|\\r\\n)*\\s*([+-]?\\d+(?:\\.\\d+)?)\\s*dBm`, 'i'));
+      if (m) return m[1];
+    }
+    
+    // 2. Fallback: cerca in tutto il testo se c'è la key seguita da un valore dBm 
+    // Gestisce anche ritorni a capo come nel copia-incolla "FAN Port Status"
+    m = text.match(new RegExp(`${escapeReg(key)}\\s*(?::)?\\s*(?:\\n|\\r\\n)*\\s*([+-]?\\d+(?:\\.\\d+)?)\\s*dBm`, 'i'));
+    if (m) return m[1];
+
+    return '';
+  }
+
+  function escapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  /* Loris Salerno — taasalo3 — fine Tool 2 */
+})();
+
+
+
+    // =========================
+    // Tool 3: Long Measure Parser
+    // =========================
+    // Loris Salerno — taasalo3 — watermark
+    (function initLongMeasure(){
+      // === Parametri layout — Loris Salerno taasalo3 ===
+      /* watermark: proprietà Loris Salerno */
+      const LM = '     '; // 5 spazi
+      const DS_COL = 36;
+      const US_COL = 58;
+      const HR_LONG = LM + '-------------------------------------------------';
+      const HR_SHORT = LM + '----------------------';
+
+      const ta = document.getElementById('lm-csv');
+      const out = document.getElementById('lm-output');
+      const statusEl = document.getElementById('lm-status');
+      const spinner = document.getElementById('lm-spinner');
+
+      // *** FIX Windows Chrome freeze ***
+      // Tenere il CSV grezzo in una variabile JS invece di metterlo nel textarea.
+      // Assegnare migliaia di caratteri a ta.value su Windows Chrome causa un
+      // layout/paint sincrono bloccante (freeze della pagina intera).
+      let _csvRawDataLS = ''; /* watermark LS */
+
+      /* by Loris Salerno */
+      function showSpinner() {
+        spinner.classList.add('active');
+        out.style.display = 'none';
+      }
+      function hideSpinner() {
+        spinner.classList.remove('active');
+        out.style.display = '';
+      }
+
+      // Gestione paste: salva il testo in variabile JS, NON nel textarea
+      ta.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (!text || !text.trim()) return;
+        _csvRawDataLS = text;
+        // Mostra solo un messaggio leggero nel textarea (evita il freeze)
+        ta.value = `✔ ${__('stCsvReady')}`;
+        setStatus(__('stCsvReady'));
+      });
+
+      document.getElementById('lm-process').addEventListener('click', () => {
+        // Usa i dati dalla variabile interna (se disponibili) oppure dal textarea
+        ta.style.display = 'none';
+        const text = _csvRawDataLS || ta.value || '';
+        if (!text.trim() || text.startsWith('\u2714')) {
+          // Se il textarea contiene solo il messaggio di stato (non dati veri)
+          if (!_csvRawDataLS) {
+            out.textContent = '';
+            setStatus(__('stNothingProcessCsv'));
+            ta.focus();
+            return;
+          }
+        }
+        const rawText = _csvRawDataLS || text;
+        if (!rawText.trim()) {
+          out.textContent = '';
+          setStatus(__('stNothingProcessGeneric'));
+          ta.focus();
+          return;
+        }
+
+        // === Auto-detect: CSV o testo Real-Time Diagnosis? ===
+        const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const format = detectFormat(cleanText);
+
+        if (format === 'instant') {
+          // Elaborazione istantanea (sincrona, testo breve)
+          try {
+            const result = buildInstantMeasure(cleanText);
+            out.textContent = result;
+            setStatus(__('stDone'));
+          } catch (e) {
+            console.error(e);
+            setStatus(__('stParsingError') + ': ' + (e.message || e));
+          }
+        } else {
+          // Elaborazione CSV (asincrona in chunk)
+          ta.disabled = true;
+          document.getElementById('lm-process').disabled = true;
+          document.getElementById('lm-copy').disabled = true;
+          document.getElementById('lm-clear').disabled = true;
+          showSpinner();
+          setStatus(__('stProcessing'));
+          const s = cleanText;
+          const totalLen = s.length;
+          const rows = [];
+          let pos = 0;
+          let row = [], field = '';
+          let inQuotes = false;
+          const CHUNK_SIZE = 10000;
+
+          function processChunk() {
+            try {
+              const end = Math.min(pos + CHUNK_SIZE, totalLen);
+              for (; pos < end; pos++) {
+                const c = s[pos];
+                if (c === '"') {
+                  if (inQuotes && s[pos+1] === '"') { field += '"'; pos++; }
+                  else { inQuotes = !inQuotes; }
+                } else if (c === ',' && !inQuotes) {
+                  row.push(field); field = '';
+                } else if (c === '\n' && !inQuotes) {
+                  row.push(field); field = '';
+                  rows.push(row); row = [];
+                } else {
+                  field += c;
+                }
+              }
+              if (pos < totalLen) {
+                const pct = Math.round((pos / totalLen) * 100);
+                setStatus(`${__('stProcessing')} ${pct}%`);
+                setTimeout(processChunk, 10);
+              } else {
+                if (field.length > 0 || row.length) { row.push(field); rows.push(row); }
+                const result = buildSummary(rows);
+                hideSpinner();
+                out.textContent = result;
+                setStatus(__('stDone'));
+                ta.disabled = false;
+                document.getElementById('lm-process').disabled = false;
+                document.getElementById('lm-copy').disabled = false;
+                document.getElementById('lm-clear').disabled = false;
+              }
+            } catch (e) {
+              console.error(e);
+              hideSpinner();
+              setStatus(__('stParsingError') + ': ' + (e.message || e));
+              ta.disabled = false;
+              document.getElementById('lm-process').disabled = false;
+              document.getElementById('lm-copy').disabled = false;
+              document.getElementById('lm-clear').disabled = false;
+            }
+          }
+          requestAnimationFrame(() => {
+            setTimeout(processChunk, 100);
+          });
+        }
+      });
+
+      document.getElementById('lm-copy').addEventListener('click', async () => {
+        const t = out.textContent || '';
+        if (!t.trim()) { setStatus(__('stNothingCopyElaborate')); return; }
+        const ok = await copyTextToClipboard(t);
+        setStatus(ok ? __('stResultCopied') : __('stCopyFailed'));
+      });
+
+      document.getElementById('lm-clear').addEventListener('click', () => {
+        _csvRawDataLS = ''; /* Svuota anche i dati interni */
+        ta.value = '';
+        ta.style.display = '';
+        out.textContent = '';
+        setStatus(__('stCleared'));
+        ta.focus();
+      });
+
+      function setStatus(msg) { statusEl.textContent = msg || ''; }
+      /* taasalo3 — Loris Salerno */
+
+      function parseCSV(text) {
+        const rows = [];
+        let row = [], field = '';
+        let inQuotes = false;
+        const s = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        for (let i = 0; i < s.length; i++) {
+          const c = s[i];
+          if (c === '"') {
+            if (inQuotes && s[i+1] === '"') { field += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+          } else if (c === ',' && !inQuotes) {
+            row.push(field); field = '';
+          } else if (c === '\n' && !inQuotes) {
+            row.push(field); field = '';
+            rows.push(row); row = [];
+          } else {
+            field += c;
+          }
+        }
+        if (field.length > 0 || row.length) { row.push(field); rows.push(row); }
+        return rows;
+      }
+
+      /* Loris Salerno | taasalo3 */
+      function normLabel(s) { return (s || '').trim().replace(/\s*:\s*$/, '').trim(); }
+      function firstNonEmpty(...xs) {
+        for (const x of xs) if (x != null && String(x).trim() !== '') return String(x).trim();
+        return '';
+      }
+      function toNumber(s) {
+        if (s == null) return NaN;
+        const t = String(s).trim();
+        if (!t || /^N\/A$/i.test(t)) return NaN;
+        const z = t.replace(/'/g, '').replace(/\s+/g, '');
+        const n = Number(z);
+        return Number.isFinite(n) ? n : NaN;
+      }
+      function kbitToMbitInt(kb) {
+        if (!Number.isFinite(kb)) return null;
+        return Math.round(kb / 1000);
+      }
+
+      /* by Loris Salerno */
+      function buildPairs(rows) {
+        const map = new Map();
+        for (const r of rows) {
+          if (!r || r.length < 2) continue;
+          const first = normLabel(r[0]);
+          if (/^(Parameter|Task Id|TASKID|PORT|Long Period Diagnosis|Line Information|Diagnosis Information|Event Counters Information|Basic Link Data Information|Port Stability|Show Time)/i.test(first)) continue;
+          for (let i = 0; i + 1 < r.length; i += 2) {
+            const k = normLabel(r[i]);
+            const v = (r[i+1] || '').trim();
+            if (!k) continue;
+            if (!map.has(k) && v) map.set(k, v);
+          }
+        }
+        return map;
+      }
+
+      function findBasicRow(rows, paramNamePrefix) {
+        for (const r of rows) {
+          if (!r || r.length < 3) continue;
+          const k = normLabel(r[0]);
+          if (k && k.toLowerCase().startsWith(paramNamePrefix.toLowerCase())) return r;
+        }
+        return null;
+      }
+
+      function extractTimeSeries(rows) {
+        const series = [];
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || r.length < 4) continue;
+          if (normLabel(r[0]) === 'Task Id' && /Collection Time/i.test(r[1] || '')) {
+            // Find the "Task Id" column (index 0) and "Collection Time" (index 1)
+            // then locate CV/FEC columns relative to known anchors for robustness.
+            const taskIdx = r.findIndex(x => /^Task Id$/i.test(normLabel(x)));
+            const collTimeIdx = r.findIndex(x => /Collection Time/i.test(x || ''));
+            // Search for CV/FEC columns only after the Collection Time column
+            // to avoid matching duplicate labels in other sections.
+            const searchFrom = Math.max(taskIdx, collTimeIdx, 0) + 1;
+            const idx = {
+              time: collTimeIdx,
+              cvDS: r.findIndex((x, i) => i >= searchFrom && /^Coding Violation DS$/i.test(normLabel(x))),
+              cvUS: r.findIndex((x, i) => i >= searchFrom && /^Coding Violation US$/i.test(normLabel(x))),
+              fecDS: r.findIndex((x, i) => i >= searchFrom && /^Forward Error Corrections DS$/i.test(normLabel(x))),
+              fecUS: r.findIndex((x, i) => i >= searchFrom && /^Forward Error Corrections US$/i.test(normLabel(x))),
+              tgtDS: r.findIndex((x, i) => i >= searchFrom && /^Target Margin DS\(dB\)$/i.test(normLabel(x))),
+              tgtUS: r.findIndex((x, i) => i >= searchFrom && /^Target Margin US\(dB\)$/i.test(normLabel(x))),
+            };
+            for (let j = i + 1; j < rows.length; j++) {
+              const rr = rows[j];
+              if (!rr || rr.length < 2) continue;
+              const maybeHeader = normLabel(rr[0]);
+              if (maybeHeader === 'Task Id' || maybeHeader === 'TASKID' || maybeHeader === 'PORT') break;
+              // FIX: il CSV esportato spezza ogni record su 2 righe fisiche
+              // (riga dati da 82 col + riga di continuazione hex QLN/HLOG da 7 col).
+              // Con "break" alla prima riga non numerica si raccoglieva 1 solo campione
+              // -> delta CV/FEC sempre 0. Qui si saltano le continuazioni (continue)
+              // e si accettano solo righe dati vere: TaskId numerico + Collection Time valida.
+              if (!/^\d+\s*$/.test((rr[0] || '').trim())) continue;
+              const tRaw = (idx.time >= 0 && rr[idx.time]) ? rr[idx.time].trim() : '';
+              const tVal = parseCollectionTime(tRaw);
+              if (!Number.isFinite(tVal)) continue;
+              const maxIdx = Math.max(idx.cvDS, idx.cvUS, idx.fecDS, idx.fecUS, idx.tgtDS, idx.tgtUS);
+              if (maxIdx >= 0 && rr.length <= maxIdx) continue;
+              series.push({
+                t: tVal,
+                cvDS: (idx.cvDS >= 0) ? toNumber(rr[idx.cvDS]) : NaN,
+                cvUS: (idx.cvUS >= 0) ? toNumber(rr[idx.cvUS]) : NaN,
+                fecDS: (idx.fecDS >= 0) ? toNumber(rr[idx.fecDS]) : NaN,
+                fecUS: (idx.fecUS >= 0) ? toNumber(rr[idx.fecUS]) : NaN,
+                tgtDS: (idx.tgtDS >= 0) ? toNumber(rr[idx.tgtDS]) : NaN,
+                tgtUS: (idx.tgtUS >= 0) ? toNumber(rr[idx.tgtUS]) : NaN,
+              });
+            }
+          }
+        }
+        series.sort((a, b) => {
+          const ta = Number.isFinite(a.t) ? a.t : Infinity;
+          const tb = Number.isFinite(b.t) ? b.t : Infinity;
+          return ta - tb;
+        });
+        return series;
+      }
+
+      function parseCollectionTime(s) {
+        const t = (s || '').trim();
+        const m = t.match(/^(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+        if (m) {
+          const dd = Number(m[1]), MM = Number(m[2]), yy = Number(m[3]);
+          const yyyy = 2000 + yy;
+          const hh = Number(m[4]), mi = Number(m[5]), ss = Number(m[6]);
+          return Date.UTC(yyyy, MM - 1, dd, hh, mi, ss);
+        }
+        const d = new Date(t);
+        return isNaN(d.getTime()) ? NaN : d.getTime();
+      }
+
+      function summarizeDelta(series, key) {
+        const xs = series.filter(r => Number.isFinite(r[key]));
+        if (xs.length < 1) return { first: NaN, last: NaN, delta: NaN };
+        if (!Number.isFinite(xs[0][key]) || !Number.isFinite(xs[xs.length - 1][key])) return { first: xs[0][key], last: xs[xs.length - 1][key], delta: NaN };
+        // CV/FEC counters are cumulative — sum individual positive deltas
+        // between consecutive rows to handle counter resets/rewinds correctly.
+        let total = 0;
+        for (let i = 1; i < xs.length; i++) {
+          const d = xs[i][key] - xs[i - 1][key];
+          if (d > 0) total += d;
+        }
+        return { first: xs[0][key], last: xs[xs.length - 1][key], delta: total };
+      }
+
+      function pickLatestFinite(series, key) {
+        for (let i = series.length - 1; i >= 0; i--) {
+          const v = series[i][key];
+          if (Number.isFinite(v)) return v;
+        }
+        return NaN;
+      }
+
+      function placeHeaderDSUS() {
+        return '                                             DS                             US';
+      }
+
+      function placeRateRow(label, dsStr, usStr) {
+        if (label === 'Actual bit.') {
+          return LM + label + '                    ' + dsStr + '            ' + usStr;
+        } else if (label === 'Attainable bit.') {
+          return LM + label + '            ' + dsStr + '            ' + usStr;
+        }
+        return LM + label + '            ' + dsStr + '            ' + usStr;
+      }
+
+      /* Loris Salerno — taasalo3 */
+      function formatDiagDate(raw) {
+        // Converte "Jun 19, 2026 4:40:44 PM" (o simili) in "19/06/2026 - 16:40"
+        if (!raw) return '';
+        const d = new Date(raw.trim());
+        if (isNaN(d.getTime())) return raw.trim();
+        const dd   = String(d.getDate()).padStart(2, '0');
+        const mm   = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh   = String(d.getHours()).padStart(2, '0');
+        const mi   = String(d.getMinutes()).padStart(2, '0');
+        return `${dd}/${mm}/${yyyy} - ${hh}:${mi}`;
+      }
+
+      function buildSummary(rows) {
+        const kv = buildPairs(rows);
+
+        const lineId = (kv.get('Line ID') || '').trim();
+        const customerId = (kv.get('Customer ID') || '').trim();
+        const monitoring = (kv.get('Monitoring Duration') || '').trim();
+        const online = (kv.get('Online Duration') || monitoring || '').trim();
+        const profile = ((kv.get('Spectrum Profile Name') || kv.get('DSL Type')) || '').trim();
+        const startTime = formatDiagDate(kv.get('Start Time') || '');
+
+        const actualRow = findBasicRow(rows, 'Actual Data Rate');
+        const attainRow = findBasicRow(rows, 'Attainable Rate');
+        const actualUS_k = actualRow ? Number((actualRow[1] || '').replace(/'/g,'')) : NaN;
+        const actualDS_k = actualRow ? Number((actualRow[5] || '').replace(/'/g,'')) : NaN;
+        const attainUS_k = attainRow ? Number((attainRow[1] || '').replace(/'/g,'')) : NaN;
+        const attainDS_k = attainRow ? Number((attainRow[5] || '').replace(/'/g,'')) : NaN;
+        const actualDS_M = Number.isFinite(actualDS_k) ? Math.round(actualDS_k/1000) : null;
+        const actualUS_M = Number.isFinite(actualUS_k) ? Math.round(actualUS_k/1000) : null;
+        const attainDS_M = Number.isFinite(attainDS_k) ? Math.round(attainDS_k/1000) : null;
+        const attainUS_M = Number.isFinite(attainUS_k) ? Math.round(attainUS_k/1000) : null;
+        const fmtMbps = v => (v == null ? 'N/D' : `${v} Mbit/s`);
+
+        const series = extractTimeSeries(rows);
+        const dCV_DS = summarizeDelta(series, 'cvDS');
+        const dCV_US = summarizeDelta(series, 'cvUS');
+        const dFEC_DS = summarizeDelta(series, 'fecDS');
+        const dFEC_US = summarizeDelta(series, 'fecUS');
+        const tnmDS = pickLatestFinite(series, 'tgtDS');
+        const tnmUS = pickLatestFinite(series, 'tgtUS');
+
+        const reinit = (kv.get('Reinit Count') || '').trim();
+        const reinitFail = (kv.get('Reinit Failed Count') || '').trim();
+        const shortInt = (kv.get('Short Int') || '').trim();
+        const spontInt = (kv.get('Spont Int') || '').trim();
+        const pdt = (kv.get('Power Down Time') || '').trim();
+        const bitswaps = (kv.get('Bitswaps') || '').trim();
+        const profSwitch = (kv.get('Profile Switch') || '').trim();
+        const collFail = (kv.get('Collection Failure') || '').trim();
+
+        let bridgeTap = '';
+        for (const k of kv.keys()) {
+          if (/bridge\s*tap/i.test(k)) { bridgeTap = kv.get(k); break; }
+        }
+        bridgeTap = (bridgeTap || 'No/Yes').trim();
+
+        const description = (kv.get('Description') || '').trim();
+        const monitoringStr = description ? description : `to client ${monitoring || 'N/D'}`;
+
+        const lines = [];
+        lines.push(`Long measure ${monitoringStr} ( Real ${online || (monitoring || 'N/D')} )`);
+        lines.push(HR_LONG);
+        if (startTime)  lines.push(LM + `Date: ${startTime}`);
+        if (lineId)     lines.push(LM + `Line ID: ${lineId}`);
+        if (customerId) lines.push(LM + `Customer ID: ${customerId}`);
+        if (profile)    lines.push(LM + `Profile: ${profile}`);
+        lines.push(HR_LONG);
+
+        lines.push(placeHeaderDSUS());
+        lines.push(placeRateRow('Actual bit.',      fmtMbps(actualDS_M ?? null),   fmtMbps(actualUS_M ?? null)));
+        lines.push(placeRateRow('Attainable bit.',  fmtMbps(attainDS_M ?? null),   fmtMbps(attainUS_M ?? null)));
+
+        if (Number.isFinite(tnmDS) || Number.isFinite(tnmUS)) {
+          const tnmStr = `${Number.isFinite(tnmDS) ? tnmDS : 'N/D'}_${Number.isFinite(tnmUS) ? tnmUS : 'N/D'}`;
+          lines.push(LM + `TNM ${tnmStr}`);
+        } else {
+          lines.push(LM + 'TNM N/D');
+        }
+
+        lines.push(HR_SHORT);
+        lines.push(LM + `Bridge tap:  ${bridgeTap}`);
+        lines.push(HR_SHORT);
+
+        const cvDS = Number.isFinite(dCV_DS.delta) ? dCV_DS.delta : 'N/D';
+        const cvUS = Number.isFinite(dCV_US.delta) ? dCV_US.delta : 'N/D';
+        const fecDS = Number.isFinite(dFEC_DS.delta) ? dFEC_DS.delta : 'N/D';
+        const fecUS = Number.isFinite(dFEC_US.delta) ? dFEC_US.delta : 'N/D';
+
+        lines.push(LM + `CV [DS/US] ${cvDS} / ${cvUS}`);
+        lines.push(LM + `FEC [DS/US] ${fecDS} / ${fecUS}`);
+
+        lines.push(LM + `Power Down Time: ${pdt || 'N/D'}  Bitswaps: ${bitswaps || 'N/D'}`);
+        lines.push(LM + `Profile Switch: ${profSwitch || 'N/D'}  Collection Failure: ${collFail || 'N/D'}`);
+
+        const extras = [];
+        if (reinit) extras.push(`Reinit: ${reinit}`);
+        if (reinitFail) extras.push(`Reinit Failed: ${reinitFail}`);
+        if (shortInt) extras.push(`Short Int: ${shortInt}`);
+        if (spontInt) extras.push(`Spont Int: ${spontInt}`);
+        if (extras.length) lines.push(LM + extras.join('  '));
+
+        lines.push(HR_LONG);
+        return lines.join('\n');
+      }
+
+      /**
+       * Rileva se il testo incollato è CSV (con virgole) oppure
+       * testo "Real-Time Diagnosis" (Instant measure).
+       */
+      function detectFormat(text) {
+        // Il formato "Instant" inizia sempre con "Real-Time Diagnosis"
+        // ed ha una struttura a blocchi con label e valori sulla stessa riga.
+        // Il formato CSV inizia con "Long Period Diagnosis" e ha righe
+        // con molte virgole (intestazione + dati).
+        if (/^Real-Time Diagnosis/i.test(text.trim())) return 'instant';
+        if (/^Long Period Diagnosis/i.test(text.trim())) return 'csv';
+        // Fallback: conta le virgole per riga
+        const lines = text.split('\n').filter(l => l.trim());
+        const commas = (text.match(/,/g) || []).length;
+        if (lines.length > 0 && commas / lines.length > 3) return 'csv';
+        // Fallback: cerca marker specifici dell'instant
+        if (/Noise Margin Profile Name:\s*NM_\d+_\d+_SRA/i.test(text)) return 'instant';
+        return 'csv';
+      }
+
+      function buildInstantMeasure(text) {
+        const hr = '     -------------------------------------------------';
+        let lineId = '';
+        var ln = text.match(/Line ID:\s*(\S+)/);
+        if (ln) lineId = ln[1];
+        let customerId = '';
+        var cm = text.match(/Customer ID:\s*(\S+)/);
+        if (cm) customerId = cm[1];
+        let profile = '';
+        var pm = text.match(/Spectrum Profile Name:\s*(\S+)/);
+        if (pm) profile = pm[1];
+        // Estrae Test Time (es. "Jun 19, 2026 4:40:15 PM")
+        let testTime = '';
+        var ttm = text.match(/Test Time:\s*(.+)/);
+        if (ttm) testTime = formatDiagDate(ttm[1].trim());
+        let actualUS_k = NaN, actualDS_k = NaN;
+        var am = text.match(/Actual Data Rate \(kbit\/s\)\s*([\d']+\.\d+)\s+([\d']+\.\d+)/);
+        if (am) {
+          actualUS_k = parseFloat(am[1].replace(/'/g, ''));
+          actualDS_k = parseFloat(am[2].replace(/'/g, ''));
+        }
+        let attainUS_k = NaN, attainDS_k = NaN;
+        var atm = text.match(/Attainable Rate \(kbit\/s\)\s*([\d']+\.\d+)\s+([\d']+\.\d+)/);
+        if (atm) {
+          attainUS_k = parseFloat(atm[1].replace(/'/g, ''));
+          attainDS_k = parseFloat(atm[2].replace(/'/g, ''));
+        }
+        let tnm = '';
+        var tm = text.match(/Noise Margin Profile Name:\s*NM_(\d+_\d+)_SRA/);
+        if (tm) tnm = tm[1];
+        const fmtM = v => (Number.isFinite(v) ? Math.round(v / 1000) : 'N/D');
+        const lines = [];
+        lines.push('Instant measure');
+        lines.push(hr);
+        if (testTime)   lines.push('     Date: ' + testTime);
+        if (lineId)     lines.push('     Line ID: ' + lineId);
+        if (customerId) lines.push('     Customer ID: ' + customerId);
+        if (profile)    lines.push('     Profile: ' + profile);
+        lines.push(hr);
+        lines.push('                                             DS                             US');
+        lines.push('     Actual bit.                    ' + fmtM(actualDS_k) + ' Mbit/s            ' + fmtM(actualUS_k) + ' Mbit/s');
+        lines.push('     Attainable bit.            ' + fmtM(attainDS_k) + ' Mbit/s            ' + fmtM(attainUS_k) + ' Mbit/s');
+        if (tnm) lines.push('     TNM ' + tnm);
+        else     lines.push('     TNM N/D');
+        lines.push(hr);
+        return lines.join('\n');
+      }
+    })();
+    // =========================
+    // Loris Salerno — taasalo3 — watermark
+    (function initTVBox(){
+      const src = document.getElementById('tv-src');
+      const out = document.getElementById('tv-output');
+      const statusEl = document.getElementById('tv-status');
+
+      document.getElementById('tv-process').addEventListener('click', run);
+      document.getElementById('tv-copy').addEventListener('click', copyOut);
+      document.getElementById('tv-clear').addEventListener('click', clearAll);
+
+      async function copyOut() {
+        const t = out.textContent || '';
+        if (!t.trim()) { setStatus(__('stNothingCopy')); return; }
+        const ok = await copyTextToClipboard(t);
+        setStatus(ok ? __('stResultCopied') : __('stCopyFailed'));
+      }
+
+      /* watermark: variabili LS */
+      let _rawDataLS = '';
+      src.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (!text || !text.trim()) return;
+        _rawDataLS = text;
+        src.value = `✔ ${__('stTextReady')}`;
+        setStatus(__('stTextReady'));
+      });
+
+      function clearAll() {
+        _rawDataLS = '';
+        src.value = '';
+        src.style.display = '';
+        out.textContent = '';
+        setStatus(__('stCleared'));
+        src.focus();
+      }
+
+      function setStatus(msg) { statusEl.textContent = msg || ''; }
+
+      /* by Loris Salerno | taasalo3 */
+      function detectFormat(text) {
+        const firstLine = text.replace(/\r\n/g, '\n').split('\n').find(l => l.trim() !== '') || '';
+        if (/rnk_dev\s*\t/.test(firstLine) && /Device EXT ID/.test(firstLine)) return 'p42';
+        return 'clima';
+      }
+
+      function run() {
+        try {
+          src.style.display = 'none';
+          const rawVal = _rawDataLS || (src.value || '');
+          const text = (rawVal.startsWith('✔') && _rawDataLS ? _rawDataLS : rawVal).trim();
+          if (!text) {
+            setStatus(__('stNothingProcessGeneric'));
+            out.textContent = '';
+            src.focus();
+            return;
+          }
+          const fmt = detectFormat(text);
+          if (fmt === 'p42') {
+            const devices = parseP42(text);
+            out.textContent = formatOutputP42(devices);
+            setStatus(`P42: ${__('stFoundDevices')} ${devices.length} ${__('stTvBox')}${devices.length !== 1 ? ' (totale)' : ''}.`);
+          } else {
+            const devices = parseAllBoxes(text);
+            out.textContent = formatOutput(devices);
+            setStatus(`${__('stFoundDevices')} ${devices.length} ${__('stTvBox')}${devices.length !== 1 ? ' (totale)' : ''}.`);
+          }
+        } catch (e) {
+          console.error(e);
+          setStatus(__('stError') + ': ' + (e.message || e));
+        }
+      }
+
+      /* ── Helper: formatta numero con k se ≥ 1000 — Loris Salerno */
+      function formatK(val) {
+        if (val >= 1000) {
+          const k = Math.round(val / 1000);
+          return k + 'k';
+        }
+        return String(Math.round(val));
+      }
+
+      function parseNum(str) {
+        if (str === undefined || str === null || str === '') return 0;
+        return parseFloat(String(str).replace(/['’]/g, '').replace(/,/g, '.')) || 0;
+      }
+
+      /* ── Estrae MAC dall'UUID P42 (ultimi 12 hex dell'UUID) — Loris Salerno */
+      function macFromUUID(uuid) {
+        const hex = uuid.replace(/-/g, '');
+        const last12 = hex.slice(-12);
+        return last12.match(/.{2}/g).join(':').toLowerCase();
+      }
+
+      /* ── Parser P42 TSV — by Loris Salerno | taasalo3 — watermark */
+      function parseP42(text) {
+        const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        // Metriche di interesse (nomi esatti come appaiono nella colonna "Nomi misure")
+        const METRIC_MAP = {
+          'View Time Live':           'live',
+          'View Time Repl./Rec.':     'replrec',
+          'Crash':                    'crash',
+          'Pkt Expired':              'pktExpired',
+          'Pkt Holes':                'pktHoles',
+          'Buffer Underrun':          'buffer',
+          'Channel Playback Errors':  'playbackErrors',
+          'HDMI Hotplug':             'hdmiHotplug',
+        };
+
+        // Mappa: extID → { model, mac, connections: Map<connType, metrics> }
+        const deviceMap = new Map();
+        // Ordine di inserimento per i device
+        const deviceOrder = [];
+
+        let headerParsed = false;
+        let colIdx = {};
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+          const cols = rawLine.split('\t');
+
+          // Prima riga = header
+          if (!headerParsed) {
+            cols.forEach((c, i) => { colIdx[c.trim()] = i; });
+            headerParsed = true;
+            continue;
+          }
+
+          const extID    = (cols[colIdx['Device EXT ID']] || '').trim();
+          const model    = (cols[colIdx['Device Model']]  || '').trim();
+          const connType = (cols[colIdx['PBA Connection Type']] || '').trim();
+          const metricName = (cols[colIdx['Nomi misure']] || '').trim();
+          const metricValRaw = (cols[colIdx['Valori misure']] || '').trim();
+
+          if (!extID || !metricName) continue;
+
+          // Registra device se nuovo
+          if (!deviceMap.has(extID)) {
+            deviceMap.set(extID, {
+              model,
+              mac: macFromUUID(extID),
+              connections: new Map(),
+            });
+            deviceOrder.push(extID);
+          }
+
+          const dev = deviceMap.get(extID);
+
+          // Registra connection type se nuovo
+          if (!dev.connections.has(connType)) {
+            dev.connections.set(connType, {
+              live: 0, replrec: 0, crash: 0,
+              pktExpired: 0, pktHoles: 0,
+              buffer: 0, playbackErrors: 0, hdmiHotplug: 0,
+            });
+          }
+
+          const key = METRIC_MAP[metricName];
+          if (!key) continue;
+
+          const val = parseNum(metricValRaw);
+          dev.connections.get(connType)[key] += val;
+        }
+
+        // Converti in array ordinato
+        return deviceOrder.map(extID => {
+          const dev = deviceMap.get(extID);
+          return {
+            model: dev.model,
+            mac: dev.mac,
+            connections: Array.from(dev.connections.entries()).map(([type, m]) => ({ type, metrics: m })),
+          };
+        });
+      }
+
+      /* ── Formatter P42 — by Loris Salerno | taasalo3 — watermark */
+      function formatOutputP42(devices) {
+        const IND0 = '  ';
+        const IND1 = '    ';
+        const IND2 = '      ';
+        const IND3 = '        ';
+        const BULLET = '•';
+        const lines = [];
+        lines.push(`${IND0}>Settopbox:`);
+
+        if (!devices.length) {
+          lines.push(`${IND1}>N/D (N/D - last 7 days)`);
+          lines.push(`${IND2}${BULLET} Info: `);
+          return lines.join('\n');
+        }
+
+        for (let i = 0; i < devices.length; i++) {
+          const d = devices[i];
+          lines.push(`${IND1}>${d.model} (${d.mac} - last 7 days)`);
+          for (const conn of d.connections) {
+            lines.push(`${IND2}${BULLET} Connection: ${conn.type}`);
+            const m = conn.metrics;
+            if (m.live === 0 && m.replrec === 0) {
+              lines.push(`${IND3}No View Time`);
+            } else {
+              // Live (se >= 60 min mostra ore, se > 0 min mostra minuti)
+              const liveH = Math.round(m.live / 60);
+              if (m.live >= 60 && liveH > 0) {
+                lines.push(`${IND3}${liveH}h Live`);
+              } else if (m.live > 0) {
+                lines.push(`${IND3}${Math.round(m.live)}m Live`);
+              }
+
+              // Repl/Rec (se >= 60 min mostra ore, se > 0 min mostra minuti)
+              const replH = Math.round(m.replrec / 60);
+              if (m.replrec >= 60 && replH > 0) {
+                lines.push(`${IND3}${replH}h Repl/Rec`);
+              } else if (m.replrec > 0) {
+                lines.push(`${IND3}${Math.round(m.replrec)}m Repl/Rec`);
+              }
+            }
+
+            // Crash
+            if (m.crash > 0) lines.push(`${IND3}${Math.round(m.crash)} Crash`);
+            // Pkt Holes
+            if (m.pktHoles > 0) lines.push(`${IND3}${formatK(m.pktHoles)} Pkt Holes`);
+            // Pkt Expired
+            if (m.pktExpired > 0) lines.push(`${IND3}${formatK(m.pktExpired)} Pkt Expired`);
+            // Buffer Underrun
+            if (m.buffer > 0) lines.push(`${IND3}${formatK(m.buffer)} Buffer`);
+            // Channel Playback Errors
+            if (m.playbackErrors > 0) lines.push(`${IND3}${formatK(m.playbackErrors)} Playback Errors`);
+            // HDMI Hotplug
+            if (m.hdmiHotplug > 0) lines.push(`${IND3}${Math.round(m.hdmiHotplug)} HDMI Hotplug`);
+
+            // Quality OK: se ha visto qualcosa (Live o Repl/Rec > 0) e non ci sono errori
+            const haVisione = (m.live > 0 || m.replrec > 0);
+            const haErrori = (m.crash > 0 || m.pktExpired > 0 || m.pktHoles > 0 || m.buffer > 0 || m.playbackErrors > 0 || m.hdmiHotplug > 0);
+            if (haVisione && !haErrori) {
+              lines.push(`${IND3}Quality OK`);
+            }
+          }
+          if (i < devices.length - 1) {
+            lines.push('');
+          }
+        }
+        return lines.join('\n');
+      }
+
+      /* by Loris Salerno | taasalo3 */
+      function parseAllBoxes(text) {
+        const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        const reHeader = /^(TV[-\s]?Box|Swisscom Box)\s+.+\s*\/\s*([A-Za-z0-9_-]+)$/i;
+        // Known TV-Box / Swisscom Box model identifiers (from CLIMA Big Screen Devices)
+        const tvBoxModels = /^(IP1400|IP1800|IP2000)$/i;
+        const swisscomBoxModels = /^(Swisscom Box|IP2300)$/i;
+        const reGenericDevice = /^(.+?)\s*\/\s*([A-Za-z0-9_-]+)$/;
+        const headers = [];
+        let inBigScreenSection = false;
+        for (let i = 0; i < lines.length; i++) {
+          const line = (lines[i] || '').trim();
+          // Detect Big Screen Devices section in CLIMA output
+          if (/big\s*screen\s*device/i.test(line)) {
+            inBigScreenSection = true;
+            continue;
+          }
+          // Section ends when we hit another major section
+          if (inBigScreenSection && /^(Account\/Product|Activity Log|Channel Lists|Companion Devices|Radio Channel Lists|Internet|Access Device|Overview|Customer|Service )/i.test(line)) {
+            inBigScreenSection = false;
+            continue;
+          }
+          const m = line.match(reHeader);
+          if (m) {
+            const kind = m[1].toLowerCase().startsWith('tv') ? 'TV-Box' : 'Swisscom Box';
+            headers.push({ idx: i, kind, number: headers.filter(h => h.kind === kind).length + 1, model: m[2] });
+            continue;
+          }
+          // CLIMA format: "DisplayName / MODEL" (e.g. "Camera2 / IP1800", "Cucina / IP1800")
+          // Only match if we're in Big Screen section or the model looks like a known box
+          if (inBigScreenSection || tvBoxModels.test(line.split('\/').pop().trim()) || swisscomBoxModels.test(line.split('\/').pop().trim())) {
+            const gm = line.match(reGenericDevice);
+            if (gm) {
+              const displayName = gm[1].trim();
+              const model = gm[2].trim();
+              // Skip if it's a section header or navigation element
+              if (/^(Add New Device|Open in|Reload|Search|Advanced Search|Overview|Customer|Activity Log|Barrings|Incidents|SC Logins|Service Accounts|Service Subscriptions|Service Requests|Internet|Access Devices|Access Location History|All-IP Pairing|CGNAT|Online Session Log|Port 25 Allowlisting|Speed Tests|TV|Account\/Product|Big Screen Devices|Channel Lists|Companion Devices|Radio Channel Lists|Samsung|Wohnzimmer|Apple TV|Version|Model|Vendor|UUID|Client Version|Revision|MAC Address|WiFi MAC|Admin Status|Activation|Marked|Operation Status|Last Login|Last Heartbeat|Screen Capture|Hardware Capabilities|Netflix|Replay|UHD|Voice|Client Settings|Active Channel|Display Name|HDMI|Permanent Stream|Sticky|System Language|Tru Volume)/i.test(displayName)) continue;
+              // Skip lines that are clearly not device entries (too long, contain special chars)
+              if (displayName.length > 40 || /[>@|]/.test(displayName)) continue;
+              // Determine kind from model — only accept recognized models
+              let kind = null;
+              if (tvBoxModels.test(model)) {
+                kind = 'TV-Box';
+              } else if (swisscomBoxModels.test(model)) {
+                kind = 'Swisscom Box';
+              }
+              // Only add if model is recognized (no fallback for unknown models)
+              if (kind) {
+                headers.push({ idx: i, kind, number: headers.filter(h => h.kind === kind).length + 1, model, displayName });
+              }
+            }
+          }
+        }
+
+        const results = [];
+        const seen = new Set();
+
+        for (let h = 0; h < headers.length; h++) {
+          const cur = headers[h];
+          const nextIdx = (h + 1 < headers.length) ? headers[h + 1].idx : lines.length;
+          const mac = extractMac(lines, cur.idx + 1, nextIdx);
+          if (!mac || mac === 'N/D') continue;
+          const key = `mac:${mac}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          results.push({ idx: cur.idx, kind: cur.kind, number: cur.number, model: cur.model, mac, displayName: cur.displayName });
+        }
+
+        results.sort((a, b) => {
+          const ka = a.kind === 'TV-Box' ? 0 : 1;
+          const kb = b.kind === 'TV-Box' ? 0 : 1;
+          if (ka !== kb) return ka - kb;
+          if (a.number !== b.number) return a.number - b.number;
+          return a.idx - b.idx;
+        });
+
+        return results;
+      }
+
+      /* Loris Salerno — taasalo3 */
+      function extractMac(lines, start, end) {
+        const reMac = /\b[0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5}\b/;
+        for (let i = start; i < end; i++) {
+          const raw = lines[i] || '';
+          const line = raw.trim();
+          const low = line.toLowerCase();
+          if (low.includes('mac address') && !low.includes('wifi')) {
+            const m = line.match(reMac);
+            if (m) return m[0].toLowerCase();
+          }
+        }
+        for (let i = start; i < end; i++) {
+          const raw = lines[i] || '';
+          const line = raw.trim();
+          const low = line.toLowerCase();
+          if (low.includes('network mac')) {
+            const m = line.match(reMac);
+            if (m) return m[0].toLowerCase();
+          }
+        }
+        for (let i = start; i < end; i++) {
+          const raw = lines[i] || '';
+          const line = raw.trim();
+          const low = line.toLowerCase();
+          if (low.includes('wifi')) continue;
+        const m = line.match(reMac);
+          if (m) return m[0].toLowerCase();
+        }
+        return 'N/D';
+      }
+
+      /* watermark: Loris Salerno */
+      function formatOutput(devices) {
+        const IND0 = '  ';
+        const IND1 = '    ';
+        const IND2 = '      ';
+        const BULLET = '•';
+        const lines = [];
+        lines.push(`${IND0}>Settopbox:`);
+        if (!devices.length) {
+          lines.push(`${IND1}>N/D (N/D)`);
+          lines.push(`${IND2}${BULLET} P42: Quality ok/nok`);
+          lines.push(`${IND2}${BULLET} Info: `);
+          return lines.join('\n');
+        }
+        for (const d of devices) {
+          const label = d.model;
+          lines.push(`${IND1}>${label} (${d.mac})`);
+          lines.push(`${IND2}${BULLET} P42: Quality ok/nok`);
+          lines.push(`${IND2}${BULLET} Info: `);
+        }
+        return lines.join('\n');
+      }
+    })();
+
+    // =========================
+    // Tool 5: Clima3 → Riepilogo
+    // Loris Salerno — taasalo3 — watermark
+    (function initClima3(){
+      const climaEl = document.getElementById('c3-clima');
+      const speedEl = document.getElementById('c3-speed');
+      const out = document.getElementById('c3-output');
+      const statusEl = document.getElementById('c3-status');
+
+      document.getElementById('c3-process').addEventListener('click', run);
+      document.getElementById('c3-copy').addEventListener('click', copyOut);
+      document.getElementById('c3-clear').addEventListener('click', clearAll);
+
+      async function copyOut() {
+        const t = out.textContent || '';
+        if (!t.trim()) { setStatus(__('stNothingCopy')); return; }
+        const ok = await copyTextToClipboard(t);
+        setStatus(ok ? __('stResultCopied') : __('stCopyFailed'));
+      }
+
+      // FIX Windows Chrome freeze: salva testo in variabile JS, non nel textarea
+      let _rawClimaLS = ''; /* watermark LS */
+      let _rawSpeedLS = ''; /* watermark LS */
+      climaEl.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (!text || !text.trim()) return;
+        _rawClimaLS = text;
+        climaEl.value = `\u2714 ${__('stClimaReady')}`;
+        setStatus(__('stClimaReady'));
+      });
+      speedEl.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (!text || !text.trim()) return;
+        _rawSpeedLS = text;
+        speedEl.value = `\u2714 ${__('stSpeedReady')}`;
+        setStatus(__('stSpeedReady'));
+      });
+
+      function clearAll() {
+        _rawClimaLS = '';
+        _rawSpeedLS = '';
+        climaEl.value = '';
+        speedEl.value = '';
+        climaEl.style.display = '';
+        speedEl.style.display = '';
+        out.textContent = '';
+        setStatus(__('stCleared'));
+        climaEl.focus();
+      }
+
+      function setStatus(msg) { statusEl.textContent = msg || ''; }
+
+      function run() {
+        try {
+          climaEl.style.display = 'none';
+          speedEl.style.display = 'none';
+          const climaTxtRaw = (_rawClimaLS || (climaEl.value || '')).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          const isPlaceholder = (s) => s.startsWith('\u2714');
+          const isEmpty = !climaTxtRaw.trim() || (isPlaceholder(climaTxtRaw) && !_rawClimaLS);
+          if (isEmpty) {
+            setStatus(__('stNothingProcessGeneric'));
+            out.textContent = '';
+            climaEl.focus();
+            return;
+          }
+          const parsedClima = parseClima(climaTxtRaw);
+          const speedTxtRaw = (_rawSpeedLS || (speedEl.value || '')).trim();
+          const hasSpeed = speedTxtRaw && !isPlaceholder(speedTxtRaw);
+          const parsedSpeed = hasSpeed ? parseSpeed(speedTxtRaw) : null;
+          out.textContent = formatOutput(parsedClima, parsedSpeed);
+          setStatus(__('stDone'));
+        } catch (e) {
+          console.error(e);
+          setStatus(__('stError') + ': ' + (e.message || e));
+        }
+      }
+
+      /* by Loris Salerno | taasalo3 */
+      function parseClima(text) {
+        const lines = text.split('\n');
+        const lastReboot = findDateNearLabel(lines, ['Last Reboot']);
+        const lastReset = findDateNearLabel(lines, ['Last Reset']) ||
+                          findDateNearLabel(lines, ['Last Activation']) ||
+                          null;
+        const firstContact = findDateNearLabel(lines, ['First Contact']);
+
+        let routerModel = 'N/D';
+        let firmware = 'N/D';
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = (lines[i] || '').trim();
+          if (!line) continue;
+          
+          if (line.toLowerCase() === 'access devices') {
+            const nextLine = (lines[i + 1] || '').trim();
+            if (nextLine && nextLine.toLowerCase() !== 'access location history') {
+              routerModel = nextLine;
+            }
+          }
+          if (line.toLowerCase() === 'firmware' && firmware === 'N/D') {
+            for (let j = 1; j <= 3 && i + j < lines.length; j++) {
+              const nxt = (lines[i + j] || '').trim();
+              if (nxt) {
+                firmware = nxt;
+                break;
+              }
+            }
+          }
+        }
+
+        return {
+          lastRebootDate: lastReboot ? lastReboot.date : 'N/D',
+          lastResetDate: lastReset ? lastReset.date : 'N/D',
+          firstContactDate: firstContact ? firstContact.date : 'N/D',
+          routerModel: routerModel,
+          firmware: firmware
+        };
+      }
+
+      function findDateNearLabel(lines, labels) {
+        const dateRe = /(\d{1,2}\.\d{1,2}\.\d{4})(?:\s+(\d{2}:\d{2}:\d{2}))?/;
+        for (let i = 0; i < lines.length; i++) {
+          const line = (lines[i] || '').trim();
+          if (!line) continue;
+          for (const rawLabel of labels) {
+            const label = rawLabel.toLowerCase();
+            if (line.toLowerCase().includes(label)) {
+              let m = line.match(dateRe);
+              if (m) return { date: m[1], time: m[2] || '' };
+              for (let j = 1; j <= 3 && i + j < lines.length; j++) {
+                const nxt = (lines[i + j] || '').trim();
+                if (!nxt) continue;
+                m = nxt.match(dateRe);
+                if (m) return { date: m[1], time: m[2] || '' };
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      /* by Loris Salerno | taasalo3 */
+      function parseSpeed(text) {
+        const result = {};
+
+        // --- Formato compatto: "6 ms    Ipv4     513.8 Mbit/s  129.6 Mbit/s"
+        //     oppure            "6 ms    Ipv4     8.1 Gbit/s    5.5 Gbit/s"
+        const compactLine = text.split(/\r?\n/).find(l => /[MG]bit\/s/i.test(l));
+        if (compactLine) {
+          const bitMatches = [...compactLine.matchAll(/([\d.]+)\s*([MG]bit\/s)/gi)];
+          if (bitMatches.length >= 2) {
+            result.download     = bitMatches[0][1];
+            result.downloadUnit = bitMatches[0][2];
+            result.upload       = bitMatches[1][1];
+            result.uploadUnit   = bitMatches[1][2];
+          } else if (bitMatches.length === 1) {
+            result.download     = bitMatches[0][1];
+            result.downloadUnit = bitMatches[0][2];
+          }
+          const pingM = compactLine.match(/([\d.]+)\s*ms/i);
+          if (pingM) result.ping = pingM[1];
+          return result;
+        }
+
+        // --- Formato con etichette: "Download: X Mbit/s | Upload: Y Mbit/s | Ping: Z ms" ---
+        const parts = text.split(/\s*\|\s*/);
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (!trimmed) continue;
+          const dlMatch   = trimmed.match(/Download:\s*([\d.]+)\s*([MG]bit\/s)/i);
+          const ulMatch   = trimmed.match(/Upload:\s*([\d.]+)\s*([MG]bit\/s)/i);
+          const pingMatch = trimmed.match(/Ping:\s*([\d.]+)\s*ms/i);
+          if (dlMatch)   { result.download = dlMatch[1]; result.downloadUnit = dlMatch[2]; }
+          if (ulMatch)   { result.upload   = ulMatch[1]; result.uploadUnit   = ulMatch[2]; }
+          if (pingMatch) { result.ping = pingMatch[1]; }
+        }
+        return result;
+      }
+
+      /* watermark: Loris Salerno taasalo3 */
+      function formatOutput(clima, speed) {
+        const IND0 = '';
+        const IND1 = '  ';
+        const IND2 = '      ';
+        const BULLET = '•';
+        const lines = [];
+        lines.push(`${IND0}Clima3:`);
+        lines.push(`${IND1}>Router ${clima.routerModel} - 1° Contact ${clima.firstContactDate} - FW ${clima.firmware}`);
+        lines.push(`${IND1}>Last Reebot (${clima.lastRebootDate})`);
+        lines.push(`${IND1}>Last Reset (${clima.lastResetDate})`);
+        lines.push(`${IND1}>DHCP online logs ok/nok`);
+        lines.push(`${IND1}>Router Diagnosi `);
+        lines.push(`${IND2}${BULLET} CPU/RAM ok/nok`);
+        lines.push(`${IND2}${BULLET} Wlan 2.4Ghz ok/nok`);
+        lines.push(`${IND2}${BULLET} Wlan 5Ghz ok/nok`);
+        if (speed && (speed.download || speed.upload || speed.ping)) {
+          lines.push(`${IND1}>Speed Test:`);
+          if (speed.download) lines.push(`${IND2}${BULLET} Download: ${speed.download} ${speed.downloadUnit || 'Mbit/s'}`);
+          if (speed.upload)   lines.push(`${IND2}${BULLET} Upload: ${speed.upload} ${speed.uploadUnit || 'Mbit/s'}`);
+          if (speed.ping)     lines.push(`${IND2}${BULLET} Ping: ${speed.ping} ms`);
+        }
+        lines.push(`${IND1}>Info:`);
+        return lines.join('\n');
+      }
+    })();
+    /* Loris Salerno — taasalo3 — fine script watermark */
+
+    // ---- Settings Logic ----
+    (function initSettings() {
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsPopup = document.getElementById('settingsPopup');
+      const toolIds = ['clima1', 'clima2', 'clima3', 'tvbox', 'longmeasure'];
+      
+      const savedState = JSON.parse(localStorage.getItem('sct-tools-visibility') || '{}');
+      
+      toolIds.forEach(id => {
+        const chk = document.getElementById('chk-' + id);
+        const section = document.getElementById('tool-' + id);
+        if (!chk || !section) return;
+        
+        if (savedState[id] !== undefined) {
+          chk.checked = savedState[id];
+        }
+        section.style.display = chk.checked ? '' : 'none';
+        
+        chk.addEventListener('change', () => {
+          section.style.display = chk.checked ? '' : 'none';
+          const newState = {};
+          toolIds.forEach(tId => {
+            const c = document.getElementById('chk-' + tId);
+            if (c) newState[tId] = c.checked;
+          });
+          localStorage.setItem('sct-tools-visibility', JSON.stringify(newState));
+        });
+      });
+      
+      settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPopup.classList.toggle('show');
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!settingsPopup.contains(e.target) && e.target !== settingsBtn) {
+          settingsPopup.classList.remove('show');
+        }
+      });
+    })();
+  </script>
+
+<!-- Chiusura pagina — Firma: Loris Salerno | taasalo3 | SCS-B2C-CUC-SCT-OP2 -->
+  <footer class="footer" data-footer="LS-taasalo3">
+  © Copyright 2026&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20LolloTool" style="color: inherit; text-decoration: none; font-weight: bold;">Feedback</a>
+  </footer>
+  </div><!-- /.page-wrap -->
+  <!-- Fine file — Creato da Loris Salerno, Giugno 2026. Tutti i diritti riservati. -->
+</body>
+</html>

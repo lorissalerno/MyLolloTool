@@ -1,0 +1,4253 @@
+<!--
+  ================================================================
+  LolloData — Application Root
+  Author  : taasalo3 / Loris Salerno (SCS-B2C-CUC-SCT-OP2)
+  Version : 1.1.0
+  © Copyright 2026 Loris Salerno. All rights reserved.
+
+  GUIDA PER PROSSIMI AGENTI AI (HOW TO NAVIGATE):
+  1. STACK: File singolo HTML5, CSS Vanilla e Javascript nativo.
+     Usa sql.js (WASM) per far girare due database SQLite locali in-memory,
+     sincronizzati e salvati in localStorage (codificati Base64) o caricati da file.
+  2. METODI CHIAVE PER RICERCA:
+     - "seedProducts" : Inizializza il catalogo dei prodotti AOIT
+     - "seedSales"    : Inizializza l'elenco delle vendite storiche inserite
+     - "renderSales"  : Aggiorna e filtra in tempo reale la tabella vendite
+     - "renderStats"  : Calcola statistiche, dettaglio mensile e Chart.js
+     - "loadOrCreateSalesDB" / "loadOrCreateProductsDB" : Inizializzazione SQLite
+  3. DATI SQLite:
+     - DB Prodotti: ID, Categoria (TV, INTERNET, MOBILE, MY SERVICE), Nome, Prezzo CHF, Mesi, Attivo.
+     - DB Vendite: ID, Tipo (AOIT, DMC, NEW), Product ID, Nome Prodotto, SCN, Data, Note, Stato (ok/cancelled), AOIT.
+  ================================================================
+-->
+<!-- TEST GIT -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataSales V1.1</title>
+  <meta name="description" content="DataSales: gestione vendite e prodotti — Loris Salerno SCS-B2C-CUC-SCT-OP2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+
+
+  <style>
+    /* ================================================================
+     * LolloData — Design System (v2 — Clean & Spacious)
+     * Author  : taasalo3 / Loris Salerno (SCS-B2C-CUC-SCT-OP2)
+     * Version : 2.0.0
+     * Date    : 2026
+     * © Copyright 2026 Loris Salerno — All rights reserved
+     * ================================================================ */
+
+    :root {
+      --app-header-height: 68px;
+      --bg          : #0D0D10;
+      --bg-card     : #141417;
+      --bg-card2    : #1A1A1F;
+      --bg-hover    : #1F1F26;
+      --border      : #2A2A35;
+      --border-lt   : #333340;
+      --primary-lt  : #2563EB;
+      --accent      : #3B82F6;
+      --accent-lt   : #60A5FA;
+      --txt         : #EEEEF0;
+      --txt-sec     : #9898A8;
+      --txt-muted   : #5A5A70;
+      --success     : #10B981;
+      --danger      : #EF4444;
+      --warning     : #F59E0B;
+      --shadow      : 0 2px 12px rgba(0,0,0,.40);
+      --shadow-lg   : 0 8px 40px rgba(0,0,0,.55);
+      --r           : 14px;
+      --r-sm        : 8px;
+      --tr          : all .18s ease;
+    }
+
+    :root.light-theme {
+      --bg          : #F3F4F6;
+      --bg-card     : #FFFFFF;
+      --bg-card2    : #F9FAFB;
+      --bg-hover    : #E5E7EB;
+      --border      : #E5E7EB;
+      --border-lt   : #D1D5DB;
+      --primary-lt  : #2563EB;
+      --accent      : #3B82F6;
+      --accent-lt   : #2563EB;
+      --txt         : #1F2937;
+      --txt-sec     : #4B5563;
+      --txt-muted   : #9CA3AF;
+      --shadow      : 0 2px 12px rgba(0,0,0,.06);
+      --shadow-lg   : 0 8px 40px rgba(0,0,0,.10);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+
+    /* ---- HEADER ---- */
+    .app-header-wrap {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(0,0,0,.30);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .app-header {
+      color: var(--txt);
+      padding: 0 36px;
+      height: var(--app-header-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .app-logo {
+      font-size: clamp(16px, 2vw, 22px);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 1.5vw, 12px);
+      margin-right: 18px; /* spazio prima delle barre header */
+    }
+    .app-logo img {
+      width: clamp(28px, 3.2vw, 40px);
+      height: clamp(28px, 3.2vw, 40px);
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .app-logo .logo-text span { color: var(--accent-lt); }
+
+    .header-goals {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      opacity: .95;
+    }
+    .header-goal-item {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      font-size: clamp(10px, 1.2vw, 11px);
+      font-weight: 600;
+    }
+    .header-goal-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-goal-lbl {
+      color: var(--txt-sec);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .header-goal-track {
+      height: clamp(4px, 0.6vw, 6px);
+      background: rgba(255,255,255,.10);
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 60px;
+    }
+    .header-goal-track.aoit  { width: clamp(80px, 12vw, 170px); }
+    .header-goal-track.ret   { width: clamp(70px, 10vw, 140px); }
+    .header-goal-track.narrow{ width: clamp(50px, 6vw, 95px); }
+    .header-goal-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .5s ease;
+      min-width: 0;
+    }
+    .header-goal-fill.aoit { background: linear-gradient(90deg, var(--primary-lt), var(--accent-lt)); }
+    .header-goal-fill.ret  { background: #059669; }
+    .header-goal-fill.newt { background: #D97706; }
+    .header-goal-pct {
+      font-weight: 700;
+      color: var(--txt);
+      font-size: 10px;
+    }
+
+    .year-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 12.5px;
+      color: var(--txt-sec);
+    }
+    .year-wrap select {
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border-lt);
+      color: var(--txt);
+      padding: 6px 13px;
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: var(--tr);
+    }
+    .year-wrap select:hover { border-color: var(--accent); }
+    .year-wrap select option { background: var(--bg-card); color: var(--txt); }
+    select option { background-color: var(--bg-card); color: var(--txt); }
+
+    /* ---- THEME TOGGLE ---- */
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border-lt);
+      color: var(--txt-sec);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--tr);
+      padding: 0;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--accent);
+      color: var(--txt);
+      background: var(--bg-hover);
+    }
+    .theme-toggle-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+    }
+
+    /* ---- THEME SPECIFICS ---- */
+    :root.light-theme .b-aoit { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+    :root.light-theme .b-dmc, :root.light-theme .b-retentions { background: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+    :root.light-theme .b-new { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+
+    :root.light-theme .c-tv { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+    :root.light-theme .c-int { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+    :root.light-theme .c-mob { background: #FFEDD5; color: #9A3412; border-color: #FED7AA; }
+    :root.light-theme .c-ms { background: #F3E8FF; color: #6B21A8; border-color: #E9D5FF; }
+
+    :root.light-theme .type-opt { border-color: var(--border); color: var(--txt-sec); background: var(--bg); }
+    :root.light-theme .type-opt.sel-aoit { border-color: #2563EB; background: #DBEAFE; color: #1E40AF; }
+    :root.light-theme .type-opt.sel-dmc, :root.light-theme .type-opt.sel-retentions { border-color: #059669; background: #D1FAE5; color: #065F46; }
+    :root.light-theme .type-opt.sel-new { border-color: #D97706; background: #FEF3C7; color: #92400E; }
+
+    :root.light-theme .toast.ok { background: #DEF7EC; border-color: #31C48D; color: #03543F; }
+    :root.light-theme .toast.err { background: #FDE8E8; border-color: #F05252; color: #9B1C1C; }
+    :root.light-theme mark { background: #FEF08A; color: #713F12; }
+
+    .text-green { color: #34D399; }
+    .text-yellow { color: #FBBF24; }
+    :root.light-theme .text-green { color: #059669; }
+    :root.light-theme .text-yellow { color: #D97706; }
+    :root.light-theme .header-goal-track { background: rgba(0,0,0,.08); }
+    :root.light-theme .goal-progress-track { background: rgba(0,0,0,.08); }
+
+    /* ---- NAV ---- */
+    .nav-tabs-wrap {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: var(--app-header-height);
+      z-index: 190;
+    }
+    .nav-tabs {
+      display: flex;
+      padding: 0 36px;
+      gap: 4px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .nav-tab {
+      padding: 15px 22px;
+      color: var(--txt-muted);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--tr);
+    }
+    .nav-tab:hover { color: var(--txt-sec); border-bottom-color: var(--border-lt); }
+    .nav-tab.active { color: var(--txt); border-bottom-color: var(--accent); }
+
+    /* ---- LAYOUT ---- */
+    .main {
+      flex: 1;
+      padding: 32px 36px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn .22s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- CARD ---- */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .card + .card { margin-top: 22px; }
+    .card-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-card2);
+    }
+    .card-title { font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
+
+    /* ---- TOOLBAR ---- */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      font-size: 13.5px;
+      outline: none;
+      transition: var(--tr);
+      background: var(--bg-card);
+      color: var(--txt);
+    }
+    .search-box::placeholder { color: var(--txt-muted); }
+    .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+
+    .sel {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      font-size: 13.5px;
+      outline: none;
+      background: var(--bg-card);
+      cursor: pointer;
+      color: var(--txt);
+      transition: var(--tr);
+    }
+    .sel:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+
+    /* ---- BUTTONS ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 18px;
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: var(--tr);
+      white-space: nowrap;
+      letter-spacing: -.1px;
+    }
+    .btn-primary { background: #2563EB; color: #FFFFFF; }
+    .btn-primary:hover { background: #1D4ED8; color: #FFFFFF; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(37,99,235,.35); }
+    .btn-ghost { background: transparent; color: var(--txt-sec); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-hover); border-color: var(--border-lt); color: var(--txt); }
+    .btn-danger-ghost { background: transparent; color: var(--danger); border: 1px solid rgba(239,68,68,0.35); }
+    .btn-danger-ghost:hover { background: var(--danger); color: #FFFFFF; }
+    .btn-sm { padding: 7px 12px; font-size: 12.5px; }
+    .btn-icon {
+      padding: 6px 9px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--txt-sec);
+      transition: var(--tr);
+      line-height: 1;
+    }
+    .btn-icon:hover { background: var(--bg-hover); border-color: var(--border-lt); color: var(--txt); }
+    .btn-icon.del { color: rgba(239,68,68,0.55); border-color: rgba(239,68,68,0.25); font-weight: 700; font-size: 15px; }
+    .btn-icon.del:hover { background: rgba(239,68,68,0.22); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 0 2px rgba(239,68,68,0.18); transform: scale(1.08); }
+    .drag-handle {
+      cursor: grab;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      color: var(--txt-muted);
+      transition: var(--tr);
+      margin-right: 4px;
+    }
+    .drag-handle:hover {
+      color: var(--txt);
+    }
+    tr.dragging {
+      opacity: 0.4;
+      background: var(--bg-hover) !important;
+    }
+    tr.drag-over {
+      outline: 2px dashed var(--accent);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ---- TABLE ---- */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      background: var(--bg-card2);
+      color: var(--txt-sec);
+      padding: 13px 18px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-hover); }
+    tr.row-cancelled td { opacity: .45; text-decoration: line-through; }
+    tr.cat-spacer td {
+      height: 18px;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+    }
+    tr.cat-spacer:hover td {
+      background: transparent !important;
+    }
+
+    /* ---- STATUS DOT ---- */
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(16,185,129,.5);
+      flex-shrink: 0;
+    }
+    .dot.cancel { background: var(--danger); box-shadow: 0 0 6px rgba(239,68,68,.5); }
+
+    /* ---- TYPE BADGE ---- */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+    .b-aoit       { background: rgba(37,99,235, 0.15); color: #93C5FD; border: 1px solid rgba(37,99,235,.25); }
+    .b-dmc, .b-retentions { background: rgba(6,95,70, 0.15); color: #6EE7B7; border: 1px solid rgba(6,95,70,.25); }
+    .b-new        { background: rgba(146,64,14, 0.15); color: #FCD34D; border: 1px solid rgba(146,64,14,.30); }
+
+    /* ---- CATEGORY LABEL ---- */
+    .cat {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+    .c-tv  { background: rgba(34,197,94, 0.12); color: #4ADE80;  border: 1px solid rgba(34,197,94,.20); }
+    .c-int { background: rgba(59,130,246, 0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,.20); }
+    .c-mob { background: rgba(249,115,22, 0.12); color: #FB923C; border: 1px solid rgba(249,115,22,.20); }
+    .c-ms  { background: rgba(168,85,247, 0.12); color: #C084FC; border: 1px solid rgba(168,85,247,.20); }
+
+    /* ---- TOTAL ROW ---- */
+    .total-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card2);
+      gap: 18px;
+    }
+    .total-label { font-size: 13px; color: var(--txt-sec); font-weight: 600; }
+    .total-val { font-size: 24px; font-weight: 800; color: var(--txt); letter-spacing: -.5px; }
+
+    /* ---- QTY BADGE ---- */
+    .qty { background: var(--primary-lt); color: #fff; border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700; }
+
+    /* ---- STAT CARDS ---- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--r);
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: var(--tr);
+    }
+    .stat-card:hover { border-color: var(--border-lt); box-shadow: var(--shadow-lg); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary-lt), var(--accent-lt));
+    }
+    .stat-lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .9px; color: var(--txt-muted); margin-bottom: 10px; }
+    .stat-val { font-size: 30px; font-weight: 800; color: var(--txt); line-height: 1; letter-spacing: -.5px; }
+    .stat-sub { font-size: 12px; color: var(--txt-muted); margin-top: 6px; }
+
+    /* ---- CHARTS ---- */
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin: 22px 0; align-items: start; }
+    .chart-card { background: var(--bg-card); border-radius: var(--r); padding: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 18px; color: var(--txt); letter-spacing: -.1px; }
+    .chart-legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 12px; font-size: 11px; color: var(--txt); }
+    .chart-legend-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chart-legend-color { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    /* ---- GOAL SECTION ---- */
+    .goal-section {
+      background: var(--bg-card);
+      border-radius: var(--r);
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+    .goal-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+    .goal-inputs { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .goal-progress-track {
+      width: 100%;
+      height: 20px;
+      background: rgba(255,255,255,.06);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 8px 0 16px;
+    }
+    .goal-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-lt), var(--accent-lt));
+      border-radius: 10px;
+      transition: width .5s ease;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      min-width: 0;
+    }
+    .goal-info-row { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: var(--txt-sec); }
+
+    /* ---- MODAL ---- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.60);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-lt);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 560px;
+      max-height: 92vh;
+      overflow-y: auto;
+      transform: translateY(20px) scale(.97);
+      transition: transform .22s ease;
+    }
+    .modal-overlay.open .modal { transform: none; }
+ 
+    .modal-head {
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card2);
+      border-radius: 18px 18px 0 0;
+      position: sticky;
+      top: 0;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+    .modal-x {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--txt-sec);
+      transition: var(--tr);
+    }
+    .modal-x:hover { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+    .modal-body { padding: 22px 26px; }
+    .modal-foot {
+      padding: 16px 26px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: var(--bg);
+      border-radius: 0 0 18px 18px;
+      position: sticky;
+      bottom: 0;
+    }
+
+    /* ---- FORM ---- */
+    .fg { margin-bottom: 18px; }
+    .fg:last-child { margin-bottom: 0; }
+    .fl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--txt-sec); margin-bottom: 7px; text-transform: uppercase; }
+    .fi, .fs, .fta {
+      width: 100%;
+      padding: 11px 15px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: var(--tr);
+      color: var(--txt);
+      background: var(--bg);
+    }
+    .fi::placeholder, .fta::placeholder { color: var(--txt-muted); }
+    .fi:focus, .fs:focus, .fta:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.12); background: var(--bg-card); }
+    .fta { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ---- TYPE SELECTOR ---- */
+    .type-sel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+    .type-opt {
+      padding: 12px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      text-align: center;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13.5px;
+      letter-spacing: .3px;
+      transition: var(--tr);
+      background: var(--bg);
+      color: var(--txt-sec);
+    }
+    .type-opt:hover { border-color: var(--accent); background: var(--bg-hover); color: var(--txt); }
+    .type-opt.sel-aoit { border-color: #2563EB; background: rgba(37,99,235,0.12); color: #93C5FD; }
+    .type-opt.sel-dmc, .type-opt.sel-retentions { border-color: #059669; background: rgba(5,150,105,0.12); color: #6EE7B7; }
+    .type-opt.sel-new  { border-color: #D97706; background: rgba(217,119,6,0.12); color: #FCD34D; }
+
+    /* ---- COMMISSION PREVIEW ---- */
+    .comm-preview {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 18px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .comm-lbl { font-size: 11.5px; color: var(--txt-sec); font-weight: 600; }
+    .comm-val { font-size: 20px; font-weight: 800; color: var(--txt); letter-spacing: -.3px; }
+
+    /* ---- COMBOBOX ---- */
+    .combobox { position: relative; }
+    .combobox-input { width: 100%; cursor: text; }
+    .combobox-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 260px;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      margin-top: 4px;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+    .combobox-list.open { display: block; }
+    .combobox-cat {
+      padding: 6px 14px 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--txt-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
+    .combobox-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      transition: var(--tr);
+      color: var(--txt);
+    }
+    .combobox-item:last-child { border-bottom: none; }
+    .combobox-item:hover,
+    .combobox-item.highlighted { background: var(--bg-hover); color: var(--accent); }
+    .combobox-item.selected { background: rgba(37,99,235,0.08); font-weight: 600; }
+    .combobox-empty {
+      padding: 14px;
+      text-align: center;
+      color: var(--txt-muted);
+      font-size: 13px;
+    }
+    .combobox-list::-webkit-scrollbar { width: 6px; }
+    .combobox-list::-webkit-scrollbar-track { background: transparent; }
+    .combobox-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ---- ARCHIVE ---- */
+    .archive-list { display: flex; flex-direction: column; gap: 12px; }
+    .archive-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: var(--shadow);
+      transition: var(--tr);
+    }
+    .archive-item:hover { border-color: var(--border-lt); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .archive-year { font-size: 20px; font-weight: 800; color: var(--txt); }
+    .archive-stats { font-size: 12.5px; color: var(--txt-sec); margin-top: 4px; }
+
+    /* ---- FOOTER ---- */
+    .app-footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      color: var(--txt-muted);
+      text-align: center;
+      padding: 16px 28px;
+      font-size: 11.5px;
+      letter-spacing: .2px;
+      flex-shrink: 0;
+    }
+    .app-footer a { color: var(--accent-lt); text-decoration: none; }
+    .app-footer a:hover { text-decoration: underline; }
+
+    /* ---- TOAST ---- */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-lt);
+      color: var(--txt);
+      padding: 13px 20px;
+      border-radius: var(--r);
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .28s cubic-bezier(.34,1.56,.64,1);
+    }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.ok  { background: #052e16; border-color: #166534; color: #4ade80; }
+    .toast.err { background: #450a0a; border-color: #991b1b; color: #f87171; }
+
+    /* ---- CONFIRM ---- */
+    .cfm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.60);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    .cfm-overlay.open { opacity: 1; pointer-events: all; }
+    .cfm-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-lt);
+      border-radius: 16px;
+      padding: 32px 28px 24px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      transform: scale(.95);
+      transition: transform .2s;
+    }
+    .cfm-overlay.open .cfm-box { transform: none; }
+    .cfm-box h3 { font-size: 17px; margin-bottom: 10px; font-weight: 700; }
+    .cfm-box p { color: var(--txt-sec); font-size: 13.5px; margin-bottom: 24px; line-height: 1.5; }
+    .cfm-acts { display: flex; gap: 10px; justify-content: center; }
+
+    /* ---- MISC ---- */
+    .empty-val { color: var(--txt-muted); }
+    .empty { text-align: center; padding: 60px 24px; color: var(--txt-muted); }
+    .empty h3 { font-size: 16px; margin-bottom: 8px; font-weight: 600; }
+    .empty p { font-size: 13px; }
+    mark { background: rgba(254,240,138,.18); color: #fef08a; border-radius: 3px; padding: 0 2px; }
+    .sep-row td { background: var(--bg-card2) !important; padding: 8px 18px 5px; color: var(--txt-muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-lt); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--txt-muted); }
+
+    /* ---- OFFERTE CARDS ---- */
+    .offer-group { margin-bottom: 24px; }
+    .offer-group:last-child { margin-bottom: 0; }
+    .offer-group-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -.1px;
+      margin-bottom: 10px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .offer-group-title .offer-gicon {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .offer-group-title .offer-count {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--txt-muted);
+      background: var(--bg-hover);
+      padding: 1px 8px;
+      border-radius: 10px;
+      margin-left: 4px;
+    }
+    .offer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .offer-card {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      transition: var(--tr);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .offer-card:hover {
+      border-color: var(--border-lt);
+      background: var(--bg-hover);
+    }
+    .offer-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .offer-card-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .offer-card-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--txt);
+      flex: 1;
+    }
+    .offer-card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .offer-card-badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .15px;
+    }
+    .offer-badge-promo {
+      background: rgba(16,185,129,0.12);
+      color: #6EE7B7;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .offer-badge-price {
+      background: rgba(59,130,246,0.12);
+      color: #93C5FD;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .offer-card-link {
+      margin-top: 2px;
+    }
+    .offer-card-link a {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-lt);
+      text-decoration: none;
+      transition: var(--tr);
+    }
+    .offer-card-link a:hover { color: var(--txt); text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .app-header { padding: 0 18px; }
+      .nav-tabs { padding: 0 18px; }
+      .main { padding: 20px 18px; }
+      .header-mid { display: none; }
+    }
+    @media (max-width: 1600px) {
+      .app-header { padding: 0 36px; }
+      .nav-tabs { padding: 0 36px; }
+    }
+    /* Responsive tweaks: improve nav overflow, chart/canvas scaling, input wrapping */
+    .nav-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .nav-tabs::-webkit-scrollbar { height: 8px; }
+    .nav-tabs { -ms-overflow-style: none; scrollbar-width: thin; }
+    .nav-tabs { white-space: nowrap; }
+    .nav-tab { flex: 0 0 auto; }
+
+    /* Make chart canvases scale with their containers */
+    canvas { max-width: 100% !important; height: auto !important; display: block; }
+
+    /* Limit donut chart column so left chart stays visible on medium widths */
+    @media (max-width: 1200px) {
+      .chart-grid { grid-template-columns: 1fr minmax(240px, 360px); }
+    }
+    @media (max-width: 1000px) {
+      .chart-grid { grid-template-columns: 1fr minmax(200px, 320px); }
+    }
+    /* Ensure donut canvas doesn't grow too large and centers */
+    .chart-grid .chart-card:nth-child(2) { display: flex; flex-direction: column; align-items: center; }
+    .chart-grid .chart-card:nth-child(2) canvas { max-width: 320px; width: 100%; height: auto !important; }
+    @media (max-width: 900px) {
+      .chart-grid .chart-card:nth-child(2) canvas { max-width: 100%; }
+    }
+
+    @media (max-width: 1200px) {
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+      .chart-card { padding: 18px; }
+      .main { padding: 24px 20px; }
+      .app-header { padding: 0 20px; }
+    }
+
+    /* Further header/nav refinement for mid-wide screens */
+    @media (max-width: 1100px) {
+      .app-header {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        overflow-x: auto;
+      }
+      .app-logo { flex: 0 0 auto; }
+      .header-goals { flex: 1 1 40%; min-width: 0; overflow: hidden; }
+      .header-goals .header-goal-item { min-width: 0; }
+      .year-wrap { flex: 0 0 auto; margin-left: 8px; }
+
+      .nav-tabs { width: auto; padding: 0 8px; white-space: nowrap; overflow-x: auto; }
+      .nav-tabs > div:first-child { display: flex; gap: 8px; flex: 0 0 auto; }
+      .nav-tabs > div:last-child  { display: flex; justify-content: flex-end; gap: 8px; flex: 0 0 auto; }
+      .nav-tab { padding: 8px 10px; font-size: 12px; }
+    }
+
+    /* Header / Nav fixes to avoid horizontal overflow while preventing wrap */
+    .nav-tabs > div:last-child { flex: 0 0 auto; }
+    @media (max-width: 900px) {
+      :root { --app-header-height: 56px; }
+      .nav-tabs { white-space: nowrap; overflow-x: auto; }
+      .nav-tabs > div:last-child { justify-content: flex-end; padding: 6px 8px; }
+      .app-logo img { width: 30px; height: 30px; }
+      .header-goals { gap: 6px; }
+      .header-goal-track.aoit, .header-goal-track.ret, .header-goal-track.narrow { width: auto; max-width: 140px; }
+    }
+
+    @media (max-width: 900px) {
+      .nav-tabs { padding: 0 12px; }
+      .nav-tab { padding: 10px 12px; font-size: 11px; }
+      .chart-legend-grid { grid-template-columns: 1fr; }
+      .card-head { padding: 12px 16px; }
+      .chart-card { padding: 12px; }
+      .goal-inputs { gap: 8px; }
+      .goal-inputs .fi { min-width: 0; width: 100% !important; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* Small screens — stack charts and content comfortably */
+    @media (max-width: 600px) {
+      .app-header { --app-header-height: 80px; height: var(--app-header-height); align-items: center; padding: 10px 12px; gap: 8px; }
+      .app-logo { font-size: 18px; }
+      .nav-tabs { gap: 8px; padding: 8px 12px; }
+      .nav-tab { padding: 12px 10px; }
+      /* keep year-wrap visible; compact select and theme button */
+      .year-wrap { display: flex; align-items: center; gap: 8px; }
+      .year-wrap select { display: inline-block; width: 86px; padding: 6px 8px; font-size: 13px; }
+      .theme-toggle-btn { margin-left: 6px; }
+      .main { padding: 16px 12px; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+
+    #unsavedBackupBanner {
+      display: none;
+      width: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(90deg,#fff7ed,#fffbeb);
+      color: #92400E;
+      border-radius: 12px;
+      padding: 12px 16px;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(15,23,42,0.08);
+      border: 1px solid rgba(251,191,36,0.18);
+      margin-bottom: 12px;
+      overflow: hidden;
+      animation: bannerEnter 260ms ease;
+      display: flex;
+    }
+    @keyframes bannerEnter {
+      from { transform: translateY(-8px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    #unsavedBackupBanner .banner-left { display:flex; gap:12px; align-items:center; }
+    #unsavedBackupBanner .banner-icon {
+      width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+      background: rgba(255,255,255,0.6); border-radius:8px; flex:0 0 40px;
+      box-shadow: 0 3px 8px rgba(15,23,42,0.06);
+    }
+    #unsavedBackupBanner strong { font-weight: 800; color: #7C2D0A; }
+    #unsavedBackupBanner .banner-text { line-height:1.1; color: #6B2E0B; }
+    #unsavedBackupBanner .banner-actions { display:flex; gap:10px; align-items:center; }
+    #unsavedBackupBanner .btn-primary {
+      border: none; border-radius: 10px; background: linear-gradient(180deg,#7C3AED,#5B21B6);
+      color: #fff; padding: 10px 16px; cursor: pointer; font-weight: 800; box-shadow: 0 8px 18px rgba(124,58,237,0.16);
+      transition: transform .14s ease, box-shadow .14s ease, opacity .14s ease;
+    }
+    #unsavedBackupBanner .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(124,58,237,0.18); }
+    #unsavedBackupBanner .btn-primary:active { transform: translateY(0); }
+    #unsavedBackupBanner .close-btn { background: transparent; border: none; color: #6B7280; font-size:16px; cursor:pointer; padding:6px; border-radius:6px; }
+    #unsavedBackupBanner .close-btn:hover { background: rgba(0,0,0,0.04); color:#374151; }
+  </style>
+</head>
+<body>
+
+<div id="unsavedBackupBanner" role="status" aria-live="polite">
+  <div class="banner-left">
+    <div class="banner-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" fill="#FDE68A" />
+        <path d="M12 7v6" stroke="#92400E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 16h.01" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="banner-text"><strong>Attenzione:</strong> ci sono modifiche non salvate in backup locale.</div>
+  </div>
+  <div class="banner-actions">
+    <button class="btn-primary" type="button" onclick="exportFullBackup()">Esporta backup</button>
+    <button class="close-btn" aria-label="Chiudi" onclick="this.closest('#unsavedBackupBanner').style.display='none'">✕</button>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<div class="app-header-wrap">
+<header class="app-header">
+  <div class="app-logo">
+    <img src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="DataSales Logo">
+    <span class="logo-text">Data<span>Sales</span> <span style="font-size:14px;font-weight:700;color:var(--txt-muted);margin-left:8px">V1.1</span></span>
+  </div>
+
+  <div class="header-goals header-mid">
+    <!-- AOIT -->
+    <div class="header-goal-item">
+      <div class="header-goal-info">
+        <span class="header-goal-lbl">AOIT</span>
+        <span class="header-goal-pct" id="hGoalAoitPct">0%</span>
+      </div>
+      <div class="header-goal-track aoit">
+        <div class="header-goal-fill aoit" id="hGoalAoitBar" style="width:0%"></div>
+      </div>
+    </div>
+    <!-- Retention -->
+    <div class="header-goal-item">
+      <div class="header-goal-info">
+        <span class="header-goal-lbl">Retention</span>
+        <span class="header-goal-pct" id="hGoalRetPct">0%</span>
+      </div>
+      <div class="header-goal-track ret">
+        <div class="header-goal-fill ret" id="hGoalRetBar" style="width:0%"></div>
+      </div>
+    </div>
+    <!-- New Internet -->
+    <div class="header-goal-item">
+      <div class="header-goal-info">
+        <span class="header-goal-lbl">Int</span>
+        <span class="header-goal-pct" id="hGoalNewIntPct">0%</span>
+      </div>
+      <div class="header-goal-track narrow">
+        <div class="header-goal-fill newt" id="hGoalNewIntBar" style="width:0%"></div>
+      </div>
+    </div>
+    <!-- New TV -->
+    <div class="header-goal-item">
+      <div class="header-goal-info">
+        <span class="header-goal-lbl">TV</span>
+        <span class="header-goal-pct" id="hGoalNewTvPct">0%</span>
+      </div>
+      <div class="header-goal-track narrow">
+        <div class="header-goal-fill newt" id="hGoalNewTvBar" style="width:0%"></div>
+      </div>
+    </div>
+    <!-- New Mobile -->
+    <div class="header-goal-item">
+      <div class="header-goal-info">
+        <span class="header-goal-lbl">Mob</span>
+        <span class="header-goal-pct" id="hGoalNewMobPct">0%</span>
+      </div>
+      <div class="header-goal-track narrow">
+        <div class="header-goal-fill newt" id="hGoalNewMobBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="year-wrap">
+    <span>Anno:</span>
+    <select id="yearSel" onchange="changeYear()"></select>
+    <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Cambia tema" title="Cambia tema"></button>
+  </div>
+</header>
+</div>
+
+<!-- ===== NAV ===== -->
+<div class="nav-tabs-wrap">
+<nav class="nav-tabs" style="justify-content: space-between; align-items: center;">
+  <div style="display: flex; gap: 4px;">
+    <div class="nav-tab active" id="tab-stats"    onclick="showTab('stats')">Dashboard</div>
+    <div class="nav-tab"        id="tab-sales"    onclick="showTab('sales')">Vendite</div>
+    <div class="nav-tab"        id="tab-products" onclick="showTab('products')">Database AOIT</div>
+    <div class="nav-tab"        id="tab-archive"  onclick="showTab('archive')">Archivio</div>
+    <div class="nav-tab"        id="tab-offerte"  onclick="showTab('offerte')" style="display:none">Offerte</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px;">
+    <span id="lastBackupLbl" style="font-size: 11.5px; color: var(--txt-muted); font-weight: 600;">Ultimo backup: mai</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportFullBackup()" style="padding: 4px 10px; font-size: 11px;">Backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="triggerFullBackupImport()" style="padding: 4px 10px; font-size: 11px;">Importa backup</button>
+  </div>
+</nav>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- ======================================================
+       TAB: DASHBOARD
+       ====================================================== -->
+  <div class="tab-panel active" id="panel-stats">
+
+    <!-- Goal -->
+    <div class="goal-section">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:3px;">Obiettivi Annuali</div>
+          <div style="font-size:12px;color:var(--txt-sec);">Imposta l'obiettivo annuale per calcolare l'obiettivo mensile dinamico</div>
+        </div>
+        <div class="goal-inputs" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">AOIT (CHF)</label>
+            <input type="number" class="fi" id="goalAoit" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">Retention</label>
+            <input type="number" class="fi" id="goalRetentions" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">Internet</label>
+            <input type="number" class="fi" id="goalNewInternet" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">TV</label>
+            <input type="number" class="fi" id="goalNewTv" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">Mobile</label>
+            <input type="number" class="fi" id="goalNewMobile" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="exportDashboardPDF()" style="align-self:flex-end; white-space:nowrap; width:70px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; font-size:12px; padding:4px 6px;">Esporta<br>PDF</button>
+        </div>
+      </div>
+
+      <!-- Goal Progress Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <!-- AOIT Goals -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-lt); margin-bottom: 8px;">AOIT (CHF)</div>
+          
+          <div class="goal-info-row">
+            <span id="goalAoitMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalAoitMonthInfo" style="color:var(--txt-sec); font-size: 11px;">CHF 0 / CHF 0</span>
+          </div>
+          <div class="goal-progress-track" style="height: 16px;">
+            <div class="goal-progress-fill" id="goalAoitMonthBar" style="width:0%; font-size: 10px;"></div>
+          </div>
+
+          <div class="goal-info-row">
+            <span style="font-size: 11px;">Annuale</span>
+            <span id="goalAoitYearInfo" style="color:var(--txt-sec); font-size: 11px;">CHF 0 / CHF 0</span>
+          </div>
+          <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
+            <div class="goal-progress-fill" id="goalAoitYearBar" style="width:0%; font-size: 10px;"></div>
+          </div>
+        </div>
+
+        <!-- Retentions Goals -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
+          <div class="text-green" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Retention</div>
+          
+          <div class="goal-info-row">
+            <span id="goalRetentionsMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalRetentionsMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="height: 16px;">
+            <div class="goal-progress-fill" id="goalRetentionsMonthBar" style="width:0%; background: #059669; font-size: 10px;"></div>
+          </div>
+
+          <div class="goal-info-row">
+            <span style="font-size: 11px;">Annuale</span>
+            <span id="goalRetentionsYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
+            <div class="goal-progress-fill" id="goalRetentionsYearBar" style="width:0%; background: #059669; font-size: 10px;"></div>
+          </div>
+        </div>
+
+        <!-- NEW Internet Goals -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Internet</div>
+          
+          <div class="goal-info-row">
+            <span id="goalNewInternetMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewInternetMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="height: 16px;">
+            <div class="goal-progress-fill" id="goalNewInternetMonthBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+
+          <div class="goal-info-row">
+            <span style="font-size: 11px;">Annuale</span>
+            <span id="goalNewInternetYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
+            <div class="goal-progress-fill" id="goalNewInternetYearBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+        </div>
+
+        <!-- NEW TV Goals -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">TV</div>
+          
+          <div class="goal-info-row">
+            <span id="goalNewTvMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewTvMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="height: 16px;">
+            <div class="goal-progress-fill" id="goalNewTvMonthBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+
+          <div class="goal-info-row">
+            <span style="font-size: 11px;">Annuale</span>
+            <span id="goalNewTvYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
+            <div class="goal-progress-fill" id="goalNewTvYearBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+        </div>
+
+        <!-- NEW Mobile Goals -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Mobile</div>
+          
+          <div class="goal-info-row">
+            <span id="goalNewMobileMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewMobileMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="height: 16px;">
+            <div class="goal-progress-fill" id="goalNewMobileMonthBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+
+          <div class="goal-info-row">
+            <span style="font-size: 11px;">Annuale</span>
+            <span id="goalNewMobileYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
+          </div>
+          <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
+            <div class="goal-progress-fill" id="goalNewMobileYearBar" style="width:0%; background: #D97706; font-size: 10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown -->
+    <div class="card" style="margin-top: 18px;">
+      <div class="card-head"><span class="card-title">Dettaglio Mensile</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <colgroup>
+            <col>
+            <col>
+            <col style="width:12%">
+            <col style="width:12%">
+            <col style="width:12%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Mese</th>
+              <th>AOIT</th>
+              <th>Retention</th>
+              <th>Internet</th>
+              <th>TV</th>
+              <th>Mobile</th>
+            </tr>
+          </thead>
+          <tbody id="statMonthlyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title" id="chartMonthlyTitle">AOIT mensili (CHF)</div>
+        <canvas id="chartMonthly" height="110"></canvas>
+      </div>
+      <div class="chart-card">
+        <canvas id="chartTypes" height="220"></canvas>
+        <div id="chartTypesLegend" class="chart-legend-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TAB: VENDITE
+       ====================================================== -->
+  <div class="tab-panel" id="panel-sales">
+    <div class="card">
+      <div class="card-head">
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex:1;">
+          <span class="card-title">Registro Vendite <span id="salesYearLbl" style="color:var(--primary-lt);"></span></span>
+          <input class="search-box" id="sSearch" placeholder="Cerca prodotto, SCN, note..." oninput="renderSales()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="exportSalesPDF()">Esporta PDF</button>
+          <button class="btn btn-primary" onclick="openSaleModal()">+ Aggiungi Vendita</button>
+        </div>
+      </div>
+
+      <!-- Hidden filters to prevent JS errors -->
+      <input type="hidden" id="sType" value="">
+      <input type="hidden" id="sStatus" value="">
+      <input type="hidden" id="sMonth" value="">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Prodotto</th>
+              <th>SCN</th>
+              <th>AOIT</th>
+              <th>Note</th>
+              <th style="width:80px">Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="total-bar">
+        <span class="total-label">TOTALE AOIT</span>
+        <span class="total-val" id="salesTot">CHF 0</span>
+      </div>
+    </div>
+    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+      <button class="btn btn-danger-ghost" onclick="deleteAllSales()">Elimina tutte le vendite</button>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TAB: PRODOTTI
+       ====================================================== -->
+  <div class="tab-panel" id="panel-products">
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-head">
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex:1;">
+          <span class="card-title">Database AOIT</span>
+          <input class="search-box" id="pSearch" placeholder="Cerca prodotto o categoria..." oninput="renderProducts()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="exportProductCatalogList()">Esporta CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="importProductCatalogList()">Importa CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportProductsPDF()">Esporta PDF</button>
+          <button class="btn btn-primary"      onclick="openProductModal()">+ Aggiungi Prodotto</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="productsContainer"></div>
+
+    <div class="card" style="margin-top: 0;">
+      <div class="total-bar" style="border-radius: var(--r); border: none;">
+        <span class="total-label">Totale AOIT anno corrente:</span>
+        <span class="total-val" id="productsTot">CHF 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TAB: ARCHIVIO
+       ====================================================== -->
+  <div class="tab-panel" id="panel-archive">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Archivio Anni Precedenti</span>
+        <button class="btn btn-ghost" onclick="archiveCurrentYear()">
+          Archivia anno <span id="archCurYr"></span>
+        </button>
+      </div>
+      <div style="padding:20px;">
+        <div class="archive-list" id="archiveList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TAB: OFFERTE
+       ====================================================== -->
+  <div class="tab-panel" id="panel-offerte" style="display:none">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Promozioni Swisscom in corso</span>
+        <span id="offersTimestamp" style="font-size:11.5px;color:var(--txt-muted);font-weight:600;"></span>
+      </div>
+      <div id="offersContent" style="padding:20px 24px;">
+        <div id="offersLoading" style="display:flex;align-items:center;gap:10px;padding:20px 0;color:var(--txt-sec);">
+          <span style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;"></span>
+          Caricamento offerte…
+        </div>
+        <div id="offersError" style="display:none;padding:20px 0;color:var(--txt-sec);">
+          <span style="font-size:24px;margin-right:8px;">⚠️</span>
+          Impossibile caricare le promozioni. Verifica la connessione e riprova.
+        </div>
+        <div id="offersEmpty" style="display:none;padding:20px 0;color:var(--txt-sec);">
+          Nessuna promozione disponibile al momento.
+        </div>
+        <div id="offersGrid" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  &copy; Copyright 2026 &nbsp;|&nbsp; Loris Salerno &nbsp;SCS-B2C-CUC-SCT-OP2 &nbsp;|&nbsp;
+  <a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20LolloTool">Feedback</a>
+</footer>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== CONFIRM DIALOG ===== -->
+<div class="cfm-overlay" id="cfmOverlay">
+  <div class="cfm-box">
+    <h3 id="cfmTitle">Conferma</h3>
+    <p id="cfmMsg"></p>
+    <div class="cfm-acts">
+      <button class="btn btn-ghost"         onclick="cfmResolve(false)">Annulla</button>
+      <button class="btn btn-danger-ghost"  onclick="cfmResolve(true)">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: VENDITA ===== -->
+<div class="modal-overlay" id="saleModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="modal-title" id="saleModalTitle">Aggiungi Vendita</h2>
+      <button class="modal-x" onclick="closeSaleModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="saleId">
+
+      <div class="fg">
+        <label class="fl">Tipo vendita</label>
+        <div class="type-sel">
+          <div class="type-opt" id="tAOIT" onclick="selectType('AOIT')">AOIT</div>
+          <div class="type-opt" id="tRetentions"  onclick="selectType('Retentions')">Retention</div>
+          <div class="type-opt" id="tNEW"  onclick="selectType('NEW')">NEW</div>
+        </div>
+        <input type="hidden" id="saleType">
+      </div>
+
+      <!-- AOIT -->
+      <div id="secAOIT" style="display:none;">
+        <div class="fg">
+          <label class="fl">Prodotto AOIT</label>
+          <div class="combobox" id="aoitCombobox">
+            <input type="text" class="fi combobox-input" id="aoitProdInput" placeholder="Cerca prodotto..." autocomplete="off" oninput="onAoitInput()" onfocus="onAoitFocus()" onkeydown="onAoitKeydown(event)">
+            <input type="hidden" id="aoitProd" value="">
+            <div class="combobox-list" id="aoitProdList"></div>
+          </div>
+        </div>
+        <div class="comm-preview" id="aoitCommBox" style="display:none;">
+          <span class="comm-lbl">AOIT calcolato</span>
+          <span class="comm-val" id="aoitCommVal">CHF 0</span>
+        </div>
+      </div>
+
+      <!-- Retentions -->
+      <div id="secRetentions" style="display:none;">
+        <div class="fg">
+          <label class="fl">Tipo contratto</label>
+          <div class="combobox" id="retentionsCombobox">
+            <input type="text" class="fi combobox-input" id="retentionsTypeInput" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onRetentionInput()" onfocus="onRetentionFocus()" onkeydown="onRetentionKeydown(event)">
+            <input type="hidden" id="retentionsType" value="">
+            <div class="combobox-list" id="retentionsTypeList"></div>
+          </div>
+        </div>
+        <input type="hidden" id="retentionsComm" value="0">
+      </div>
+
+      <!-- NEW -->
+      <div id="secNEW" style="display:none;">
+        <div class="fg">
+          <label class="fl">Tipo contratto</label>
+          <div class="combobox" id="newCombobox">
+            <input type="text" class="fi combobox-input" id="newTypeInput" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onNewInput()" onfocus="onNewFocus()" onkeydown="onNewKeydown(event)">
+            <input type="hidden" id="newType" value="">
+            <div class="combobox-list" id="newTypeList"></div>
+          </div>
+        </div>
+        <input type="hidden" id="newComm" value="0">
+      </div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">SCN</label>
+          <input type="text" class="fi" id="saleSCN" placeholder="es. 34564534">
+        </div>
+        <div class="fg">
+          <label class="fl">Data</label>
+          <input type="date" class="fi" id="saleDate">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">Note</label>
+        <textarea class="fta" id="saleNotes" placeholder="Note opzionali..."></textarea>
+      </div>
+
+      <input type="hidden" id="saleStatus" value="ok">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost"    onclick="closeSaleModal()">Annulla</button>
+      <button class="btn btn-primary"  onclick="saveSale()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: PRODOTTO ===== -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="modal-title" id="prodModalTitle">Aggiungi Prodotto</h2>
+      <button class="modal-x" onclick="closeProductModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prodId">
+      <div class="fg">
+        <label class="fl">Categoria</label>
+        <select class="fs" id="prodCat">
+          <option value="TV">TV</option>
+          <option value="INTERNET">INTERNET</option>
+          <option value="MOBILE">MOBILE</option>
+          <option value="MY SERVICE">MY SERVICE</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Nome Prodotto</label>
+        <input type="text" class="fi" id="prodName" placeholder="es. Blue Binge">
+      </div>
+      <!-- Upgrade helper -->
+      <div style="margin-top: 14px; margin-bottom: 14px; padding: 12px; border: 1px dashed var(--border); border-radius: var(--r-sm); background: rgba(255,255,255,0.01);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--txt-sec); text-transform: uppercase;">Calcolatore Upgrade</span>
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
+            <input type="checkbox" id="prodIsUpgrade" onchange="toggleUpgradeHelper()"> Usa upgrade
+          </label>
+        </div>
+        <div id="upgradeHelperFields" style="display: none; gap: 10px; flex-direction: column;">
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" style="font-size: 9px;">Pacchetto di partenza (A)</label>
+            <select class="fs" id="upgradeProdA" onchange="calculateUpgradeDiff()" style="font-size: 12px; padding: 6px 10px;"></select>
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" style="font-size: 9px;">Pacchetto di arrivo (B)</label>
+            <select class="fs" id="upgradeProdB" onchange="calculateUpgradeDiff()" style="font-size: 12px; padding: 6px 10px;"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row" id="prodPriceRow">
+        <div class="fg">
+          <label class="fl">Prezzo senza IVA (CHF / mese)</label>
+          <input type="number" class="fi" id="prodPrice" placeholder="18.41" step="0.01" min="0" oninput="updateProdComm()">
+        </div>
+        <div class="fg">
+          <label class="fl">Durata contratto (mesi)</label>
+          <input type="number" class="fi" id="prodMonths" placeholder="24" min="1" oninput="updateProdComm()">
+        </div>
+      </div>
+      <div class="comm-preview">
+        <span class="comm-lbl">AOIT calcolato</span>
+        <span class="comm-val" id="prodCommVal">CHF 0</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost"    onclick="closeProductModal()">Annulla</button>
+      <button class="btn btn-primary"  onclick="saveProduct()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden SQL import inputs -->
+<input type="file" id="dbSalesInput" accept=".db" style="display:none" onchange="handleSalesDBImport(event)">
+<input type="file" id="dbProductsInput" accept=".db" style="display:none" onchange="handleProductsDBImport(event)">
+<input type="file" id="productsListInput" accept=".csv" style="display:none" onchange="handleProductsListImport(event)">
+<input type="file" id="dbFullBackupInput" accept=".json" style="display:none" onchange="importFullBackup(event)">
+
+<!-- ================================================================
+     SCRIPTS
+     Author  : taasalo3 / Loris Salerno (SCS-B2C-CUC-SCT-OP2)
+     © Copyright 2026 Loris Salerno
+     ================================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+// Theme management - immediate execution to prevent flash of dark theme
+(function() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.add('light-theme');
+  }
+})();
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light-theme');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  updateThemeIcon();
+  if (chMonthly || chTypes) {
+    renderStats();
+  }
+}
+
+function updateThemeIcon() {
+  const isLight = document.documentElement.classList.contains('light-theme');
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) {
+    btn.innerHTML = isLight ? `
+      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    ` : `
+      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+    `;
+  }
+}
+
+/* ================================================================
+ * LolloData — Core JS
+ * taasalo3 | Loris Salerno | SCS-B2C-CUC-SCT-OP2
+ * © Copyright 2026 Loris Salerno — All rights reserved
+ * ================================================================ */
+'use strict';
+
+// ----------------------------------------------------------------
+// Constants & state
+// ----------------------------------------------------------------
+const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+                'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+const CAT_MAP = {
+  'TV':         'c-tv',
+  'INTERNET':   'c-int',
+  'MOBILE':     'c-mob',
+  'MY SERVICE': 'c-ms'
+};
+
+const KEY_PRODS   = 'lollodb_products_v1';
+const KEY_SALES   = yr => `lollodb_sales_${yr}_v1`;
+const KEY_YEARS   = 'lollodata_years';
+const KEY_ARCH    = 'lollodata_archived';
+
+let SQL       = null;
+let dbP       = null;   // DB Prodotti (taasalo3: products database)
+let dbS       = null;   // DB Vendite  (taasalo3: sales database)
+let curYear   = new Date().getFullYear();
+let cfmCb     = null;
+let chMonthly = null;
+let chTypes   = null;
+let unsavedBackupChanges = false;
+let isBooting = true;
+
+// Plugin Chart.js: testo centrale nella torta (percentuale AOIT)
+let aoitPctDisplay = 0;
+
+const centerTextPlugin = {
+  id: 'centerText',
+  beforeDraw(chart) {
+    if (chart.canvas.id !== 'chartTypes') return;
+    const { ctx, chartArea } = chart;
+    const cx = (chartArea.left + chartArea.right) / 2;
+    const cy = (chartArea.top + chartArea.bottom) / 2;
+    const pctText = aoitPctDisplay + '%';
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '800 34px "Nunito", "Varela Round", "Comfortaa", system-ui, sans-serif';
+    ctx.fillStyle = '#0284C7';
+    ctx.fillText(pctText, cx, cy - 8);
+    ctx.font = '600 12px "Nunito", "Varela Round", "Comfortaa", system-ui, sans-serif';
+    ctx.fillStyle = '#71717A';
+    ctx.fillText('AOIT', cx, cy + 18);
+    ctx.restore();
+  }
+};
+Chart.register(centerTextPlugin);
+
+// Combobox state
+let aoitProducts = [];
+let aoitSelectedId = null;
+let aoitHighlightIdx = -1;
+let retentionHighlightIdx = -1;
+let newHighlightIdx = -1;
+
+const retentionTypes = [
+  { value: 'Home', label: 'Home' },
+  { value: 'Mobile', label: 'Mobile' }
+];
+
+const newTypes = [
+  { value: 'Mobile', label: 'Mobile' },
+  { value: 'Internet', label: 'Internet' },
+  { value: 'TV', label: 'TV' }
+];
+
+// ----------------------------------------------------------------
+// BOOT
+// ----------------------------------------------------------------
+window.addEventListener('beforeunload', (event) => {
+  if (!unsavedBackupChanges) return;
+  const message = 'Hai modifiche non salvate: esporta un backup prima di uscire.';
+  event.preventDefault();
+  event.returnValue = message;
+  return message;
+});
+
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Setup theme button
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+    updateThemeIcon();
+
+    /* taasalo3: load sql.js WASM — two separate SQLite databases */
+    SQL = await initSqlJs({
+      locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}`
+    });
+
+    // Prova a caricare i database fisici esterni tramite fetch (se disponibili nel server locale)
+    let fetchedP = null;
+    if (location.protocol !== 'file:') {
+      try {
+        const res = await fetch('products.db');
+        if (res.ok) fetchedP = new Uint8Array(await res.arrayBuffer());
+      } catch(e) {}
+    }
+
+    if (fetchedP) {
+      dbP = new SQL.Database(fetchedP);
+      saveP(dbP);
+    } else {
+      dbP = loadOrCreateProductsDB();
+    }
+
+    let fetchedS = null;
+    if (location.protocol !== 'file:') {
+      try {
+        const res = await fetch(`sales_${curYear}.db`);
+        if (res.ok) fetchedS = new Uint8Array(await res.arrayBuffer());
+      } catch(e) {}
+    }
+
+    if (fetchedS) {
+      dbS = new SQL.Database(fetchedS);
+      saveS(dbS, curYear);
+    } else {
+      dbS = loadOrCreateSalesDB(curYear);
+    }
+
+    initializeSortOrders();
+    buildYearSel();
+    updateLastBackupLabel();
+    refresh();
+    isBooting = false;
+    updateUnsavedBackupBanner();
+    const savedTab = localStorage.getItem('activeTab');
+    if (savedTab && document.getElementById('panel-' + savedTab)) {
+      showTab(savedTab);
+    }
+  } catch (e) {
+    document.body.innerHTML = `<div style="padding:40px;text-align:center;color:red;">
+      <h2>Errore inizializzazione</h2>
+      <p style="margin-top:10px;font-family:monospace;">${escH(e.message)}</p>
+      <p style="margin-top:14px;font-size:13px;color:#666;">
+        Assicurarsi di avere una connessione internet per il primo avvio
+        (necessaria per caricare sql.js).
+      </p>
+    </div>`;
+  }
+});
+
+function refresh() {
+  migrateLocalProducts();
+  syncSalesCommissions();
+  document.getElementById('salesYearLbl').textContent = curYear;
+  document.getElementById('archCurYr').textContent    = curYear;
+  renderSales();
+  renderProducts();
+  loadGoals();
+  renderStats();
+  renderArchive();
+}
+
+// ----------------------------------------------------------------
+// DATABASE — Products (taasalo3: db prodotti)
+// ----------------------------------------------------------------
+function loadOrCreateProductsDB() {
+  const raw = localStorage.getItem(KEY_PRODS);
+  let db;
+  if (raw) {
+    db = new SQL.Database(b64toU8(raw));
+  } else {
+    db = new SQL.Database();
+    db.run(`
+      CREATE TABLE products (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        category  TEXT    NOT NULL,
+        name      TEXT    NOT NULL,
+        price_chf REAL    NOT NULL DEFAULT 0,
+        months    INTEGER NOT NULL DEFAULT 1,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+    seedProducts(db);
+    saveP(db);
+  }
+  return db;
+}
+
+function saveP(db) {
+  localStorage.setItem(KEY_PRODS, u8toB64(db.export()));
+  if (!isBooting) {
+    unsavedBackupChanges = true;
+    updateUnsavedBackupBanner();
+  }
+}
+
+function seedProducts(db) {
+  // taasalo3: catalog is empty by default when database files are missing.
+  // Initialize with empty product list.
+}
+
+// ----------------------------------------------------------------
+// DATABASE — Sales (taasalo3: db vendite per anno)
+// ----------------------------------------------------------------
+function loadOrCreateSalesDB(year) {
+  const raw = localStorage.getItem(KEY_SALES(year));
+  let db;
+  if (raw) {
+    db = new SQL.Database(b64toU8(raw));
+    // Migrations
+    try { db.run("ALTER TABLE goals ADD COLUMN aoit_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { db.run("ALTER TABLE goals ADD COLUMN dmc_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { db.run("ALTER TABLE goals ADD COLUMN new_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { db.run("UPDATE sales SET type='Retentions' WHERE type='DMC';"); } catch(e) {}
+  } else {
+    db = new SQL.Database();
+    db.run(`
+      CREATE TABLE sales (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        type         TEXT    NOT NULL,
+        product_id   INTEGER,
+        product_name TEXT    NOT NULL,
+        scn          TEXT,
+        sale_date    TEXT    NOT NULL,
+        notes        TEXT,
+        status       TEXT    NOT NULL DEFAULT 'ok',
+        commission   REAL    NOT NULL DEFAULT 0
+      );
+      CREATE TABLE goals (
+        id             INTEGER PRIMARY KEY,
+        monthly_target REAL NOT NULL DEFAULT 0,
+        yearly_target  REAL NOT NULL DEFAULT 0,
+        aoit_yearly    REAL NOT NULL DEFAULT 0,
+        dmc_yearly     REAL NOT NULL DEFAULT 0,
+        new_yearly     REAL NOT NULL DEFAULT 0
+      );
+      INSERT INTO goals VALUES (1, 0, 0, 0, 0, 0);
+    `);
+    if (year === 2026) {
+      seedSales(db);
+    }
+    saveS(db, year);
+  }
+  return db;
+}
+
+function seedSales(db) {
+  // taasalo3: sales register is empty by default when database files are missing.
+}
+
+function saveS(db, year) {
+  localStorage.setItem(KEY_SALES(year), u8toB64(db.export()));
+  if (!isBooting) {
+    unsavedBackupChanges = true;
+    updateUnsavedBackupBanner();
+  }
+}
+
+function updateUnsavedBackupBanner() {
+  const banner = document.getElementById('unsavedBackupBanner');
+  if (!banner) return;
+  banner.style.display = unsavedBackupChanges ? 'flex' : 'none';
+}
+
+// ----------------------------------------------------------------
+// YEAR SELECTOR
+// ----------------------------------------------------------------
+function buildYearSel() {
+  const sel  = document.getElementById('yearSel');
+  const now  = new Date().getFullYear();
+  const list = getYears();
+  sel.innerHTML = '';
+  list.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if (y === curYear) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function getYears() {
+  const raw = localStorage.getItem(KEY_YEARS);
+  let arr   = raw ? JSON.parse(raw) : [];
+  const now = new Date().getFullYear();
+  for (let y = now - 3; y <= now + 1; y++) if (!arr.includes(y)) arr.push(y);
+  arr.sort((a,b) => b - a);
+  localStorage.setItem(KEY_YEARS, JSON.stringify(arr));
+  return arr;
+}
+
+function addYear(y) {
+  const arr = getYears();
+  if (!arr.includes(y)) { arr.push(y); arr.sort((a,b)=>b-a); localStorage.setItem(KEY_YEARS, JSON.stringify(arr)); }
+}
+
+function changeYear() {
+  curYear = parseInt(document.getElementById('yearSel').value);
+  dbS = loadOrCreateSalesDB(curYear);
+  refresh();
+}
+
+// ----------------------------------------------------------------
+// TAB NAVIGATION
+// ----------------------------------------------------------------
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-'   + name).classList.add('active');
+  localStorage.setItem('activeTab', name);
+  if (name === 'stats')   { loadGoals(); renderStats(); }
+  if (name === 'archive') renderArchive();
+  if (name === 'offerte') renderOffers();
+}
+
+// ----------------------------------------------------------------
+// RENDER SALES
+// ----------------------------------------------------------------
+function renderSales() {
+  const search  = (v('sSearch') || '').toLowerCase();
+  const typeF   = v('sType');
+  const statusF = v('sStatus');
+  const monthF  = v('sMonth');
+
+  let rows = [];
+  try { rows = dbS.exec('SELECT * FROM sales ORDER BY sale_date DESC, id DESC'); } catch(e) {}
+
+  const tbody = document.getElementById('salesBody');
+  tbody.innerHTML = '';
+
+  let sales = [];
+  if (rows.length) {
+    const cols = rows[0].columns;
+    sales = rows[0].values.map(r => obj(cols, r));
+  }
+
+  // Apply filters (taasalo3: live filter without reload)
+  sales = sales.filter(s => {
+    if (typeF   && s.type   !== typeF)   return false;
+    if (statusF && s.status !== statusF) return false;
+    if (monthF) {
+      const m = s.sale_date.split('-')[1];
+      if (m !== monthF) return false;
+    }
+    if (search) {
+      const hay = [s.product_name, s.scn, s.notes, s.type].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (!sales.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><h3>Nessuna vendita trovata</h3><p>Aggiungi una vendita o modifica i filtri</p></div></td></tr>`;
+    document.getElementById('salesTot').textContent = 'CHF 0';
+    syncHeaderGoal(0, 0, 0, 0, 0);
+    return;
+  }
+
+  let total = 0;
+  for (const s of sales) {
+    const isOk = s.status === 'ok';
+    const comm = parseFloat(s.commission) || 0;
+    if (isOk) total += comm;
+
+    const tr = document.createElement('tr');
+    if (!isOk) tr.classList.add('row-cancelled');
+    tr.innerHTML = `
+      <td style="white-space:nowrap;">${fmtDate(s.sale_date)}</td>
+      <td><span class="badge b-${s.type.toLowerCase()}">${s.type === 'Retentions' ? 'Retention' : s.type}</span></td>
+      <td style="font-weight:500;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escH(s.product_name)}">${hl(escH(s.product_name), search)}</td>
+      <td style="font-family:monospace;font-size:12px;">${hl(escH(s.scn||'—'), search)}</td>
+      <td style="font-weight:700;color:var(--txt);">${comm > 0 ? 'CHF '+fCHF(comm) : '—'}</td>
+      <td style="color:var(--txt-sec);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escH(s.notes||'')}">
+        ${hl(escH(s.notes||''), search)}
+      </td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-icon"     title="Modifica" onclick="editSale(${s.id})">&#9998;</button>
+          <button class="btn-icon del" title="Elimina"  onclick="deleteSale(${s.id})">&#x2715;</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('salesTot').textContent = 'CHF ' + fCHF(total);
+  updateGoalProgress();
+}
+
+function clearSalesFilters() {
+  ['sSearch','sType','sStatus','sMonth'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+  renderSales();
+}
+
+// ----------------------------------------------------------------
+// SALE MODAL
+// ----------------------------------------------------------------
+function openSaleModal(data) {
+  if (data && data.type === 'DMC') data.type = 'Retentions';
+  document.getElementById('saleModal').classList.add('open');
+  document.getElementById('saleModalTitle').textContent = data ? 'Modifica Vendita' : 'Aggiungi Vendita';
+  document.getElementById('saleId').value     = data ? data.id : '';
+  document.getElementById('saleDate').value   = data ? data.sale_date : todayISO();
+  document.getElementById('saleSCN').value    = data ? (data.scn   || '') : '';
+  document.getElementById('saleNotes').value  = data ? (data.notes || '') : '';
+  document.getElementById('saleStatus').value = data ? data.status  : 'ok';
+  populateAoitSel(data);
+  selectType(data ? data.type : 'AOIT', data);
+}
+
+function getProductCommission(p, products) {
+  const baseComm = parseFloat(p.price_chf) * parseInt(p.months);
+  
+  if (p.name === 'Upgrade MyService S -> M') {
+    const mProd = products.find(pr => pr.name === 'MyService M');
+    const sProd = products.find(pr => pr.name === 'MyService Computer S' || pr.name === 'MyService Mobile S');
+    if (mProd && sProd) {
+      const mComm = parseFloat(mProd.price_chf) * parseInt(mProd.months);
+      const sComm = parseFloat(sProd.price_chf) * parseInt(sProd.months);
+      return Math.round((mComm - sComm) * 100) / 100;
+    }
+  }
+  
+  if (p.name === 'Upgrade Blue Sec M -> L') {
+    const lProd = products.find(pr => pr.name === 'Blue Security & Service L');
+    const mProd = products.find(pr => pr.name === 'Blue Security & Service M');
+    if (lProd && mProd) {
+      const lComm = parseFloat(lProd.price_chf) * parseInt(lProd.months);
+      const mComm = parseFloat(mProd.price_chf) * parseInt(mProd.months);
+      return Math.round((lComm - mComm) * 100) / 100;
+    }
+  }
+  
+  return Math.round(baseComm * 100) / 100;
+}
+
+function populateAoitSel(data) {
+  const input  = document.getElementById('aoitProdInput');
+  const hidden = document.getElementById('aoitProd');
+  const list   = document.getElementById('aoitProdList');
+
+  input.value  = '';
+  hidden.value = '';
+  aoitSelectedId = null;
+  aoitHighlightIdx = -1;
+  aoitProducts = [];
+  list.classList.remove('open');
+
+  let rows = [];
+  try { rows = dbP.exec("SELECT id,category,name,price_chf,months FROM products WHERE is_active=1 ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END,sort_order,name"); } catch(e) {}
+  if (!rows.length) return;
+  const cols = rows[0].columns;
+  const products = rows[0].values.map(r => obj(cols, r));
+
+  for (const p of products) {
+    const comm = getProductCommission(p, products);
+    aoitProducts.push({
+      id: p.id,
+      category: p.category,
+      name: p.name,
+      commission: comm,
+      display: p.name + ' (CHF ' + fCHF(comm) + ')',
+      selected: false
+    });
+  }
+
+  if (data && data.type === 'AOIT' && data.product_id) {
+    const prod = aoitProducts.find(p => p.id == data.product_id);
+    if (prod) {
+      prod.selected = true;
+      input.value   = prod.display;
+      hidden.value  = prod.id;
+      aoitSelectedId = prod.id;
+      updateAoitComm();
+    }
+  }
+}
+
+function selectType(type, data) {
+  document.getElementById('saleType').value = type;
+  ['AOIT','Retentions','NEW'].forEach(t => {
+    const el = document.getElementById('t' + t);
+    if (el) el.className = 'type-opt' + (t === type ? ' sel-' + t.toLowerCase() : '');
+  });
+  ['AOIT','Retentions','NEW'].forEach(t => {
+    const el = document.getElementById('sec' + t);
+    if (el) el.style.display = t === type ? 'block' : 'none';
+  });
+  if (type === 'Retentions') {
+    const val = data ? (data.product_name || 'Home') : '';
+    document.getElementById('retentionsType').value = val;
+    document.getElementById('retentionsComm').value = data ? (data.commission || '') : '';
+    document.getElementById('retentionsTypeInput').value = val;
+  }
+  if (type === 'NEW') {
+    const val = data ? (data.product_name || 'Mobile') : '';
+    document.getElementById('newType').value = val;
+    document.getElementById('newComm').value = data ? (data.commission || '') : '';
+    document.getElementById('newTypeInput').value = val;
+  }
+}
+
+function updateAoitComm() {
+  const hidden = document.getElementById('aoitProd');
+  const box    = document.getElementById('aoitCommBox');
+  const prod   = aoitProducts.find(p => p.id == hidden.value);
+  if (prod && prod.commission) {
+    document.getElementById('aoitCommVal').textContent = 'CHF ' + fCHF(prod.commission);
+    box.style.display = 'flex';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// ---- COMBOBOX HELPERS ----
+function renderAoitList(filter) {
+  const list = document.getElementById('aoitProdList');
+  list.innerHTML = '';
+
+  const lower = filter.toLowerCase().trim();
+  const filtered = lower
+    ? aoitProducts.filter(p =>
+        p.name.toLowerCase().includes(lower) ||
+        p.category.toLowerCase().includes(lower) ||
+        p.display.toLowerCase().includes(lower)
+      )
+    : aoitProducts;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="combobox-empty">Nessun prodotto trovato</div>';
+    list.classList.add('open');
+    aoitHighlightIdx = -1;
+    return;
+  }
+
+  let lastCat = '';
+  for (const p of filtered) {
+    if (p.category !== lastCat) {
+      const div = document.createElement('div');
+      div.className = 'combobox-cat';
+      div.textContent = p.category;
+      list.appendChild(div);
+      lastCat = p.category;
+    }
+    const div = document.createElement('div');
+    div.className = 'combobox-item' + (p.selected ? ' selected' : '');
+    div.textContent = p.display;
+    div.dataset.id = p.id;
+    div.onclick = function() { selectAoitProduct(p.id); };
+    list.appendChild(div);
+  }
+
+  list.classList.add('open');
+  aoitHighlightIdx = -1;
+}
+
+function onAoitInput() {
+  const input  = document.getElementById('aoitProdInput');
+  const hidden = document.getElementById('aoitProd');
+  if (hidden.value && input.value !== getAoitDisplay()) {
+    hidden.value = '';
+    aoitSelectedId = null;
+    aoitProducts.forEach(p => p.selected = false);
+    document.getElementById('aoitCommBox').style.display = 'none';
+  }
+  renderAoitList(input.value);
+}
+
+function onAoitFocus() {
+  const list = document.getElementById('aoitProdList');
+  if (!list.children.length || !list.classList.contains('open')) {
+    renderAoitList(document.getElementById('aoitProdInput').value);
+  }
+}
+
+function getAoitDisplay() {
+  const p = aoitProducts.find(pr => pr.id == aoitSelectedId);
+  return p ? p.display : '';
+}
+
+function selectAoitProduct(id) {
+  const input  = document.getElementById('aoitProdInput');
+  const hidden = document.getElementById('aoitProd');
+  const list   = document.getElementById('aoitProdList');
+
+  const prod = aoitProducts.find(p => p.id == id);
+  if (!prod) return;
+
+  input.value = prod.display;
+  hidden.value = prod.id;
+  aoitSelectedId = prod.id;
+  aoitProducts.forEach(p => p.selected = (p.id == id));
+  list.classList.remove('open');
+  updateAoitComm();
+}
+
+function onAoitKeydown(e) {
+  const list  = document.getElementById('aoitProdList');
+  const items = list.querySelectorAll('.combobox-item');
+  if (!items.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    aoitHighlightIdx = Math.min(aoitHighlightIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('highlighted', i === aoitHighlightIdx));
+    if (aoitHighlightIdx >= 0) items[aoitHighlightIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    aoitHighlightIdx = Math.max(aoitHighlightIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('highlighted', i === aoitHighlightIdx));
+    if (aoitHighlightIdx >= 0) items[aoitHighlightIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && aoitHighlightIdx >= 0) {
+    e.preventDefault();
+    selectAoitProduct(parseInt(items[aoitHighlightIdx].dataset.id));
+  } else if (e.key === 'Escape') {
+    list.classList.remove('open');
+  }
+}
+
+function renderComboList(listId, items, filter) {
+  const list = document.getElementById(listId);
+  list.innerHTML = '';
+  const lower = filter.toLowerCase().trim();
+  const filtered = lower
+    ? items.filter(p => p.label.toLowerCase().includes(lower) || p.value.toLowerCase().includes(lower))
+    : items;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="combobox-empty">Nessun risultato</div>';
+    list.classList.add('open');
+    return;
+  }
+
+  const inputId = listId.replace('List', 'Input');
+  const hiddenId = listId.replace('List', '');
+
+  for (const p of filtered) {
+    const div = document.createElement('div');
+    div.className = 'combobox-item';
+    div.textContent = p.label;
+    div.dataset.value = p.value;
+    div.onclick = function() { selectComboValue(inputId, hiddenId, listId, p.value); };
+    list.appendChild(div);
+  }
+
+  list.classList.add('open');
+}
+
+function onComboInput(inputId, hiddenId, listId, items) {
+  const input  = document.getElementById(inputId);
+  const hidden = document.getElementById(hiddenId);
+  if (hidden.value && !items.find(t => t.value === hidden.value && t.label === input.value)) {
+    hidden.value = '';
+  }
+  renderComboList(listId, items, input.value);
+}
+
+function onComboFocus(listId, items, filter) {
+  const list = document.getElementById(listId);
+  if (!list.children.length || !list.classList.contains('open')) {
+    renderComboList(listId, items, filter);
+  }
+}
+
+function selectComboValue(inputId, hiddenId, listId, value) {
+  document.getElementById(inputId).value = value;
+  document.getElementById(hiddenId).value = value;
+  document.getElementById(listId).classList.remove('open');
+}
+
+function onComboKeydown(e, listId, items, highlightRef) {
+  const list  = document.getElementById(listId);
+  const itemsEl = list.querySelectorAll('.combobox-item');
+  if (!itemsEl.length) return;
+
+  let idx = highlightRef === 'retention' ? retentionHighlightIdx : newHighlightIdx;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = Math.min(idx + 1, itemsEl.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = Math.max(idx - 1, 0);
+  } else if (e.key === 'Enter' && idx >= 0) {
+    e.preventDefault();
+    const val = itemsEl[idx].dataset.value;
+    const inputId = listId.replace('List', 'Input');
+    const hiddenId = listId.replace('List', '');
+    selectComboValue(inputId, hiddenId, listId, val);
+    if (highlightRef === 'retention') retentionHighlightIdx = -1;
+    else newHighlightIdx = -1;
+    return;
+  } else if (e.key === 'Escape') {
+    list.classList.remove('open');
+    return;
+  }
+
+  if (highlightRef === 'retention') retentionHighlightIdx = idx;
+  else newHighlightIdx = idx;
+  itemsEl.forEach((el, i) => el.classList.toggle('highlighted', i === idx));
+  if (idx >= 0) itemsEl[idx].scrollIntoView({ block: 'nearest' });
+}
+
+function onRetentionInput() {
+  onComboInput('retentionsTypeInput', 'retentionsType', 'retentionsTypeList', retentionTypes);
+}
+
+function onRetentionFocus() {
+  onComboFocus('retentionsTypeList', retentionTypes, document.getElementById('retentionsTypeInput').value);
+}
+
+function onRetentionKeydown(e) {
+  onComboKeydown(e, 'retentionsTypeList', retentionTypes, 'retention');
+}
+
+function onNewInput() {
+  onComboInput('newTypeInput', 'newType', 'newTypeList', newTypes);
+}
+
+function onNewFocus() {
+  onComboFocus('newTypeList', newTypes, document.getElementById('newTypeInput').value);
+}
+
+function onNewKeydown(e) {
+  onComboKeydown(e, 'newTypeList', newTypes, 'new');
+}
+
+function closeSaleModal() {
+  document.getElementById('saleModal').classList.remove('open');
+}
+
+function saveSale() {
+  const type = v('saleType');
+  if (!type) { toast('Seleziona il tipo di vendita', 'err'); return; }
+
+  const id     = v('saleId');
+  const scn    = v('saleSCN').trim();
+  const date   = v('saleDate');
+  const notes  = v('saleNotes').trim();
+  const status = v('saleStatus');
+
+  if (!date) { toast('Inserisci una data', 'err'); return; }
+
+  let productId = null, productName = '', commission = 0;
+
+  if (type === 'AOIT') {
+    const hidden = document.getElementById('aoitProd');
+    if (!hidden.value) { toast('Seleziona un prodotto AOIT', 'err'); return; }
+    const prod = aoitProducts.find(p => p.id == hidden.value);
+    if (!prod) { toast('Prodotto non trovato', 'err'); return; }
+    productId   = prod.id;
+    productName = prod.name;
+    commission  = prod.commission || 0;
+  } else if (type === 'Retentions') {
+    productName = v('retentionsType');
+    commission  = parseFloat(v('retentionsComm')) || 0;
+  } else if (type === 'NEW') {
+    productName = v('newType');
+    commission  = parseFloat(v('newComm')) || 0;
+  }
+
+  try {
+    if (id) {
+      dbS.run(
+        'UPDATE sales SET type=?,product_id=?,product_name=?,scn=?,sale_date=?,notes=?,status=?,commission=? WHERE id=?',
+        [type, productId, productName, scn, date, notes, status, commission, parseInt(id)]
+      );
+    } else {
+      dbS.run(
+        'INSERT INTO sales (type,product_id,product_name,scn,sale_date,notes,status,commission) VALUES (?,?,?,?,?,?,?,?)',
+        [type, productId, productName, scn, date, notes, status, commission]
+      );
+    }
+    saveS(dbS, curYear);
+    closeSaleModal();
+    renderSales();
+    renderStats();
+    toast(id ? 'Vendita aggiornata' : 'Vendita aggiunta', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+function editSale(id) {
+  let rows = [];
+  try { rows = dbS.exec('SELECT * FROM sales WHERE id=' + parseInt(id)); } catch(e) {}
+  if (!rows.length || !rows[0].values.length) return;
+  openSaleModal(obj(rows[0].columns, rows[0].values[0]));
+}
+
+async function deleteSale(id) {
+  if (!await cfm('Eliminare questa vendita?', 'L\'operazione non puo essere annullata.')) return;
+  try {
+    dbS.run('DELETE FROM sales WHERE id=?', [parseInt(id)]);
+    saveS(dbS, curYear);
+    renderSales(); renderStats();
+    toast('Vendita eliminata', 'ok');
+  } catch(e) { toast('Errore eliminazione', 'err'); }
+}
+
+async function deleteAllSales() {
+  if (!await cfm('Eliminare tutte le vendite?', 'Questa operazione eliminerà definitivamente tutte le vendite dell\'anno corrente ' + curYear + '. L\'operazione non può essere annullata.')) return;
+  try {
+    dbS.run('DELETE FROM sales');
+    saveS(dbS, curYear);
+    renderSales();
+    renderStats();
+    toast('Tutte le vendite eliminate', 'ok');
+  } catch(e) { toast('Errore eliminazione: ' + e.message, 'err'); }
+}
+
+// ----------------------------------------------------------------
+// RENDER PRODUCTS
+// ----------------------------------------------------------------
+function renderProducts() {
+  const search = (v('pSearch') || '').toLowerCase();
+  let rows = [];
+  try { rows = dbP.exec("SELECT * FROM products WHERE is_active=1 ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END,sort_order,name"); } catch(e) {}
+
+  const container = document.getElementById('productsContainer');
+  container.innerHTML = '';
+
+  let products = [];
+  if (rows.length) {
+    const cols = rows[0].columns;
+    products   = rows[0].values.map(r => obj(cols, r));
+  }
+
+  if (search) {
+    products = products.filter(p =>
+      p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search)
+    );
+  }
+
+  if (!products.length) {
+    container.innerHTML = `<div class="card"><div class="empty"><h3>Nessun prodotto trovato</h3></div></div>`;
+    document.getElementById('productsTot').textContent = 'CHF 0';
+    return;
+  }
+
+  let totalAoit = 0;
+  let currentCat = null;
+  let currentTbody = null;
+
+  for (const p of products) {
+    const comm = getProductCommission(p, products);
+    const cls  = CAT_MAP[p.category] || '';
+
+    let qty = 0, aoitTot = 0;
+    try {
+      const qr = dbS.exec(`SELECT COUNT(*),SUM(commission) FROM sales WHERE product_id=${p.id} AND status='ok'`);
+      if (qr.length && qr[0].values[0]) {
+        qty     = parseInt(qr[0].values[0][0]) || 0;
+        aoitTot = parseFloat(qr[0].values[0][1]) || 0;
+      }
+    } catch(e) {}
+    totalAoit += aoitTot;
+
+    if (currentCat !== p.category) {
+      currentCat = p.category;
+      
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.padding = '0';
+      card.style.marginBottom = '24px';
+      card.style.overflow = 'hidden';
+      
+      const catHeader = document.createElement('div');
+      catHeader.style.padding = '14px 18px';
+      catHeader.style.fontWeight = '800';
+      catHeader.style.fontSize = '12px';
+      catHeader.style.textTransform = 'uppercase';
+      catHeader.style.letterSpacing = '0.8px';
+      catHeader.style.color = 'var(--txt-sec)';
+      catHeader.style.borderBottom = '1px solid var(--border)';
+      catHeader.style.background = 'var(--bg-card2)';
+      catHeader.textContent = currentCat;
+      card.appendChild(catHeader);
+
+      const tblWrap = document.createElement('div');
+      tblWrap.className = 'tbl-wrap';
+      tblWrap.style.margin = '0';
+      tblWrap.style.borderRadius = '0';
+      tblWrap.style.border = 'none';
+      tblWrap.style.boxShadow = 'none';
+      
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th style="width: 140px;">Ordinamento</th>
+            <th>Prodotto</th>
+            <th>Mesi</th>
+            <th>AOIT</th>
+            <th>Qtà vendute</th>
+            <th>Tot. AOIT anno</th>
+            <th style="width:80px">Azioni</th>
+          </tr>
+        </thead>
+      `;
+      currentTbody = document.createElement('tbody');
+      table.appendChild(currentTbody);
+      tblWrap.appendChild(table);
+      card.appendChild(tblWrap);
+      container.appendChild(card);
+    }
+
+    const tr = document.createElement('tr');
+    tr.draggable = true;
+    tr.dataset.id = p.id;
+    tr.dataset.category = p.category;
+    tr.addEventListener('dragstart', handleDragStart);
+    tr.addEventListener('dragover', handleDragOver);
+    tr.addEventListener('dragleave', handleDragLeave);
+    tr.addEventListener('drop', handleDrop);
+    tr.addEventListener('dragend', handleDragEnd);
+
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="drag-handle" title="Trascina per ordinare">
+            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+              <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+            </svg>
+          </div>
+          <span class="cat ${cls}">${escH(p.category)}</span>
+        </div>
+      </td>
+      <td style="font-weight:500;">${hl(escH(p.name), search)}</td>
+      <td>${p.months} ${p.months==1?'mese':'mesi'}</td>
+      <td style="font-weight:700;color:var(--txt);">CHF ${fCHF(comm)}</td>
+      <td>${qty > 0 ? '<span class="qty">'+qty+'</span>' : '0'}</td>
+      <td style="font-weight:700;color:var(--success);">${aoitTot > 0 ? 'CHF '+fCHF(aoitTot) : '—'}</td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-icon"     title="Modifica" onclick="editProduct(${p.id})">&#9998;</button>
+          <button class="btn-icon del" title="Elimina"  onclick="deleteProduct(${p.id})">&#x2715;</button>
+        </div>
+      </td>`;
+    currentTbody.appendChild(tr);
+  }
+
+  document.getElementById('productsTot').textContent = 'CHF ' + fCHF(totalAoit);
+}
+
+function initializeSortOrders() {
+  try {
+    try { dbP.run("ALTER TABLE products ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;"); } catch(e) {}
+    let needsInit = false;
+    const check = dbP.exec("SELECT COUNT(*) FROM products WHERE sort_order = 0");
+    if (check.length && check[0].values.length && check[0].values[0][0] > 0) {
+      needsInit = true;
+    }
+    if (needsInit) {
+      const rows = dbP.exec("SELECT id FROM products ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END, name, id");
+      if (rows.length && rows[0].values.length) {
+        const ids = rows[0].values.map(r => r[0]);
+        ids.forEach((id, index) => {
+          dbP.run('UPDATE products SET sort_order = ? WHERE id = ?', [index + 1, id]);
+        });
+        saveP(dbP);
+      }
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+let dragSourceId = null;
+let dragSourceCategory = null;
+
+function handleDragStart(e) {
+  const tr = e.currentTarget;
+  dragSourceId = parseInt(tr.dataset.id);
+  dragSourceCategory = tr.dataset.category;
+  tr.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragSourceId.toString());
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  const tr = e.currentTarget;
+  if (tr.dataset.category === dragSourceCategory && parseInt(tr.dataset.id) !== dragSourceId) {
+    tr.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const tr = e.currentTarget;
+  tr.classList.remove('drag-over');
+  const targetId = parseInt(tr.dataset.id);
+  if (tr.dataset.category === dragSourceCategory && targetId !== dragSourceId) {
+    swapProductOrders(dragSourceId, targetId);
+  }
+}
+
+function handleDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('#productsContainer tbody tr').forEach(row => {
+    row.classList.remove('drag-over');
+  });
+}
+
+function swapProductOrders(idA, idB) {
+  try {
+    const orderA = dbP.exec('SELECT sort_order FROM products WHERE id=' + idA)[0].values[0][0];
+    const orderB = dbP.exec('SELECT sort_order FROM products WHERE id=' + idB)[0].values[0][0];
+    if (orderA === orderB) return;
+    const cat = dbP.exec('SELECT category FROM products WHERE id=' + idA)[0].values[0][0];
+    const catKey = "CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE','MYSERVICE') THEN 4 ELSE 5 END";
+    if (orderA < orderB) {
+      dbP.run(`UPDATE products SET sort_order = sort_order - 1 WHERE ${catKey} = (SELECT ${catKey} FROM products WHERE id=${idA}) AND sort_order > ? AND sort_order <= ?`, [orderA, orderB]);
+    } else {
+      dbP.run(`UPDATE products SET sort_order = sort_order + 1 WHERE ${catKey} = (SELECT ${catKey} FROM products WHERE id=${idA}) AND sort_order >= ? AND sort_order < ?`, [orderB, orderA]);
+    }
+    dbP.run('UPDATE products SET sort_order=? WHERE id=?', [orderB, idA]);
+    saveP(dbP);
+    renderProducts();
+  } catch(e) {
+    console.error("Errore spostamento ordinamento:", e);
+  }
+}
+
+// ----------------------------------------------------------------
+// PRODUCT MODAL
+// ----------------------------------------------------------------
+function migrateLocalProducts() {
+  if (!dbP) return;
+  try {
+    dbP.run("UPDATE products SET price_chf = 155.28, months = 1 WHERE name = 'Upgrade MyService S -> M' AND price_chf = 2.0;");
+    dbP.run("UPDATE products SET price_chf = 499.32, months = 1 WHERE name = 'Upgrade Blue Sec M -> L' AND price_chf = 2.0;");
+    saveP(dbP);
+  } catch(e) {
+    console.error("Errore migrazione prodotti locali:", e);
+  }
+}
+
+function syncSalesCommissions() {
+  if (!dbS || !dbP) return;
+  try {
+    const allRows = dbP.exec('SELECT id,category,name,price_chf,months FROM products WHERE is_active=1');
+    if (!allRows.length) return;
+    const cols = allRows[0].columns;
+    const productsList = allRows[0].values.map(r => obj(cols, r));
+    
+    const salesRows = dbS.exec("SELECT id, product_id, commission FROM sales WHERE type='AOIT' AND product_id IS NOT NULL");
+    if (!salesRows.length) return;
+    const sCols = salesRows[0].columns;
+    const salesList = salesRows[0].values.map(r => obj(sCols, r));
+    
+    let changed = false;
+    salesList.forEach(s => {
+      const p = productsList.find(pr => pr.id === s.product_id);
+      if (p) {
+        const correctComm = getProductCommission(p, productsList);
+        if (Math.abs(s.commission - correctComm) > 0.01) {
+          dbS.run("UPDATE sales SET commission=? WHERE id=?", [correctComm, s.id]);
+          changed = true;
+        }
+      }
+    });
+    
+    if (changed) {
+      saveS(dbS, curYear);
+    }
+  } catch(e) {
+    console.error("Errore sincronizzazione AOIT vendite:", e);
+  }
+}
+
+function openProductModal(data) {
+  document.getElementById('productModal').classList.add('open');
+  document.getElementById('prodModalTitle').textContent = data ? 'Modifica Prodotto' : 'Aggiungi Prodotto';
+  document.getElementById('prodId').value     = data ? data.id : '';
+  document.getElementById('prodCat').value    = data ? data.category  : 'TV';
+  document.getElementById('prodName').value   = data ? data.name      : '';
+  document.getElementById('prodPrice').value  = data ? data.price_chf : '';
+  document.getElementById('prodMonths').value = data ? data.months    : '24';
+  
+  const isUpgrade = data ? (data.name || '').toLowerCase().startsWith('upgrade') : false;
+  document.getElementById('prodIsUpgrade').checked = isUpgrade;
+  document.getElementById('upgradeHelperFields').style.display = isUpgrade ? 'flex' : 'none';
+  document.getElementById('prodPriceRow').style.display = isUpgrade ? 'none' : 'flex';
+  
+  let guessedA = '', guessedB = '';
+  if (isUpgrade) {
+    const cleanName = data.name.substring(8); // Remove "Upgrade "
+    const parts = cleanName.split('->');
+    if (parts.length === 2) {
+      guessedA = parts[0].trim();
+      guessedB = parts[1].trim();
+    }
+  }
+  
+  populateUpgradeProds(guessedA, guessedB);
+  updateProdComm();
+}
+
+function populateUpgradeProds(guessedA, guessedB) {
+  const selA = document.getElementById('upgradeProdA');
+  const selB = document.getElementById('upgradeProdB');
+  
+  const optHtml = '<option value="">Seleziona pacchetto...</option>';
+  selA.innerHTML = optHtml;
+  selB.innerHTML = optHtml;
+  
+  let rows = [];
+  try {
+    rows = dbP.exec('SELECT id, name, price_chf, months FROM products WHERE is_active=1 ORDER BY name');
+  } catch(e) {}
+  if (!rows.length) return;
+  
+  const cols = rows[0].columns;
+  const products = rows[0].values.map(r => obj(cols, r));
+  
+  products.forEach(p => {
+    const comm = getProductCommission(p, products);
+    const text = `${p.name} (CHF ${fCHF(comm, 2)})`;
+    
+    const optA = document.createElement('option');
+    optA.value = p.id;
+    optA.textContent = text;
+    optA.dataset.comm = comm;
+    if (guessedA && p.name.toLowerCase().includes(guessedA.toLowerCase())) {
+      optA.selected = true;
+    }
+    selA.appendChild(optA);
+    
+    const optB = document.createElement('option');
+    optB.value = p.id;
+    optB.textContent = text;
+    optB.dataset.comm = comm;
+    if (guessedB && p.name.toLowerCase().includes(guessedB.toLowerCase())) {
+      optB.selected = true;
+    }
+    selB.appendChild(optB);
+  });
+}
+
+function toggleUpgradeHelper() {
+  const isChecked = document.getElementById('prodIsUpgrade').checked;
+  document.getElementById('upgradeHelperFields').style.display = isChecked ? 'flex' : 'none';
+  document.getElementById('prodPriceRow').style.display = isChecked ? 'none' : 'flex';
+  if (!isChecked) {
+    document.getElementById('upgradeProdA').value = '';
+    document.getElementById('upgradeProdB').value = '';
+  }
+}
+
+function calculateUpgradeDiff() {
+  const selA = document.getElementById('upgradeProdA');
+  const selB = document.getElementById('upgradeProdB');
+  
+  const optA = selA.options[selA.selectedIndex];
+  const optB = selB.options[selB.selectedIndex];
+  
+  if (optA && optB && optA.value && optB.value) {
+    const commA = parseFloat(optA.dataset.comm) || 0;
+    const commB = parseFloat(optB.dataset.comm) || 0;
+    
+    const diff = Math.max(0, commB - commA);
+    
+    document.getElementById('prodPrice').value = diff;
+    document.getElementById('prodMonths').value = 1;
+    updateProdComm();
+  }
+}
+
+function updateProdComm() {
+  const price  = parseFloat(v('prodPrice'))  || 0;
+  const months = parseInt(v('prodMonths'))   || 0;
+  document.getElementById('prodCommVal').textContent = 'CHF ' + fCHF(price * months, 2);
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').classList.remove('open');
+}
+
+function saveProduct() {
+  const id     = v('prodId');
+  const cat    = v('prodCat');
+  const name   = v('prodName').trim();
+  const price  = parseFloat(v('prodPrice'));
+  const months = parseInt(v('prodMonths'));
+
+  if (!name)               { toast('Inserisci il nome', 'err'); return; }
+  if (isNaN(price)||price<0){ toast('Prezzo non valido', 'err'); return; }
+  if (isNaN(months)||months<1){ toast('Durata non valida', 'err'); return; }
+
+  try {
+    if (id) {
+      dbP.run('UPDATE products SET category=?,name=?,price_chf=?,months=? WHERE id=?',
+        [cat, name, price, months, parseInt(id)]);
+    } else {
+      let maxOrd = 0;
+      try {
+        const res = dbP.exec('SELECT MAX(sort_order) FROM products');
+        if (res.length && res[0].values.length) maxOrd = parseInt(res[0].values[0][0]) || 0;
+      } catch(e) {}
+      dbP.run('INSERT INTO products (category,name,price_chf,months,sort_order) VALUES (?,?,?,?,?)',
+        [cat, name, price, months, maxOrd + 1]);
+    }
+    saveP(dbP);
+    closeProductModal();
+    renderProducts();
+    toast(id ? 'Prodotto aggiornato' : 'Prodotto aggiunto', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+function editProduct(id) {
+  let rows = [];
+  try { rows = dbP.exec('SELECT * FROM products WHERE id=' + parseInt(id)); } catch(e) {}
+  if (!rows.length || !rows[0].values.length) return;
+  openProductModal(obj(rows[0].columns, rows[0].values[0]));
+}
+
+async function deleteProduct(id) {
+  if (!await cfm('Eliminare questo prodotto?', 'L\'operazione non puo essere annullata.')) return;
+  try {
+    dbP.run('UPDATE products SET is_active=0 WHERE id=?', [parseInt(id)]);
+    saveP(dbP);
+    renderProducts();
+    toast('Prodotto eliminato', 'ok');
+  } catch(e) { toast('Errore eliminazione', 'err'); }
+}
+
+// ----------------------------------------------------------------
+// GOALS (taasalo3: obiettivo mensile/annuale)
+// ----------------------------------------------------------------
+// ----------------------------------------------------------------
+// GOALS (taasalo3: obiettivo mensile/annuale)
+// ----------------------------------------------------------------
+function calculateDynamicMonthlyTarget(Ty, type, subType, sales) {
+  if (Ty <= 0) return 0;
+  
+  const now = new Date();
+  const realYear = now.getFullYear();
+  let curMonth = now.getMonth() + 1; // 1-12
+  
+  if (curYear < realYear) {
+    curMonth = 12;
+  } else if (curYear > realYear) {
+    curMonth = 1;
+  }
+  
+  let priorAchieved = 0;
+  sales.forEach(s => {
+    if (s.status !== 'ok') return;
+    
+    // Check type matching
+    let typeMatches = false;
+    if (type === 'Retentions') {
+      typeMatches = (s.type === 'Retentions' || s.type === 'DMC');
+    } else {
+      typeMatches = (s.type === type);
+    }
+    if (!typeMatches) return;
+    
+    if (type === 'NEW' && subType && s.product_name !== subType) return;
+    
+    const parts = s.sale_date.split('-');
+    if (parts.length < 2) return;
+    const m = parseInt(parts[1], 10);
+    if (m < curMonth) {
+      if (type === 'AOIT') {
+        priorAchieved += s.commission;
+      } else {
+        priorAchieved += 1;
+      }
+    }
+  });
+
+  const Trem = Ty - priorAchieved;
+  if (Trem <= 0) return 0;
+  
+  const R = 13 - curMonth;
+  
+  if (type === 'AOIT') {
+    return Math.round((Trem / R) * 100) / 100;
+  } else {
+    return Math.max(1, Math.ceil(Trem / R));
+  }
+}
+
+function loadGoals() {
+  try {
+    // Migrate if needed
+    try { dbS.run("ALTER TABLE goals ADD COLUMN aoit_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { dbS.run("ALTER TABLE goals ADD COLUMN retentions_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { dbS.run("ALTER TABLE goals ADD COLUMN new_internet_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { dbS.run("ALTER TABLE goals ADD COLUMN new_tv_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { dbS.run("ALTER TABLE goals ADD COLUMN new_mobile_yearly REAL NOT NULL DEFAULT 0;"); } catch(e) {}
+    try { dbS.run("UPDATE goals SET retentions_yearly = dmc_yearly WHERE retentions_yearly = 0 AND dmc_yearly > 0;"); } catch(e) {}
+    try { dbS.run("UPDATE sales SET type='Retentions' WHERE type='DMC';"); } catch(e) {}
+
+    const rows = dbS.exec('SELECT aoit_yearly, retentions_yearly, new_internet_yearly, new_tv_yearly, new_mobile_yearly FROM goals LIMIT 1');
+    if (rows.length && rows[0].values.length) {
+      const [aoit, ret, newInt, newTv, newMob] = rows[0].values[0];
+      document.getElementById('goalAoit').value = aoit || '';
+      document.getElementById('goalRetentions').value  = ret || '';
+      document.getElementById('goalNewInternet').value  = newInt || '';
+      document.getElementById('goalNewTv').value  = newTv || '';
+      document.getElementById('goalNewMobile').value  = newMob || '';
+    }
+  } catch(e) {
+    console.error("Errore caricamento obiettivi:", e);
+  }
+  updateGoalProgress();
+}
+
+function saveGoal() {
+  const aoit = parseFloat(v('goalAoit')) || 0;
+  const ret = parseFloat(v('goalRetentions')) || 0;
+  const newInt = parseFloat(v('goalNewInternet')) || 0;
+  const newTv = parseFloat(v('goalNewTv')) || 0;
+  const newMob = parseFloat(v('goalNewMobile')) || 0;
+  try {
+    dbS.run('UPDATE goals SET aoit_yearly=?, retentions_yearly=?, new_internet_yearly=?, new_tv_yearly=?, new_mobile_yearly=? WHERE id=1', [aoit, ret, newInt, newTv, newMob]);
+    saveS(dbS, curYear);
+    updateGoalProgress();
+  } catch(e) {
+    console.error("Errore salvataggio obiettivi:", e);
+  }
+}
+
+function updateGoalProgress() {
+  let sales = [];
+  try {
+    const rows = dbS.exec('SELECT * FROM sales');
+    if (rows.length) sales = rows[0].values.map(r => obj(rows[0].columns, r));
+  } catch(e) {}
+
+  let aoitYearly = 0, retYearly = 0, newIntYearly = 0, newTvYearly = 0, newMobYearly = 0;
+  try {
+    const rows = dbS.exec('SELECT aoit_yearly, retentions_yearly, new_internet_yearly, new_tv_yearly, new_mobile_yearly FROM goals LIMIT 1');
+    if (rows.length && rows[0].values.length) {
+      aoitYearly = parseFloat(rows[0].values[0][0]) || 0;
+      retYearly = parseFloat(rows[0].values[0][1]) || 0;
+      newIntYearly = parseFloat(rows[0].values[0][2]) || 0;
+      newTvYearly = parseFloat(rows[0].values[0][3]) || 0;
+      newMobYearly = parseFloat(rows[0].values[0][4]) || 0;
+    }
+  } catch(e) {}
+
+  const now = new Date();
+  const mNum = String(now.getMonth() + 1).padStart(2, '0');
+  const mName = MONTHS[now.getMonth()];
+
+  let aoitMonthAch = 0, retMonthAch = 0, newIntMonthAch = 0, newTvMonthAch = 0, newMobMonthAch = 0;
+  let aoitYearAch = 0, retYearAch = 0, newIntYearAch = 0, newTvYearAch = 0, newMobYearAch = 0;
+
+  sales.forEach(s => {
+    if (s.status !== 'ok') return;
+    const parts = s.sale_date.split('-');
+    if (parts.length < 2) return;
+    const isCurMonth = parts[1] === mNum;
+
+    if (s.type === 'AOIT') {
+      aoitYearAch += s.commission;
+      if (isCurMonth) aoitMonthAch += s.commission;
+    } else if (s.type === 'Retentions' || s.type === 'DMC') {
+      retYearAch += 1;
+      if (isCurMonth) retMonthAch += 1;
+    } else if (s.type === 'NEW') {
+      const sub = (s.product_name || '').trim();
+      if (sub === 'Internet') {
+        newIntYearAch += 1;
+        if (isCurMonth) newIntMonthAch += 1;
+      } else if (sub === 'TV') {
+        newTvYearAch += 1;
+        if (isCurMonth) newTvMonthAch += 1;
+      } else if (sub === 'Mobile') {
+        newMobYearAch += 1;
+        if (isCurMonth) newMobMonthAch += 1;
+      }
+    }
+  });
+
+  const aoitMonthTgt = calculateDynamicMonthlyTarget(aoitYearly, 'AOIT', null, sales);
+  const retMonthTgt = calculateDynamicMonthlyTarget(retYearly, 'Retentions', null, sales);
+  const newIntMonthTgt = calculateDynamicMonthlyTarget(newIntYearly, 'NEW', 'Internet', sales);
+  const newTvMonthTgt = calculateDynamicMonthlyTarget(newTvYearly, 'NEW', 'TV', sales);
+  const newMobMonthTgt = calculateDynamicMonthlyTarget(newMobYearly, 'NEW', 'Mobile', sales);
+
+  const aoitMonthPct = aoitMonthTgt > 0 ? Math.round(aoitMonthAch / aoitMonthTgt * 100) : 0;
+  const aoitYearPct = aoitYearly > 0 ? Math.round(aoitYearAch / aoitYearly * 100) : 0;
+
+  const retMonthPct = retMonthTgt > 0 ? Math.round(retMonthAch / retMonthTgt * 100) : 0;
+  const retYearPct = retYearly > 0 ? Math.round(retYearAch / retYearly * 100) : 0;
+
+  const newIntMonthPct = newIntMonthTgt > 0 ? Math.round(newIntMonthAch / newIntMonthTgt * 100) : 0;
+  const newIntYearPct = newIntYearly > 0 ? Math.round(newIntYearAch / newIntYearly * 100) : 0;
+
+  const newTvMonthPct = newTvMonthTgt > 0 ? Math.round(newTvMonthAch / newTvMonthTgt * 100) : 0;
+  const newTvYearPct = newTvYearly > 0 ? Math.round(newTvYearAch / newTvYearly * 100) : 0;
+
+  const newMobMonthPct = newMobMonthTgt > 0 ? Math.round(newMobMonthAch / newMobMonthTgt * 100) : 0;
+  const newMobYearPct = newMobYearly > 0 ? Math.round(newMobYearAch / newMobYearly * 100) : 0;
+
+  setText('goalAoitMonthLbl', 'Mensile ' + mName);
+  setText('goalAoitMonthInfo', 'CHF ' + fCHF(aoitMonthAch) + ' / CHF ' + fCHF(aoitMonthTgt));
+  setText('goalAoitYearInfo', 'CHF ' + fCHF(aoitYearAch) + ' / CHF ' + fCHF(aoitYearly));
+  setBar('goalAoitMonthBar', aoitMonthPct);
+  setBar('goalAoitYearBar', aoitYearPct);
+
+  setText('goalRetentionsMonthLbl', 'Mensile ' + mName);
+  setText('goalRetentionsMonthInfo', retMonthAch + ' / ' + retMonthTgt);
+  setText('goalRetentionsYearInfo', retYearAch + ' / ' + retYearly);
+  setBar('goalRetentionsMonthBar', retMonthPct);
+  setBar('goalRetentionsYearBar', retYearPct);
+
+  setText('goalNewInternetMonthLbl', 'Mensile ' + mName);
+  setText('goalNewInternetMonthInfo', newIntMonthAch + ' / ' + newIntMonthTgt);
+  setText('goalNewInternetYearInfo', newIntYearAch + ' / ' + newIntYearly);
+  setBar('goalNewInternetMonthBar', newIntMonthPct);
+  setBar('goalNewInternetYearBar', newIntYearPct);
+
+  setText('goalNewTvMonthLbl', 'Mensile ' + mName);
+  setText('goalNewTvMonthInfo', newTvMonthAch + ' / ' + newTvMonthTgt);
+  setText('goalNewTvYearInfo', newTvYearAch + ' / ' + newTvYearly);
+  setBar('goalNewTvMonthBar', newTvMonthPct);
+  setBar('goalNewTvYearBar', newTvYearPct);
+
+  setText('goalNewMobileMonthLbl', 'Mensile ' + mName);
+  setText('goalNewMobileMonthInfo', newMobMonthAch + ' / ' + newMobMonthTgt);
+  setText('goalNewMobileYearInfo', newMobYearAch + ' / ' + newMobYearly);
+  setBar('goalNewMobileMonthBar', newMobMonthPct);
+  setBar('goalNewMobileYearBar', newMobYearPct);
+
+  let activePcts = [];
+  if (aoitMonthTgt > 0) activePcts.push(aoitMonthPct);
+  if (retMonthTgt > 0) activePcts.push(retMonthPct);
+  if (newIntMonthTgt > 0) activePcts.push(newIntMonthPct);
+  if (newTvMonthTgt > 0) activePcts.push(newTvMonthPct);
+  if (newMobMonthTgt > 0) activePcts.push(newMobMonthPct);
+
+  syncHeaderGoal(Math.round(aoitYearAch), aoitYearly, retYearAch, retYearly, newIntYearAch, newIntYearly, newTvYearAch, newTvYearly, newMobYearAch, newMobYearly);
+}
+
+function syncHeaderGoal(aoitAch, aoitTgt, retAch, retTgt, intAch, intTgt, tvAch, tvTgt, mobAch, mobTgt) {
+  const setHBar = (barId, pctId, ach, tgt) => {
+    const bar = document.getElementById(barId);
+    const text = document.getElementById(pctId);
+    const pct = tgt > 0 ? Math.round(ach / tgt * 100) : 0;
+    if (bar) bar.style.width = Math.min(100, pct) + '%';
+    if (text) text.textContent = fCHF(tgt > 0 ? ach : 0) + ' / ' + fCHF(tgt > 0 ? tgt : 0);
+  };
+  setHBar('hGoalAoitBar', 'hGoalAoitPct', aoitAch, aoitTgt);
+  setHBar('hGoalRetBar',  'hGoalRetPct',  retAch, retTgt);
+  setHBar('hGoalNewIntBar', 'hGoalNewIntPct', intAch, intTgt);
+  setHBar('hGoalNewTvBar',  'hGoalNewTvPct',  tvAch, tvTgt);
+  setHBar('hGoalNewMobBar', 'hGoalNewMobPct', mobAch, mobTgt);
+}
+
+function setBar(id, pct) {
+  const el = document.getElementById(id);
+  el.style.width   = Math.min(100, pct) + '%';
+  el.textContent   = pct > 12 ? pct + '%' : '';
+}
+
+// ----------------------------------------------------------------
+// STATISTICS (taasalo3: statistiche con grafici Chart.js)
+// ----------------------------------------------------------------
+function renderStats() {
+  let sales = [];
+  try {
+    const rows = dbS.exec('SELECT * FROM sales ORDER BY sale_date');
+    if (rows.length) sales = rows[0].values.map(r => obj(rows[0].columns, r));
+  } catch(e) {}
+
+  const now  = new Date();
+  const mNum = String(now.getMonth() + 1).padStart(2, '0');
+  const okS  = sales.filter(s => s.status === 'ok');
+
+  const yTot   = sum(okS);
+  const mTot   = sum(okS.filter(s => s.sale_date.split('-')[1] === mNum));
+  const aoitT  = sum(okS.filter(s => s.type === 'AOIT'));
+  const retT   = okS.filter(s => s.type === 'Retentions' || s.type === 'DMC').length;
+  const newT   = sum(okS.filter(s => s.type === 'NEW'));
+  const cancN  = sales.filter(s => s.status === 'cancelled').length;
+
+  // Monthly breakdown (taasalo3: per ogni mese)
+  const monthly = MONTHS.map((lbl, i) => {
+    const mm  = String(i + 1).padStart(2, '0');
+    const mS  = okS.filter(s => s.sale_date.split('-')[1] === mm);
+    return {
+      label : lbl,
+      aoit  : sum(mS.filter(s => s.type === 'AOIT')),
+      ret   : mS.filter(s => s.type === 'Retentions' || s.type === 'DMC').length,
+      newInternet : sum(mS.filter(s => s.type === 'NEW' && s.product_name === 'Internet')),
+      newTv : sum(mS.filter(s => s.type === 'NEW' && s.product_name === 'TV')),
+      newMobile : sum(mS.filter(s => s.type === 'NEW' && s.product_name === 'Mobile')),
+      total : sum(mS)
+    };
+  });
+
+  // Monthly table
+  const tbody = document.getElementById('statMonthlyBody');
+  tbody.innerHTML = '';
+  const curM = now.getMonth();
+  const past = monthly.slice(0, curM + 1).reverse();
+  past.forEach((m, i) => {
+    const isCur = i === 0;
+    const tr = document.createElement('tr');
+    if (isCur) tr.style.background = 'var(--bg-hover)';
+    tr.innerHTML = `
+      <td style="font-weight:${isCur?'700':'400'}">${m.label}${isCur?'  *':''}</td>
+      <td class="${m.aoit > 0 ? '' : 'empty-val'}">${m.aoit  > 0 ? 'CHF '+fCHF(m.aoit)  : '—'}</td>
+      <td class="${m.ret > 0 ? '' : 'empty-val'}">${m.ret   > 0 ? m.ret   : '—'}</td>
+      <td class="${m.newInternet > 0 ? '' : 'empty-val'}">${m.newInternet > 0 ? 'CHF '+fCHF(m.newInternet) : '—'}</td>
+      <td class="${m.newTv > 0 ? '' : 'empty-val'}">${m.newTv > 0 ? 'CHF '+fCHF(m.newTv) : '—'}</td>
+      <td class="${m.newMobile > 0 ? '' : 'empty-val'}">${m.newMobile > 0 ? 'CHF '+fCHF(m.newMobile) : '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // AOIT product breakdown for doughnut
+  const aoitSales = okS.filter(s => s.type === 'AOIT');
+  const aoitProdMap = {};
+  for (const s of aoitSales) {
+    aoitProdMap[s.product_name] = (aoitProdMap[s.product_name] || 0) + s.commission;
+  }
+  const aoitProdLabels = Object.keys(aoitProdMap);
+  const aoitProdData = Object.values(aoitProdMap);
+
+  // Obiettivo AOIT annuale per percentuale grafico torta
+  let aoitYearlyGoal = 0;
+  try {
+    const rows = dbS.exec('SELECT aoit_yearly FROM goals LIMIT 1');
+    if (rows.length && rows[0].values.length) {
+      aoitYearlyGoal = parseFloat(rows[0].values[0][0]) || 0;
+    }
+  } catch(e) {}
+
+  renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYearlyGoal);
+  updateGoalProgress();
+}
+
+function renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYearlyGoal) {
+  // Stacked bar chart (taasalo3: grafico mensile)
+  const isLight = document.documentElement.classList.contains('light-theme');
+  const tickColor = isLight ? '#4B5563' : '#71717A';
+  const labelColor = isLight ? '#1F2937' : '#A1A1AA';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+  const doughnutBorder = isLight ? '#FFFFFF' : '#141417';
+
+  // Titolo dinamico bar chart: Totale AOIT / Obiettivo
+  const titleEl = document.getElementById('chartMonthlyTitle');
+  if (titleEl) {
+    const totStr = fCHF(aoitT);
+    const goalStr = aoitYearlyGoal > 0 ? ' / ' + fCHF(aoitYearlyGoal) : '';
+    titleEl.innerHTML = 'AOIT mensili&nbsp;&nbsp;<span style="color:#0284C7">' + totStr + goalStr + '</span>';
+  }
+
+  const ctxM = document.getElementById('chartMonthly').getContext('2d');
+  if (chMonthly) chMonthly.destroy();
+  chMonthly = new Chart(ctxM, {
+    type: 'bar',
+    data: {
+      labels: MONTHS.map(m => m.substring(0, 3)),
+      datasets: [
+        { label:'AOIT', data: monthly.map(m=>m.aoit), backgroundColor:'rgba(59,130,246,.75)',  borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{
+        legend:{ display: false }
+      },
+      scales:{
+        x:{
+          stacked:true,
+          grid:{ display:false },
+          ticks:{ color: tickColor }
+        },
+        y:{
+          stacked:true,
+          ticks:{
+            callback: v => 'CHF '+v,
+            color: tickColor,
+            maxTicksLimit: 5
+          },
+          grid:{ color: gridColor }
+        }
+      }
+    }
+  });
+
+  // Doughnut chart - AOIT product distribution
+  const aoitColors = [
+    'rgba(59,130,246,.80)', 'rgba(99,102,241,.80)', 'rgba(139,92,246,.80)',
+    'rgba(168,85,247,.80)', 'rgba(192,38,211,.80)', 'rgba(219,39,119,.80)',
+    'rgba(244,63,94,.80)', 'rgba(236,72,153,.80)', 'rgba(168,162,158,.80)'
+  ];
+
+  // Aggiorna percentuale AOIT per il plugin centrale
+  aoitPctDisplay = aoitYearlyGoal > 0 ? Math.round(aoitT / aoitYearlyGoal * 100) : 0;
+
+  const ctxT = document.getElementById('chartTypes').getContext('2d');
+  if (chTypes) chTypes.destroy();
+  chTypes = new Chart(ctxT, {
+    type: 'doughnut',
+    data: {
+      labels: aoitProdLabels.length ? aoitProdLabels : ['Nessun dato AOIT'],
+      datasets:[{
+        data: aoitProdData.length ? aoitProdData : [1],
+        backgroundColor: aoitProdLabels.length ? aoitColors.slice(0, aoitProdLabels.length) : ['rgba(200,200,200,.3)'],
+        borderWidth: 2,
+        borderColor: doughnutBorder
+      }]
+    },
+    options: {
+      responsive:true,
+      plugins:{
+        legend:{ display: false },
+        tooltip:{ callbacks:{ label: ctx => ctx.label+': CHF '+fCHF(ctx.raw) } }
+      }
+    }
+  });
+
+  // Custom 2-column legend
+  const legendEl = document.getElementById('chartTypesLegend');
+  if (aoitProdLabels.length) {
+    legendEl.innerHTML = aoitProdLabels.map((label, i) =>
+      `<div class="chart-legend-item">
+        <span class="chart-legend-color" style="background:${aoitColors[i % aoitColors.length]}"></span>
+        <span>${label.length > 28 ? label.substring(0, 26) + '…' : label}</span>
+      </div>`
+    ).join('');
+  } else {
+    legendEl.innerHTML = '<div style="grid-column:1/-1; color:var(--txt-sec); font-size:11px;">Nessun dato AOIT</div>';
+  }
+}
+
+// ----------------------------------------------------------------
+// ARCHIVE (taasalo3: archivio anni precedenti)
+// ----------------------------------------------------------------
+function renderArchive() {
+  const archived = getArchived().sort((a,b) => b - a);
+  const list = document.getElementById('archiveList');
+  if (!archived.length) {
+    list.innerHTML = `<div class="empty"><h3>Nessun anno archiviato</h3><p>Usa il pulsante "Archivia anno" per conservare i dati storici</p></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  for (const yr of archived) {
+    const db2 = loadOrCreateSalesDB(yr);
+    let tot = 0, cnt = 0;
+    try {
+      const r1 = db2.exec("SELECT SUM(commission) FROM sales WHERE status='ok'");
+      const r2 = db2.exec("SELECT COUNT(*) FROM sales");
+      if (r1.length) tot = parseFloat(r1[0].values[0][0]) || 0;
+      if (r2.length) cnt = parseInt(r2[0].values[0][0])   || 0;
+    } catch(e) {}
+
+    const div = document.createElement('div');
+    div.className = 'archive-item';
+    div.innerHTML = `
+      <div>
+        <div class="archive-year">${yr}</div>
+        <div class="archive-stats">${cnt} vendite &nbsp;|&nbsp; CHF ${fCHF(tot)} AOIT</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost btn-sm" onclick="viewArchivedYear(${yr})">Visualizza</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportArchPDF(${yr})">PDF</button>
+      </div>`;
+    list.appendChild(div);
+  }
+}
+
+function getArchived() {
+  const raw = localStorage.getItem(KEY_ARCH);
+  return raw ? JSON.parse(raw) : [];
+}
+
+async function archiveCurrentYear() {
+  if (!await cfm(`Archiviare l'anno ${curYear}?`, 'I dati rimarranno accessibili nella sezione Archivio.')) return;
+  const arr = getArchived();
+  if (!arr.includes(curYear)) {
+    arr.push(curYear);
+    localStorage.setItem(KEY_ARCH, JSON.stringify(arr));
+  }
+  addYear(curYear);
+  renderArchive();
+  toast('Anno ' + curYear + ' archiviato', 'ok');
+}
+
+function viewArchivedYear(yr) {
+  document.getElementById('yearSel').value = yr;
+  changeYear();
+  showTab('sales');
+}
+
+function exportArchPDF(yr) { exportSalesPDFFrom(loadOrCreateSalesDB(yr), yr); }
+
+// ----------------------------------------------------------------
+// OFFERTE — Carica e mostra le promozioni Swisscom
+// ----------------------------------------------------------------
+const OFFERS_URL = 'https://raw.githubusercontent.com/IronDirt/swisscom-offers/main/offers.json';
+
+const OFFER_KEYWORDS = {
+  netflix:     'Netflix',
+  disney:      'Disney+',
+  'blue binge':'blue Binge',
+  myservice:   'My Service',
+  mysecurity:  'My Security',
+  tv:          'TV'
+};
+
+const OFFER_ICONS = {
+  netflix: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 2h3.5l5 14.5V2h3.5v20H14L9.2 5.7V22H5.5V2z"/></svg>`,
+  disney: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l.7 2.3h-1.4L12 2zM8 8l4-3 4 3v2H8V8zm-3 4v8h4v-5h6v5h4v-8l-7-5-7 5z"/><rect x="11.3" y="0.5" width="1.4" height="2" rx=".7"/></svg>`,
+  'blue binge': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21"/></svg>`,
+  myservice: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+  mysecurity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17,2 12,7 7,2"/></svg>`
+};
+
+const OFFER_ICON_COLORS = {
+  netflix:     '#E50914',
+  disney:      '#113CCF',
+  'blue binge':'#00AEEF',
+  myservice:   '#F59E0B',
+  mysecurity:  '#10B981',
+  tv:          '#8B5CF6'
+};
+
+let offersCache = null;
+
+function cleanOfferTitle(raw) {
+  if (!raw) return '';
+  let t = raw.replace(/\u200B/g, '').trim();
+  t = t.replace(/^logo\s+/i, '');
+  t = t.replace(/^attiva\s+/i, '');
+  t = t.replace(/^disponibile\s+con\s+/i, '');
+  t = t.replace(/^il\s+miglior\s+.+?\s+/i, '');
+  t = t.replace(/[:\.]+$/, '').trim();
+  return t || raw.trim();
+}
+
+async function renderOffers() {
+  const grid   = document.getElementById('offersGrid');
+  const loadEl = document.getElementById('offersLoading');
+  const errEl  = document.getElementById('offersError');
+  const emptyEl= document.getElementById('offersEmpty');
+
+  grid.style.display = 'none';
+  errEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  loadEl.style.display = 'flex';
+
+  if (offersCache) { renderOffersData(offersCache); return; }
+
+  try {
+    const res = await fetch(OFFERS_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !Array.isArray(data.offers)) throw new Error('JSON non valido');
+    offersCache = data;
+    renderOffersData(data);
+  } catch (e) {
+    loadEl.style.display = 'none';
+    errEl.style.display = 'block';
+  }
+}
+
+function renderOffersData(data) {
+  const grid    = document.getElementById('offersGrid');
+  const loadEl  = document.getElementById('offersLoading');
+  const errEl   = document.getElementById('offersError');
+  const emptyEl = document.getElementById('offersEmpty');
+  const tsEl    = document.getElementById('offersTimestamp');
+
+  loadEl.style.display = 'none';
+
+  if (data.scraped_at) {
+    const d = new Date(data.scraped_at);
+    tsEl.textContent = 'Aggiornato il: ' + d.toLocaleDateString('it-CH', {
+      day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+  }
+
+  const grouped = {};
+  for (const kw of Object.keys(OFFER_KEYWORDS)) grouped[kw] = [];
+  for (const o of data.offers) {
+    if (grouped[o.keyword]) grouped[o.keyword].push(o);
+  }
+
+  const hasAny = Object.values(grouped).some(a => a.length > 0);
+  if (!hasAny) { emptyEl.style.display = 'block'; return; }
+
+  grid.style.display = 'block';
+  grid.innerHTML = '';
+
+  for (const [kw, offers] of Object.entries(grouped)) {
+    if (!offers.length) continue;
+
+    const section = document.createElement('div');
+    section.className = 'offer-group';
+
+    const iconSvg = OFFER_ICONS[kw] || '';
+    const iconColor = OFFER_ICON_COLORS[kw] || 'var(--accent-lt)';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'offer-group-title';
+    titleEl.innerHTML = `<span class="offer-gicon" style="color:${iconColor}">${iconSvg}</span>` +
+      OFFER_KEYWORDS[kw] + `<span class="offer-count">${offers.length}</span>`;
+    section.appendChild(titleEl);
+
+    const gridInner = document.createElement('div');
+    gridInner.className = 'offer-grid';
+
+    for (const o of offers) {
+      const name = cleanOfferTitle(o.title);
+      const cardIcon = OFFER_ICONS[kw] || '';
+      const cardIconColor = OFFER_ICON_COLORS[kw] || 'var(--accent-lt)';
+
+      let badges = '';
+      if (o.promo) badges += `<span class="offer-card-badge offer-badge-promo">${escH(o.promo)}</span>`;
+      if (o.price) badges += `<span class="offer-card-badge offer-badge-price">${escH(o.price)}</span>`;
+
+      let linkHtml = '';
+      if (o.link) {
+        linkHtml = `<div class="offer-card-link"><a href="${escH(o.link)}" target="_blank" rel="noopener">Vedi offerta →</a></div>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'offer-card';
+      card.innerHTML = `
+        <div class="offer-card-top">
+          <span class="offer-card-icon" style="color:${cardIconColor}">${cardIcon}</span>
+          <span class="offer-card-name">${escH(name)}</span>
+        </div>
+        <div class="offer-card-badges">${badges}</div>
+        ${linkHtml}`;
+      gridInner.appendChild(card);
+    }
+
+    section.appendChild(gridInner);
+    grid.appendChild(section);
+  }
+}
+
+// ----------------------------------------------------------------
+// EXPORT — Dashboard PDF
+// ----------------------------------------------------------------
+function exportDashboardPDF() {
+  try {
+    const r = dbS.exec('SELECT type,product_name,sale_date,commission,status FROM sales');
+    if (!r.length) { toast('Nessun dato da esportare', 'err'); return; }
+    const sales = r[0].values.map(v => obj(r[0].columns, v));
+    const okS = sales.filter(s => s.status === 'ok');
+    const now = new Date(), cmi = now.getMonth();
+
+    const g = dbS.exec('SELECT aoit_yearly,retentions_yearly,new_internet_yearly,new_tv_yearly,new_mobile_yearly FROM goals LIMIT 1');
+    const goal = g.length && g[0].values.length ? g[0].values[0] : [0,0,0,0,0];
+    const [gy,rY,niY,tvY,mbY] = goal.map(v => parseFloat(v)||0);
+
+    const cats = ['AOIT','Retentions','Internet','TV','Mobile'];
+    const achY = [0,0,0,0,0];
+    okS.forEach(s => {
+      if (s.sale_date.length<7) return;
+      if (s.type==='AOIT') achY[0]+=s.commission;
+      else if (s.type==='Retentions'||s.type==='DMC') achY[1]+=1;
+      else if (s.type==='NEW') { const idx=cats.indexOf(s.product_name); if(idx>1) achY[idx]+=1; }
+    });
+
+    const monthly = MONTHS.map((lbl,i)=>{
+      const mm=String(i+1).padStart(2,'0'), mS=okS.filter(s=>s.sale_date.substring(5,7)===mm);
+      return [lbl+(i===cmi?' *':''), sum(mS.filter(s=>s.type==='AOIT')), mS.filter(s=>s.type==='Retentions'||s.type==='DMC').length, sum(mS.filter(s=>s.type==='NEW'&&s.product_name==='Internet')), sum(mS.filter(s=>s.type==='NEW'&&s.product_name==='TV')), sum(mS.filter(s=>s.type==='NEW'&&s.product_name==='Mobile'))];
+    });
+
+    const prod={}; okS.filter(s=>s.type==='AOIT').forEach(s=>{prod[s.product_name]=(prod[s.product_name]||0)+s.commission});
+    const pLbl=Object.keys(prod), pDat=Object.values(prod);
+
+    const {jsPDF}=window.jspdf, doc=new jsPDF({unit:'mm'});
+    const pw=doc.internal.pageSize.getWidth();
+    const B=[0,58,140], G=[5,150,105], Y=[217,119,6], R=[239,68,68], GR=[180,180,180];
+    const tot = sum(okS);
+
+    // Header band
+    doc.setFillColor(...B); doc.rect(0,0,pw,18,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold').setFontSize(15);
+    doc.text('DataSales — Report '+curYear,14,12);
+
+    // Summary banner
+    let y=28;
+    doc.setFillColor(...B); doc.roundedRect(14,y,pw-28,11,1.5,1.5,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold').setFontSize(9);
+    doc.text('Totale Commissioni',18,y+4.5);
+    doc.setFontSize(13); doc.text('CHF '+fCHF(tot),70,y+5);
+    y+=18;
+
+    // Goals
+    doc.setFont('helvetica','bold').setFontSize(11).setTextColor(...B);
+    doc.text('Obiettivi Annuali',14,y); y+=4;
+    doc.autoTable({
+      head:[['','Annuale','%']],
+      body:cats.map((c,i)=>[c, i===0?'CHF '+fCHF(achY[i])+' / CHF '+fCHF([gy,rY,niY,tvY,mbY][i]):achY[i]+' / '+[gy,rY,niY,tvY,mbY][i], [gy,rY,niY,tvY,mbY][i]>0?Math.round(achY[i]/[gy,rY,niY,tvY,mbY][i]*100)+'%':'—']),
+      startY:y, styles:{fontSize:8,cellPadding:3},
+      headStyles:{fillColor:B,fontStyle:'bold',fontSize:9,textColor:255},
+      alternateRowStyles:{fillColor:[245,247,250]},
+      columnStyles:{0:{cellWidth:30,fontStyle:'bold'},1:{cellWidth:60},2:{cellWidth:20,halign:'center'}},
+      didParseCell:d=>{
+        if(d.section==='body'&&d.column.index===0) d.cell.styles.textColor=[[0,58,140],[5,150,105],[217,119,6],[217,119,6],[217,119,6]][d.row.index]||B;
+        if(d.section==='body'&&d.column.index===2&&d.cell.raw){
+          const p=parseInt(d.cell.raw);
+          d.cell.styles.textColor=p>=80?G:p>=50?Y:p>0?R:GR;
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+8;
+
+    // Monthly
+    doc.setFont('helvetica','bold').setFontSize(11).setTextColor(...B);
+    doc.text('Dettaglio Mensile',14,y); y+=4;
+    doc.autoTable({
+      head:[['Mese','AOIT','Ret.','Internet','TV','Mobile']],
+      body:monthly.map(m=>[m[0],m[1]>0?'CHF '+fCHF(m[1]):'—',m[2]>0?String(m[2]):'—',m[3]>0?'CHF '+fCHF(m[3]):'—',m[4]>0?'CHF '+fCHF(m[4]):'—',m[5]>0?'CHF '+fCHF(m[5]):'—']),
+      startY:y, styles:{fontSize:8,cellPadding:3},
+      headStyles:{fillColor:B,fontStyle:'bold',fontSize:9,textColor:255},
+      alternateRowStyles:{fillColor:[245,247,250]},
+      columnStyles:{0:{cellWidth:30,fontStyle:'bold'}},
+      didParseCell:d=>{
+        if(d.section==='body'&&d.column.index>=1){
+          const v=parseFloat(String(d.cell.raw).replace(/[^0-9.-]/g,''));
+          if(!isNaN(v)&&v>0){ d.cell.styles.textColor=[B,G,Y,Y,Y][d.column.index-1]; d.cell.styles.fontStyle='bold'; }
+          else if(d.cell.raw==='—') d.cell.styles.textColor=GR;
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+8;
+
+    // Products
+    if(pLbl.length){
+      doc.setFont('helvetica','bold').setFontSize(11).setTextColor(139,92,246);
+      doc.text('Distribuzione AOIT',14,y); y+=4;
+      const sorted=pLbl.map((l,i)=>[l,'CHF '+fCHF(pDat[i])]).sort((a,b)=>parseFloat(b[1].replace(/[^0-9.]/g,''))-parseFloat(a[1].replace(/[^0-9.]/g,'')));
+      doc.autoTable({
+        head:[['Prodotto','Commissione']], body:sorted, startY:y,
+        styles:{fontSize:8,cellPadding:3},
+        headStyles:{fillColor:[139,92,246],fontStyle:'bold',fontSize:9,textColor:255},
+        alternateRowStyles:{fillColor:[245,247,250]},
+        columnStyles:{0:{cellWidth:80},1:{cellWidth:40,halign:'right'}}
+      });
+    }
+
+    // Footer
+    for(let i=1;i<=doc.internal.getNumberOfPages();i++){
+      doc.setPage(i).setDrawColor(200,200,200).line(14,doc.internal.pageSize.height-10,pw-14,doc.internal.pageSize.height-10);
+      doc.setFontSize(7).setTextColor(150).text('DataSales | © 2026 Loris Salerno | Report '+curYear+' | Pagina '+i,14,doc.internal.pageSize.height-6);
+    }
+    const blob=doc.output('blob'), a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='DataSales_Report_'+curYear+'.pdf'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast('PDF report esportato','ok');
+  } catch(e){ toast('Errore export PDF: '+e.message,'err'); }
+}
+
+// ----------------------------------------------------------------
+// EXPORT — Sales PDF (taasalo3: jsPDF + autoTable)
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// EXPORT — Sales PDF (taasalo3: jsPDF + autoTable)
+// ----------------------------------------------------------------
+function exportSalesPDF() { exportSalesPDFFrom(dbS, curYear); }
+
+function exportSalesPDFFrom(db, yr) {
+  let rows = [];
+  try {
+    rows = db.exec('SELECT type,product_name,scn,sale_date,commission,status,notes FROM sales ORDER BY sale_date DESC');
+  } catch(e) { toast('Errore export PDF', 'err'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(15); doc.setTextColor(0,58,140);
+  doc.text('DataSales — Registro Vendite ' + yr, 14, 15);
+
+  const body = rows.length && rows[0].values.length
+    ? rows[0].values.map(r => [
+        r[0], r[1], r[2]||'', r[3],
+        r[4] ? 'CHF '+fCHF(parseFloat(r[4])) : '—',
+        r[5]==='ok' ? 'OK' : 'Annullata',
+        r[6]||''
+      ])
+    : [['Nessuna vendita','','','','','','']];
+
+  doc.autoTable({
+    head: [['Tipo','Prodotto','SCN','Data','AOIT','Stato','Note']],
+    body,
+    startY: 20,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor:[0,58,140], fontStyle:'bold' },
+    alternateRowStyles: { fillColor:[240,244,255] },
+    didDrawPage: d => {
+      doc.setFontSize(7); doc.setTextColor(150);
+      doc.text('DataSales | © 2026 Loris Salerno | taasalo3', 14, doc.internal.pageSize.height - 6);
+    }
+  });
+
+  const blob = doc.output('blob');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `DataSales_Vendite_${yr}.pdf`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('PDF esportato', 'ok');
+}
+
+// ----------------------------------------------------------------
+// EXPORT — Products PDF
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// EXPORT — Products PDF
+// ----------------------------------------------------------------
+function exportProductsPDF() {
+  let rows = [];
+  try {
+    rows = dbP.exec("SELECT category,name,price_chf,months FROM products WHERE is_active=1 ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END,sort_order,name");
+  } catch(e) { toast('Errore export PDF', 'err'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm' });
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(15); doc.setTextColor(0,58,140);
+  doc.text('DataSales — Database AOIT', 14, 15);
+
+  const body = rows.length
+    ? rows[0].values.map(r => {
+        const comm = parseFloat(r[2]) * parseInt(r[3]);
+        return [r[0], r[1], 'CHF '+fCHF(r[2]), r[3]+' mesi', 'CHF '+fCHF(comm)];
+      })
+    : [];
+
+  doc.autoTable({
+    head: [['Categoria','Prodotto','Prezzo/mese','Mesi','AOIT']],
+    body,
+    startY: 20,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor:[0,58,140] },
+    alternateRowStyles: { fillColor:[240,244,255] },
+    didDrawPage: d => {
+      doc.setFontSize(7); doc.setTextColor(150);
+      doc.text('DataSales | © 2026 Loris Salerno | taasalo3', 14, doc.internal.pageSize.height - 6);
+    }
+  });
+
+  const blob = doc.output('blob');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'DataSales_Prodotti.pdf';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('PDF esportato', 'ok');
+}
+
+// ----------------------------------------------------------------
+// UTILITY FUNCTIONS (taasalo3: helper functions)
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// UTILITY FUNCTIONS (taasalo3: helper functions)
+// ----------------------------------------------------------------
+function v(id)     { return document.getElementById(id).value; }
+function setText(id, t) { document.getElementById(id).textContent = t; }
+function obj(cols, vals) { const o={}; cols.forEach((c,i)=>o[c]=vals[i]); return o; }
+function sum(arr)  { return arr.reduce((s,v) => s + (parseFloat(v.commission)||0), 0); }
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function fCHF(n, dec = 0) {
+  return (parseFloat(n)||0).toLocaleString('de-CH', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+function hl(text, search) {
+  if (!search || !text) return text || '';
+  return text.replace(new RegExp('('+escR(search)+')', 'gi'), '<mark>$1</mark>');
+}
+
+function escH(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function dlFile(name, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function u8toB64(buf) {
+  let s = '';
+  const chunk = 8192;
+  for (let i = 0; i < buf.length; i += chunk)
+    s += String.fromCharCode(...buf.subarray(i, i + chunk));
+  return btoa(s);
+}
+
+function b64toU8(b64) {
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf;
+}
+
+// ----------------------------------------------------------------
+// SQLITE FILE EXPORT/IMPORT (taasalo3: gestione file .db SQLite separati)
+// ----------------------------------------------------------------
+function escapeCsvCell(value) {
+  const text = String(value ?? '');
+  return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+}
+
+function exportProductCatalogList() {
+  let rows = [];
+  try {
+    rows = dbP.exec("SELECT id,category,name,price_chf,months FROM products WHERE is_active=1 ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END,sort_order,name");
+  } catch (e) {}
+
+  if (!rows.length) {
+    toast('Nessun prodotto da esportare', 'err');
+    return;
+  }
+
+  const cols = rows[0].columns;
+  const products = rows[0].values.map(r => obj(cols, r));
+  const lines = ['Categoria,Prodotto,Prezzo/mese,Mesi,AOIT'];
+
+  products.forEach(p => {
+    const aoit = getProductCommission(p, products);
+    lines.push([
+      escapeCsvCell(p.category || ''),
+      escapeCsvCell(p.name || ''),
+      escapeCsvCell((parseFloat(p.price_chf) || 0).toFixed(2)),
+      escapeCsvCell(parseInt(p.months || 1)),
+      escapeCsvCell(aoit.toFixed(2))
+    ].join(','));
+  });
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `catalogo_aoit_prodotti_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Lista prodotti AOIT esportata', 'ok');
+}
+
+function importProductCatalogList() {
+  document.getElementById('productsListInput').click();
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        row.push(field);
+        field = '';
+      } else if (ch === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      } else if (ch !== '\r') {
+        field += ch;
+      }
+    }
+  }
+
+  if (field.length || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows.filter(r => r.some(c => c !== ''));
+}
+
+async function handleProductsListImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!await cfm('Importare lista prodotti AOIT?', 'Questa operazione sostituirà il catalogo attuale con il contenuto del file, senza includere vendite personali.')) {
+    event.target.value = '';
+    return;
+  }
+
+  try {
+    const text = await file.text();
+    const rows = parseCsv(text);
+    if (rows.length < 2) throw new Error('File vuoto o non valido.');
+
+    const header = rows[0].map(c => c.trim().toLowerCase());
+    const idx = {
+      category: header.indexOf('categoria'),
+      name: header.indexOf('prodotto'),
+      price: header.indexOf('prezzo/mese'),
+      months: header.indexOf('mesi'),
+      aoit: header.indexOf('aoit')
+    };
+
+    if (idx.category < 0 || idx.name < 0 || idx.price < 0 || idx.months < 0) {
+      throw new Error('Formato file non valido.');
+    }
+
+    const imported = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const cat = (row[idx.category] || '').trim();
+      const name = (row[idx.name] || '').trim();
+      const price = parseFloat(String(row[idx.price] || '0').replace(',', '.'));
+      const months = parseInt(String(row[idx.months] || '1'), 10);
+
+      if (!name || Number.isNaN(price) || price < 0 || Number.isNaN(months) || months < 1) continue;
+      imported.push([cat, name, price, months]);
+    }
+
+    if (!imported.length) throw new Error('Nessun prodotto valido trovato nel file.');
+
+    dbP.run('UPDATE products SET is_active=0');
+    let maxOrd = 0;
+    try {
+      const res = dbP.exec('SELECT MAX(sort_order) FROM products');
+      if (res.length && res[0].values.length) maxOrd = parseInt(res[0].values[0][0]) || 0;
+    } catch (e) {}
+
+    imported.forEach((item, index) => {
+      dbP.run('INSERT INTO products (category,name,price_chf,months,is_active,sort_order) VALUES (?,?,?,?,?,?)', [item[0], item[1], item[2], item[3], 1, maxOrd + index + 1]);
+    });
+
+    saveP(dbP);
+    renderProducts();
+    toast('Lista prodotti AOIT importata con successo', 'ok');
+  } catch (e) {
+    toast('Errore importazione lista prodotti: ' + e.message, 'err');
+  }
+
+  event.target.value = '';
+}
+
+function exportProductsDBFile() {
+  const bin = dbP.export();
+  dlBinaryFile('lollodb_products.db', bin, 'application/x-sqlite3');
+  toast('Database Prodotti (.db) esportato', 'ok');
+}
+
+function importProductsDBFile() {
+  document.getElementById('dbProductsInput').click();
+}
+
+async function handleProductsDBImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!await cfm('Importare Database Prodotti?', 'Questo sovrascriverà tutti i prodotti attuali con quelli contenuti nel file .db.')) {
+    event.target.value = ''; return;
+  }
+  try {
+    const buf = await file.arrayBuffer();
+    dbP = new SQL.Database(new Uint8Array(buf));
+    saveP(dbP);
+    renderProducts();
+    toast('Database Prodotti (.db) importato con successo', 'ok');
+  } catch(e) {
+    toast('Errore nel caricamento del database: ' + e.message, 'err');
+  }
+  event.target.value = '';
+}
+
+function exportSalesDBFile() {
+  const bin = dbS.export();
+  dlBinaryFile(`lollodb_sales_${curYear}.db`, bin, 'application/x-sqlite3');
+  toast(`Database Vendite ${curYear} (.db) esportato`, 'ok');
+}
+
+function importSalesDBFile() {
+  document.getElementById('dbSalesInput').click();
+}
+
+async function handleSalesDBImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!await cfm(`Importare Database Vendite ${curYear}?`, 'Questo sovrascriverà tutte le vendite correnti di quest\'anno con quelle del file .db.')) {
+    event.target.value = ''; return;
+  }
+  try {
+    const buf = await file.arrayBuffer();
+    dbS = new SQL.Database(new Uint8Array(buf));
+    saveS(dbS, curYear);
+    renderSales();
+    renderStats();
+    toast('Database Vendite (.db) importato con successo', 'ok');
+  } catch(e) {
+    toast('Errore nel caricamento del database: ' + e.message, 'err');
+  }
+  event.target.value = '';
+}
+
+function dlBinaryFile(name, uint8arr, mime) {
+  const blob = new Blob([uint8arr], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ----------------------------------------------------------------
+// TOAST (taasalo3: notifiche)
+// ----------------------------------------------------------------
+let toastT = null;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ----------------------------------------------------------------
+// CONFIRM DIALOG (taasalo3: dialog di conferma)
+// ----------------------------------------------------------------
+function cfm(title, msg) {
+  return new Promise(resolve => {
+    cfmCb = resolve;
+    document.getElementById('cfmTitle').textContent = title;
+    document.getElementById('cfmMsg').textContent   = msg;
+    document.getElementById('cfmOverlay').classList.add('open');
+  });
+}
+
+function cfmResolve(val) {
+  document.getElementById('cfmOverlay').classList.remove('open');
+  if (cfmCb) { cfmCb(val); cfmCb = null; }
+}
+
+// ----------------------------------------------------------------
+// UNIFIED BACKUP & RESTORE
+// ----------------------------------------------------------------
+function exportFullBackup() {
+  const backup = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('lollodb_') || key.startsWith('lollodata_')) {
+      backup[key] = localStorage.getItem(key);
+    }
+  }
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const jsonStr = JSON.stringify(backup);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lollodata_backup_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  const now = new Date().toLocaleString('it-IT', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  localStorage.setItem('lollodata_last_backup', now);
+  updateLastBackupLabel();
+  unsavedBackupChanges = false;
+  updateUnsavedBackupBanner();
+  toast('Backup esportato con successo', 'ok');
+}
+
+function triggerFullBackupImport() {
+  document.getElementById('dbFullBackupInput').click();
+}
+
+async function importFullBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!await cfm('Importare Backup?', 'Questo sovrascriverà tutti i prodotti, le vendite e i dati attuali con quelli contenuti nel backup.')) {
+    event.target.value = ''; return;
+  }
+  try {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    let hasKeys = false;
+    for (const key in backup) {
+      if (key.startsWith('lollodb_') || key.startsWith('lollodata_')) {
+        hasKeys = true;
+        break;
+      }
+    }
+    if (!hasKeys) {
+      throw new Error('File di backup non valido o vuoto.');
+    }
+    
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key.startsWith('lollodb_') || key.startsWith('lollodata_')) {
+        localStorage.removeItem(key);
+      }
+    }
+    for (const key in backup) {
+      localStorage.setItem(key, backup[key]);
+    }
+    toast('Backup importato con successo! Ricarico...', 'ok');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    toast('Errore importazione backup: ' + e.message, 'err');
+  }
+  event.target.value = '';
+}
+
+function updateLastBackupLabel() {
+  const lbl = document.getElementById('lastBackupLbl');
+  if (!lbl) return;
+  const last = localStorage.getItem('lollodata_last_backup');
+  if (!last) {
+    lbl.textContent = 'Ultimo backup: mai';
+    return;
+  }
+  const parts = last.split(', ');
+  if (parts.length === 2) {
+    const [datePart, timePart] = parts;
+    const [d, m, y] = datePart.split('/');
+    const now = new Date();
+    if (parseInt(d) === now.getDate() && parseInt(m) - 1 === now.getMonth() && parseInt(y) === now.getFullYear()) {
+      lbl.textContent = `Ultimo backup: oggi alle ${timePart.substring(0, 5)}`;
+      return;
+    }
+  }
+  lbl.textContent = `Ultimo backup: ${last}`;
+}
+
+// Close modals on backdrop click
+document.getElementById('saleModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSaleModal();
+});
+document.getElementById('productModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeProductModal();
+});
+
+// ESC to close
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSaleModal(); closeProductModal(); }
+});
+
+// Close combobox lists on outside click
+document.addEventListener('click', e => {
+  const combos = [
+    { box: 'aoitCombobox', list: 'aoitProdList' },
+    { box: 'retentionsCombobox', list: 'retentionsTypeList' },
+    { box: 'newCombobox', list: 'newTypeList' }
+  ];
+  for (const c of combos) {
+    const box  = document.getElementById(c.box);
+    const list = document.getElementById(c.list);
+    if (box && !box.contains(e.target)) list.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
