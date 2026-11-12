@@ -8,8 +8,8 @@ Nessuna build, nessun bundler. UI in italiano.
 - `index.html` — shell: sidebar + `<iframe id="frame">`. Sidebar apre via hash (`#lollotool`, `#turni`, `#datasales`, `#agenti`). Nessun framework.
 - `LolloTool V3.11.html` — SCT TOOL (Clima RAME/FIBRA/Clima3/TV-BOX/Monitoring). Pattern "store in JS" su paste (non mettere valori enormi nei textarea). Watermark autore + istruzioni agente nel commento iniziale: non rimuoverli.
 - `Turni Swisscom.html` — turni con `html[data-theme]`. Storage: `turni_v7`, `turni_tema`, `turni_link`, `turni_meta7`.
-- `DataSales.html` — DB SQLite via sql.js + Chart.js/jspdf da CDN. Default scuro.
-- `agenti.html` — card link agenti, storage `mylollotool-agenti`. Nessuna dipendenza esterna.
+- `DataSales.html` — DB SQLite via sql.js + Chart.js/jspdf da CDN. Default scuro. Banner modifiche non salvate: default CSS `display:none`, mostrato solo via JS (`updateUnsavedBackupBanner`).
+- `agenti.html` — card link agenti, storage `mylollotool-agenti`. Toggle larghezza card (280px/360px) in toolbar, stato in `mylollotool-agenti-width`. Nessuna dipendenza esterna.
 - `DataSales.html`, `Turni Swisscom.html` — hanno dipendenze CDN: i test offline devono tollerare errori rete.
 
 ## Tema globale unificato (2026-11-12)
@@ -21,6 +21,7 @@ Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#the
 - Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme', theme})` su click e su `iframe load` + retry 120ms.
 - Nessun reload richiesto: `paintFrameNow()` scrive direttamente nel DOM dell'iframe (stessa origine): `body.dark` (Lollo/agenti), `.light-theme` (DataSales), `dataset.theme` (Turni).
 - `fixToggleOverlap()` in `index.html`: il pulsante menu (`#toggle` 40px a 14,14, centro 34px come header DataSales 68px) sposta a destra gli header toccati (`.app-header`, `.header-row`, `header`, `.brand`, `h1`) con `marginLeft` fino a 66px. Usa posizione originale per non flappare; retry su `load`+400ms e `resize`.
+- Menu personalizzabile: matita in testata sidebar → modalità modifica con su/giù (riordina) e occhio (mostra/nascondi). Stato in `localStorage['mylollotool-menu']` (ordine + hidden); nuove voci in coda; `loadPage` usa solo voci visibili.
 - Backup via `storage` event in entrambe le direzioni (stessa origine, anche altre schede).
 - Ritorno: le pagine figlie rispondono con `window.parent.postMessage({type:'mylollotool-theme', theme})` quando l'utente cambia tema dentro la pagina; `index.html` aggiorna solo bottoni e chiavi (broadcast=false per evitare loop).
 - Apertura diretta (senza iframe): ogni pagina legge prima la chiave globale, poi fallback storico.
