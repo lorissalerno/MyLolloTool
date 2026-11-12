@@ -211,6 +211,7 @@
       hide:     { it: 'Nascondi', de: 'Ausblenden', fr: 'Masquer', en: 'Hide' },
       drag:     { it: 'Trascina per spostare', de: 'Zum Verschieben ziehen', fr: 'Glisser pour déplacer', en: 'Drag to reorder' },
       group:    { it: 'Tema e lingua', de: 'Design und Sprache', fr: 'Thème et langue', en: 'Theme and language' },
+      frame:    { it: 'Contenuto', de: 'Inhalt', fr: 'Contenu', en: 'Content' },
       theme:    { it: 'Cambia tema', de: 'Thema wechseln', fr: 'Changer de thème', en: 'Toggle theme' },
       lang:     { it: 'Cambia lingua', de: 'Sprache wechseln', fr: 'Changer de langue', en: 'Change language' },
     };
@@ -239,6 +240,7 @@
       document.documentElement.lang = curLang;
       langTxt.textContent = LANG_LABELS[curLang];
       langBtn.title = mt('lang');
+      frame.title = mt('frame');
       document.getElementById('pref-group').setAttribute('aria-label', mt('group'));
       sidebar.querySelector('.menu-head h2').textContent = mt('tools');
       paintMenuEdit();
