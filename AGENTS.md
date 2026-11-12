@@ -14,7 +14,7 @@ Nessuna build, nessun bundler. UI in italiano.
 
 ## Tema globale unificato (2026-11-12)
 
-Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#theme-box`).
+Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#theme-box`, segmented control con SVG sole/luna, senza label testuale).
 
 - Chiave globale: `localStorage['mylollotool-theme']` = `light` | `dark` (default `light`).
 - Chiavi storiche sincronizzate da `index.html` (`syncLegacyKeys`): `sct-theme`=`light|dark`, `turni_tema`=`white|dark`, `theme`=`light|dark`.
@@ -24,7 +24,7 @@ Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#the
 - Ritorno: le pagine figlie rispondono con `window.parent.postMessage({type:'mylollotool-theme', theme})` quando l'utente cambia tema dentro la pagina; `index.html` aggiorna solo bottoni e chiavi (broadcast=false per evitare loop).
 - Apertura diretta (senza iframe): ogni pagina legge prima la chiave globale, poi fallback storico.
 
-Dettagli per file:
+Dettagli per file (palette unica DataSales — dark `#0D0D10/#141417/#1A1A1F`, light `#F3F4F6/#FFFFFF/#F9FAFB`; testo dark `#EEEEF0`, light `#1F2937`; accent `#3B82F6`/`#60A5FA` dark, `#2563EB` light; bordi dark `#2A2A35`, light `#E5E7EB`):
 
 - LolloTool: `body.dark`. Usa variabile `GLOBAL_KEY`, non stringa letterale (grep cerca `GLOBAL_KEY`). Listener `message` + `applyTheme(t, notifyParent)`.
 - Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale.
