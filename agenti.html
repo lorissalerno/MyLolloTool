@@ -6,104 +6,383 @@
   <title>Agenti AI</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
     body { font-family: system-ui, sans-serif; background: #f4f6fa; color: #1a1a1a; padding: 70px 24px 24px; }
 
-    svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2;
+    svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-    h1 { color: #001155; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
-    p.sub { color: #666; margin-bottom: 20px; }
+    h1 { color: #001155; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    h1 svg { width: 28px; height: 28px; }
+    .sub { color: #666; margin-bottom: 20px; }
 
-    .search-box { position: relative; max-width: 400px; margin-bottom: 24px; }
-    .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-                      color: #889; font-size: 18px; }
-    #search { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid #ccd;
-              border-radius: 8px; font-size: 15px; }
+    /* Barra strumenti */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }
+    .search-box { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+    .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #889; }
+    #search { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid #ccd; border-radius: 8px; font-size: 15px; }
 
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border: 1px solid #ccd;
+           border-radius: 8px; background: #fff; color: #001155; font: inherit; font-size: 14px;
+           cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .btn:hover { background: #eef2f8; }
+    .btn.primary { background: #001155; border-color: #001155; color: #fff; }
+    .btn.primary:hover { background: #1781e3; border-color: #1781e3; }
+
+    /* Card */
     .category { margin-bottom: 28px; }
-    .category h2 { font-size: 16px; color: #001155; margin-bottom: 12px; text-transform: uppercase; opacity: .8; }
+    .category h2 { font-size: 14px; color: #001155; margin-bottom: 12px; text-transform: uppercase; opacity: .8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-
-    .card {
-      position: relative; display: flex; gap: 12px; align-items: flex-start;
-      background: #fff; border-radius: 10px; padding: 16px;
-      text-decoration: none; color: inherit;
-      box-shadow: 0 1px 4px rgba(0,0,0,.08);
-      border-left: 4px solid #1781e3;
-      transition: transform .15s, box-shadow .15s;
-    }
+    .card { position: relative; background: #fff; border-radius: 10px; border-left: 4px solid #1781e3;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08); transition: transform .15s, box-shadow .15s; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
-    .card .icon {
-      display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px;
-      background: #e8f1fc; color: #1781e3; font-size: 22px; flex-shrink: 0;
-    }
-    .card h3 { font-size: 16px; margin-bottom: 4px; padding-right: 18px; }
+    .card-link { display: flex; gap: 12px; align-items: flex-start; padding: 16px 40px 16px 16px;
+                 min-height: 84px; color: inherit; text-decoration: none; }
+    .card .icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px;
+                  background: #e8f1fc; color: #1781e3; flex-shrink: 0; }
+    .card .icon svg { width: 22px; height: 22px; }
+    .card h3 { font-size: 16px; margin-bottom: 4px; word-break: break-word; }
     .card p { font-size: 13px; color: #666; }
-    .card .ext { position: absolute; top: 14px; right: 14px; color: #aab; font-size: 14px; }
-    .card:hover .ext { color: #1781e3; }
+    .badge { position: absolute; top: 14px; right: 14px; color: #aab; pointer-events: none; }
+    .badge svg { width: 15px; height: 15px; }
+
+    .card-actions { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 4px;
+                    opacity: 0; transition: opacity .15s; }
+    .card:hover .card-actions, .card:focus-within .card-actions { opacity: 1; }
+    @media (hover: none) { .card-actions { opacity: 1; } }
+    .card-actions button { display: grid; place-items: center; width: 28px; height: 28px; border: none;
+                           border-radius: 6px; background: #f0f3f8; color: #556; cursor: pointer; }
+    .card-actions button:hover { background: #e8f1fc; color: #1781e3; }
+    .card-actions button[data-action="delete"]:hover { background: #fdeaea; color: #c62828; }
+    .card-actions svg { width: 15px; height: 15px; }
+
+    .empty { padding: 40px; text-align: center; color: #667; background: #fff;
+             border: 2px dashed #ccd; border-radius: 10px; }
+
+    /* Finestra modulo */
+    .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+             padding: 20px; background: rgba(0,10,40,.5); }
+    .dialog { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 500px; max-height: 100%;
+              overflow: auto; padding: 24px; background: #fff; border-radius: 12px; }
+    .dialog h2 { color: #001155; font-size: 20px; }
+    .field { display: flex; flex-direction: column; gap: 5px; font-size: 14px; font-weight: 600; color: #333; }
+    .field .opt { font-weight: 400; color: #889; }
+    .field input { padding: 9px 12px; border: 1px solid #ccd; border-radius: 8px; font: inherit; font-weight: 400; font-size: 15px; }
+    fieldset { border: none; }
+    legend { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; }
+
+    .icon-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+    .icon-opt, .mode { position: relative; }
+    .icon-opt input, .mode input { position: absolute; opacity: 0; pointer-events: none; }
+    .icon-opt span { display: grid; place-items: center; height: 44px; border: 2px solid #e3e7ef;
+                     border-radius: 8px; color: #556; cursor: pointer; }
+    .icon-opt svg { width: 22px; height: 22px; }
+
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mode span { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 12px;
+                 border: 2px solid #e3e7ef; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .mode span b { display: flex; align-items: center; gap: 8px; color: #001155; }
+    .mode small { color: #778; font-size: 12px; }
+
+    .icon-opt span:hover, .mode span:hover { border-color: #1781e3; color: #1781e3; }
+    .icon-opt input:checked + span, .mode input:checked + span { border-color: #1781e3; background: #e8f1fc; color: #1781e3; }
+    .icon-opt input:focus-visible + span, .mode input:focus-visible + span { outline: 2px solid #001155; }
+
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+    /* Visualizzatore integrato */
+    #viewer { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: #fff; }
+    .viewer-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 66px;
+                  background: #f4f6fa; border-bottom: 1px solid #dde; }
+    .viewer-bar strong { color: #001155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .viewer-bar .hint { flex: 1; text-align: right; font-size: 12px; color: #889; }
+    #viewer-frame { flex: 1; width: 100%; border: none; }
+    @media (max-width: 600px) { .viewer-bar .hint { display: none; } .viewer-bar strong { flex: 1; } }
   </style>
 </head>
 <body>
 
-  <h1 id="title">Agenti AI</h1>
-  <p class="sub">Collegamenti rapidi agli agenti e strumenti AI</p>
+  <h1><span data-i="bot"></span>Agenti AI</h1>
+  <p class="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p>
 
-  <div class="search-box">
-    <span id="search-icon"></span>
-    <input id="search" type="text" placeholder="Cerca un agente...">
+  <div class="toolbar">
+    <div class="search-box">
+      <span data-i="search"></span>
+      <input id="search" type="text" placeholder="Cerca un agente...">
+    </div>
+    <button class="btn primary" id="btn-add"><span data-i="plus"></span>Aggiungi agente</button>
+    <button class="btn" id="btn-export" title="Scarica la lista come file .json"><span data-i="download"></span>Esporta</button>
+    <button class="btn" id="btn-import" title="Carica una lista da file .json"><span data-i="upload"></span>Importa</button>
+    <input type="file" id="file-import" accept=".json,application/json" hidden>
   </div>
 
   <div id="container"></div>
 
-  <script>
-    // Libreria icone SVG (stile linea, 24x24)
-    const ICONE = {
-      bot:      '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/>',
-      chat:     '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-      doc:      '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
-      sparkle:  '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/><path d="M19 3v4M17 5h4"/>',
-      code:     '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
-      image:    '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>',
-      mail:     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
-      search:   '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-      external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
-    };
-    const svg = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONE[nome] || ICONE.bot}</svg>`;
+  <!-- Modulo aggiungi / modifica -->
+  <div id="modal" class="modal" hidden>
+    <form id="form" class="dialog" autocomplete="off">
+      <h2 id="form-title">Nuovo agente</h2>
 
-    // MODIFICA QUI: icona = una delle chiavi di ICONE (bot, chat, doc, sparkle, code, image, mail)
-    const agenti = [
-      { categoria: "Interni Swisscom", nome: "Bernard",  descrizione: "Assistente AI interno", icona: "chat",    url: "https://..." },
-      { categoria: "Interni Swisscom", nome: "Agente 2", descrizione: "Descrizione breve",     icona: "doc",     url: "https://..." },
-      { categoria: "Esterni",          nome: "Agente 3", descrizione: "Descrizione breve",     icona: "sparkle", url: "https://..." },
+      <label class="field">Nome
+        <input name="nome" type="text" required maxlength="40" placeholder="Es. Assistente Vendite">
+      </label>
+      <label class="field">Link
+        <input name="url" type="url" required placeholder="https://bernard.swisscom.com/agents/...">
+      </label>
+      <label class="field">Descrizione <span class="opt">(facoltativa)</span>
+        <input name="descrizione" type="text" maxlength="80" placeholder="A cosa serve">
+      </label>
+      <label class="field">Categoria <span class="opt">(facoltativa)</span>
+        <input name="categoria" type="text" maxlength="30" list="cat-list" placeholder="Es. Swisscom, Esterni...">
+        <datalist id="cat-list"></datalist>
+      </label>
+
+      <fieldset>
+        <legend>Icona</legend>
+        <div id="icon-picker" class="icon-picker"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Apertura</legend>
+        <div class="modes">
+          <label class="mode">
+            <input type="radio" name="modo" value="tab">
+            <span><b><span data-i="external"></span>Nuova scheda</b><small>Funziona sempre</small></span>
+          </label>
+          <label class="mode">
+            <input type="radio" name="modo" value="frame">
+            <span><b><span data-i="frame"></span>Integrato</b><small>Solo se il sito lo permette</small></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" class="btn" id="btn-cancel">Annulla</button>
+        <button type="submit" class="btn primary">Salva</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Visualizzatore integrato -->
+  <div id="viewer" hidden>
+    <div class="viewer-bar">
+      <button class="btn" id="btn-back"><span data-i="back"></span>Indietro</button>
+      <strong id="viewer-title"></strong>
+      <span class="hint">Pagina vuota o errore? Il sito non permette l'integrazione: apri in nuova scheda.</span>
+      <a class="btn" id="viewer-ext" target="_blank" rel="noopener"><span data-i="external"></span>Nuova scheda</a>
+    </div>
+    <iframe id="viewer-frame" title="Agente" allow="clipboard-read; clipboard-write; microphone"></iframe>
+  </div>
+
+  <script>
+    // ===== Icone selezionabili: [etichetta, tracciati SVG 24x24] =====
+    const ICONE = {
+      bot:       ['Robot', '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8M2 14h1M21 14h1M9 13v2M15 13v2"/>'],
+      chat:      ['Chat', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
+      sparkle:   ['AI', '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/><path d="M19 3v4M17 5h4"/>'],
+      lightbulb: ['Idea', '<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>'],
+      doc:       ['Documento', '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>'],
+      book:      ['Conoscenza', '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'],
+      search:    ['Ricerca', '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
+      code:      ['Codice', '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'],
+      chart:     ['Analisi', '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>'],
+      calendar:  ['Calendario', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'],
+      mail:      ['Email', '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>'],
+      users:     ['Team / Clienti', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],
+      headset:   ['Supporto', '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>'],
+      briefcase: ['Lavoro / Vendite', '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'],
+      globe:     ['Web / Lingue', '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'],
+      shield:    ['Sicurezza', '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+      zap:       ['Automazione', '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'],
+      sliders:   ['Impostazioni', '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>'],
+      image:     ['Immagini', '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>'],
+      star:      ['Preferito', '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'],
+    };
+
+    // Icone dell'interfaccia (non selezionabili)
+    const UI = {
+      plus:     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      edit:     '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+      trash:    '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+      external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+      frame:    '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>',
+      back:     '<polyline points="15 18 9 12 15 6"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+      upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+    };
+
+    const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONE[n]?.[1] ?? UI[n] ?? ICONE.bot[1]}</svg>`;
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const isUrl = u => /^https?:\/\//i.test(u);
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    // ===== Dati (salvati nel browser) =====
+    const KEY = 'mylollotool-agenti';
+    const DEFAULT = [
+      { id: 'default-1', nome: 'Il mio agente Bernard', descrizione: 'Agente personalizzato su Bernard',
+        categoria: 'Swisscom', icona: 'bot', modo: 'tab',
+        url: 'https://bernard.swisscom.com/agents/3c048982-6a12-4118-9e5d-7a2a545d388e' },
     ];
 
-    document.getElementById('title').insertAdjacentHTML('afterbegin', svg('bot'));
-    document.getElementById('search-icon').outerHTML = svg('search');
+    function load() {
+      try { const d = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(d) ? d : DEFAULT; }
+      catch { return DEFAULT; }
+    }
+    function save() { localStorage.setItem(KEY, JSON.stringify(agenti)); }
+    let agenti = load();
 
-    const container = document.getElementById('container');
+    // ===== Elementi =====
+    const $ = id => document.getElementById(id);
+    const container = $('container'), search = $('search');
+    const modal = $('modal'), form = $('form'), F = form.elements;
+    const viewer = $('viewer'), viewerFrame = $('viewer-frame');
 
-    function render(filtro = "") {
-      const f = filtro.toLowerCase();
-      const filtrati = agenti.filter(a =>
-        (a.nome + a.descrizione + a.categoria).toLowerCase().includes(f));
-      const categorie = [...new Set(filtrati.map(a => a.categoria))];
+    document.querySelectorAll('[data-i]').forEach(el => el.outerHTML = svg(el.dataset.i));
 
-      container.innerHTML = categorie.map(cat => `
-        <div class="category">
-          <h2>${cat}</h2>
-          <div class="grid">
-            ${filtrati.filter(a => a.categoria === cat).map(a => `
-              <a class="card" href="${a.url}" target="_blank" rel="noopener">
-                <span class="icon">${svg(a.icona)}</span>
-                <div><h3>${a.nome}</h3><p>${a.descrizione}</p></div>
-                <span class="ext">${svg('external')}</span>
-              </a>`).join('')}
+    $('icon-picker').innerHTML = Object.entries(ICONE).map(([k, [label]]) => `
+      <label class="icon-opt" title="${label}">
+        <input type="radio" name="icona" value="${k}" aria-label="${label}">
+        <span>${svg(k)}</span>
+      </label>`).join('');
+
+    // ===== Visualizzazione =====
+    function card(a) {
+      const frame = a.modo === 'frame';
+      return `
+        <div class="card" data-id="${esc(a.id)}">
+          <a class="card-link" data-action="open" href="${esc(isUrl(a.url) ? a.url : '#')}"
+             ${frame ? '' : 'target="_blank" rel="noopener"'}>
+            <span class="icon">${svg(a.icona)}</span>
+            <div><h3>${esc(a.nome)}</h3>${a.descrizione ? `<p>${esc(a.descrizione)}</p>` : ''}</div>
+          </a>
+          <span class="badge" title="${frame ? 'Si apre integrato' : 'Si apre in una nuova scheda'}">${svg(frame ? 'frame' : 'external')}</span>
+          <div class="card-actions">
+            <button data-action="edit" title="Modifica">${svg('edit')}</button>
+            <button data-action="delete" title="Elimina">${svg('trash')}</button>
           </div>
-        </div>`).join('') || '<p>Nessun agente trovato.</p>';
+        </div>`;
     }
 
-    document.getElementById('search').addEventListener('input', e => render(e.target.value));
+    function render() {
+      $('cat-list').innerHTML = [...new Set(agenti.map(a => a.categoria).filter(Boolean))]
+        .map(c => `<option value="${esc(c)}">`).join('');
+
+      if (!agenti.length) {
+        container.innerHTML = '<div class="empty">Nessun agente. Clicca <b>Aggiungi agente</b> per iniziare.</div>';
+        return;
+      }
+      const f = search.value.toLowerCase().trim();
+      const list = agenti.filter(a => [a.nome, a.descrizione, a.categoria].join(' ').toLowerCase().includes(f));
+      if (!list.length) { container.innerHTML = '<div class="empty">Nessun agente trovato.</div>'; return; }
+
+      const cat = a => a.categoria || 'Generale';
+      container.innerHTML = [...new Set(list.map(cat))].map(c => `
+        <section class="category">
+          <h2>${esc(c)}</h2>
+          <div class="grid">${list.filter(a => cat(a) === c).map(card).join('')}</div>
+        </section>`).join('');
+    }
+
+    container.addEventListener('click', e => {
+      const el = e.target.closest('[data-action]');
+      if (!el) return;
+      const a = agenti.find(x => x.id === el.closest('.card').dataset.id);
+      if (!a) return;
+      const act = el.dataset.action;
+
+      if (act === 'open' && a.modo === 'frame') { e.preventDefault(); openViewer(a); }
+      if (act === 'edit') openForm(a);
+      if (act === 'delete' && confirm(`Eliminare "${a.nome}"?`)) {
+        agenti = agenti.filter(x => x.id !== a.id); save(); render();
+      }
+    });
+
+    search.addEventListener('input', render);
+
+    // ===== Modulo =====
+    let editId = null;
+
+    function openForm(a) {
+      editId = a?.id ?? null;
+      form.reset();
+      $('form-title').textContent = a ? 'Modifica agente' : 'Nuovo agente';
+      F.nome.value        = a?.nome ?? '';
+      F.url.value         = a?.url ?? '';
+      F.descrizione.value = a?.descrizione ?? '';
+      F.categoria.value   = a?.categoria ?? '';
+      F.icona.value       = a?.icona ?? 'bot';
+      F.modo.value        = a?.modo ?? 'tab';
+      modal.hidden = false;
+      F.nome.focus();
+    }
+    function closeForm() { modal.hidden = true; }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const dati = {
+        nome: F.nome.value.trim(),
+        url: F.url.value.trim(),
+        descrizione: F.descrizione.value.trim(),
+        categoria: F.categoria.value.trim(),
+        icona: F.icona.value || 'bot',
+        modo: F.modo.value === 'frame' ? 'frame' : 'tab',
+      };
+      if (!isUrl(dati.url)) { alert('Il link deve iniziare con http:// o https://'); return; }
+
+      if (editId) agenti = agenti.map(a => a.id === editId ? { ...a, ...dati } : a);
+      else agenti.push({ id: uid(), ...dati });
+
+      save(); render(); closeForm();
+    });
+
+    $('btn-add').onclick = () => openForm();
+    $('btn-cancel').onclick = closeForm;
+    modal.addEventListener('mousedown', e => { if (e.target === modal) closeForm(); });
+
+    // ===== Visualizzatore integrato =====
+    function openViewer(a) {
+      $('viewer-title').textContent = a.nome;
+      $('viewer-ext').href = a.url;
+      viewerFrame.src = a.url;
+      viewer.hidden = false;
+    }
+    function closeViewer() { viewer.hidden = true; viewerFrame.src = 'about:blank'; }
+    $('btn-back').onclick = closeViewer;
+
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (!modal.hidden) closeForm();
+      else if (!viewer.hidden) closeViewer();
+    });
+
+    // ===== Esporta / Importa =====
+    $('btn-export').onclick = () => {
+      const blob = new Blob([JSON.stringify(agenti, null, 2)], { type: 'application/json' });
+      const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'agenti.json' });
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+
+    $('btn-import').onclick = () => $('file-import').click();
+    $('file-import').onchange = async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const d = JSON.parse(await file.text());
+        if (!Array.isArray(d)) throw new Error();
+        const nuovi = d.filter(x => x?.nome && isUrl(x?.url)).map(x => ({
+          id: String(x.id || uid()), nome: String(x.nome), url: String(x.url),
+          descrizione: String(x.descrizione || ''), categoria: String(x.categoria || ''),
+          icona: ICONE[x.icona] ? x.icona : 'bot', modo: x.modo === 'frame' ? 'frame' : 'tab',
+        }));
+        if (confirm(`Importare ${nuovi.length} agenti? La lista attuale verrà sostituita.`)) {
+          agenti = nuovi; save(); render();
+        }
+      } catch { alert('File non valido.'); }
+      e.target.value = '';
+    };
+
     render();
   </script>
 </body>
