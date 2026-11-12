@@ -18,7 +18,9 @@ Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#the
 
 - Chiave globale: `localStorage['mylollotool-theme']` = `light` | `dark` (default `light`).
 - Chiavi storiche sincronizzate da `index.html` (`syncLegacyKeys`): `sct-theme`=`light|dark`, `turni_tema`=`white|dark`, `theme`=`light|dark`.
-- Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme', theme})` su click e su `iframe load`.
+- Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme', theme})` su click e su `iframe load` + retry 120ms.
+- Nessun reload richiesto: `paintFrameNow()` scrive direttamente nel DOM dell'iframe (stessa origine): `body.dark` (Lollo/agenti), `.light-theme` (DataSales), `dataset.theme` (Turni).
+- Backup via `storage` event in entrambe le direzioni (stessa origine, anche altre schede).
 - Ritorno: le pagine figlie rispondono con `window.parent.postMessage({type:'mylollotool-theme', theme})` quando l'utente cambia tema dentro la pagina; `index.html` aggiorna solo bottoni e chiavi (broadcast=false per evitare loop).
 - Apertura diretta (senza iframe): ogni pagina legge prima la chiave globale, poi fallback storico.
 

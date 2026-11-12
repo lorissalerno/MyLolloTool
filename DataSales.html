@@ -1741,10 +1741,8 @@ function applyThemeFromGlobal(theme, notifyParent = false) {
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     localStorage.setItem('mylollotool-theme', isLight ? 'light' : 'dark');
   } catch (e) {}
-  updateThemeIcon();
-  if (typeof chMonthly !== 'undefined' && (typeof chMonthly !== 'undefined' && (chMonthly || chTypes))) {
-    try { renderStats(); } catch (e) {}
-  }
+  try { updateThemeIcon(); } catch (e) {}
+  try { if (chMonthly || chTypes) renderStats(); } catch (e) {}
   if (notifyParent) {
     try { window.parent?.postMessage({ type: 'mylollotool-theme', theme: isLight ? 'light' : 'dark' }, '*'); } catch (e) {}
   }
@@ -1752,6 +1750,11 @@ function applyThemeFromGlobal(theme, notifyParent = false) {
 window.addEventListener('message', (e) => {
   if (e?.data?.type === 'mylollotool-theme' && (e.data.theme === 'light' || e.data.theme === 'dark')) {
     applyThemeFromGlobal(e.data.theme, false);
+  }
+});
+window.addEventListener('storage', (e) => {
+  if (e.key === 'mylollotool-theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
+    applyThemeFromGlobal(e.newValue, false);
   }
 });
 

@@ -416,6 +416,11 @@
           try { localStorage.setItem(G, e.data.theme); } catch (err) {}
         }
       });
+      window.addEventListener('storage', (e) => {
+        if (e.key === G && (e.newValue === 'dark' || e.newValue === 'light')) {
+          apply(e.newValue);
+        }
+      });
     })();
 
     render();

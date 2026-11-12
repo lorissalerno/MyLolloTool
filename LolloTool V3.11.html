@@ -596,6 +596,11 @@
           applyTheme(e.data.theme, false);
         }
       });
+      window.addEventListener('storage', (e) => {
+        if (e.key === GLOBAL_KEY && (e.newValue === 'dark' || e.newValue === 'light')) {
+          applyTheme(e.newValue, false);
+        }
+      });
       updateBtn();
     })();
 

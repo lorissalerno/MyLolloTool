@@ -455,6 +455,11 @@ window.addEventListener('message',e=>{
     setTema(e.data.theme==='dark'?'dark':'white',false);
   }
 });
+window.addEventListener('storage',e=>{
+  if(e.key===LS_TEMA_GLOBALE&&(e.newValue==='dark'||e.newValue==='light')){
+    setTema(e.newValue==='dark'?'dark':'white',false);
+  }
+});
 
 /* ===== Messaggi (toast in basso a destra, 5s) ===== */
 function msg(t,err){
