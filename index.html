@@ -12,10 +12,10 @@
     svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-    /* Pulsante hamburger */
+    /* Pulsante hamburger: 40px, centrato a 34px come le barre header (DataSales 68px) */
     #toggle {
-      position: fixed; top: 12px; left: 12px; z-index: 1001;
-      width: 42px; height: 42px; border: none; border-radius: 8px;
+      position: fixed; top: 14px; left: 14px; z-index: 1001;
+      width: 40px; height: 40px; border: none; border-radius: 10px;
       background: #001155; color: #fff; cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,.3);
       display: grid; place-items: center;
@@ -177,13 +177,54 @@
         return true;
       } catch (e) { return false; }
     }
+    // Il pulsante menu (#toggle 40px a 14,14) può coprire il logo in alto a sinistra
+    // delle pagine figlie: se li tocca, sposta il contenitore più a destra.
+    // Usa la posizione originale (rect - margine già applicato) per non flappare.
+    function fixToggleOverlap() {
+      let doc = null;
+      try { doc = frame.contentDocument; } catch (e) { return; }
+      if (!doc || !doc.querySelectorAll) return;
+      const SAFE_RIGHT = 14 + 40 + 12; // 66px
+      const SAFE_BOTTOM = 14 + 40 + 12;
+      const sels = ['.app-header', '.header-row', 'header.top', 'header', '.brand', '.app-logo', 'h1'];
+      const seen = new Set();
+      sels.forEach((sel) => {
+        let list = [];
+        try { list = doc.querySelectorAll(sel); } catch (e) { list = []; }
+        list.forEach((el) => {
+          if (seen.has(el) || !el.getBoundingClientRect) return;
+          seen.add(el);
+          let r = null;
+          try { r = el.getBoundingClientRect(); } catch (e) { return; }
+          if (!r || r.width === 0) return;
+          const cur = parseFloat(el.style.marginLeft) || 0;
+          const origLeft = r.left - cur;
+          if (r.top < 90 && origLeft < 90 && origLeft < SAFE_RIGHT && r.top < SAFE_BOTTOM) {
+            if (el.dataset.mltSafe === undefined) el.dataset.mltSafe = '';
+            const shift = Math.ceil(SAFE_RIGHT - origLeft);
+            if (shift > 0) el.style.marginLeft = shift + 'px';
+          } else if (el.dataset.mltSafe !== undefined && cur > 0) {
+            el.style.marginLeft = el.dataset.mltSafe;
+          }
+        });
+      });
+    }
+    let _mltT = null;
+    function scheduleOverlapFix() {
+      clearTimeout(_mltT);
+      _mltT = setTimeout(fixToggleOverlap, 150);
+    }
+    window.addEventListener('resize', scheduleOverlapFix);
+
     function broadcastTheme(t) {
       try { frame.contentWindow?.postMessage({ type: 'mylollotool-theme', theme: t }, '*'); } catch (e) {}
       paintFrameNow(t);
+      scheduleOverlapFix();
       // Retry: se l'iframe sta ancora caricando, il messaggio può perdersi
       setTimeout(() => {
         try { frame.contentWindow?.postMessage({ type: 'mylollotool-theme', theme: t }, '*'); } catch (e) {}
         paintFrameNow(t);
+        fixToggleOverlap();
       }, 120);
     }
     function setGlobalTheme(t, broadcast = true) {
@@ -200,6 +241,7 @@
       const t = getGlobalTheme();
       paintThemeButtons(t);
       broadcastTheme(t);
+      setTimeout(fixToggleOverlap, 400);
     });
     // Se il tema viene cambiato dentro una pagina figlia, riallinea il menu
     window.addEventListener('message', (e) => {
