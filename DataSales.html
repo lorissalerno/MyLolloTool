@@ -1118,11 +1118,11 @@
         <path d="M12 16h.01" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div class="banner-text"><strong>Attenzione:</strong> ci sono modifiche non salvate in backup locale.</div>
+    <div class="banner-text"><strong data-t="unsavedPrefix">Attenzione:</strong> <span data-t="unsavedText">ci sono modifiche non salvate in backup locale.</span></div>
   </div>
   <div class="banner-actions">
-    <button class="btn-primary" type="button" onclick="exportFullBackup()">Esporta backup</button>
-    <button class="close-btn" aria-label="Chiudi" onclick="this.closest('#unsavedBackupBanner').style.display='none'">✕</button>
+    <button class="btn-primary" type="button" onclick="exportFullBackup()" data-t="exportBackup">Esporta backup</button>
+    <button class="close-btn" data-t-aria="close" aria-label="Chiudi" onclick="this.closest('#unsavedBackupBanner').style.display='none'">✕</button>
   </div>
 </div>
 
@@ -1188,7 +1188,7 @@
   </div>
 
   <div class="year-wrap">
-    <span>Anno:</span>
+    <span data-t="yearLabel">Anno:</span>
     <select id="yearSel" onchange="changeYear()"></select>
   </div>
 </header>
@@ -1198,16 +1198,16 @@
 <div class="nav-tabs-wrap">
 <nav class="nav-tabs" style="justify-content: space-between; align-items: center;">
   <div style="display: flex; gap: 4px;">
-    <div class="nav-tab active" id="tab-stats"    onclick="showTab('stats')">Dashboard</div>
-    <div class="nav-tab"        id="tab-sales"    onclick="showTab('sales')">Vendite</div>
-    <div class="nav-tab"        id="tab-products" onclick="showTab('products')">Database AOIT</div>
-    <div class="nav-tab"        id="tab-archive"  onclick="showTab('archive')">Archivio</div>
-    <div class="nav-tab"        id="tab-offerte"  onclick="showTab('offerte')" style="display:none">Offerte</div>
+    <div class="nav-tab active" id="tab-stats"    onclick="showTab('stats')" data-t="tabDashboard">Dashboard</div>
+    <div class="nav-tab"        id="tab-sales"    onclick="showTab('sales')" data-t="tabSales">Vendite</div>
+    <div class="nav-tab"        id="tab-products" onclick="showTab('products')" data-t="tabProducts">Database AOIT</div>
+    <div class="nav-tab"        id="tab-archive"  onclick="showTab('archive')" data-t="tabArchive">Archivio</div>
+    <div class="nav-tab"        id="tab-offerte"  onclick="showTab('offerte')" style="display:none" data-t="tabOffers">Offerte</div>
   </div>
   <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px;">
     <span id="lastBackupLbl" style="font-size: 11.5px; color: var(--txt-muted); font-weight: 600;">Ultimo backup: mai</span>
-    <button class="btn btn-ghost btn-sm" onclick="exportFullBackup()" style="padding: 4px 10px; font-size: 11px;">Backup</button>
-    <button class="btn btn-ghost btn-sm" onclick="triggerFullBackupImport()" style="padding: 4px 10px; font-size: 11px;">Importa backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportFullBackup()" style="padding: 4px 10px; font-size: 11px;" data-t="backupBtn">Backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="triggerFullBackupImport()" style="padding: 4px 10px; font-size: 11px;" data-t="importBackupBtn">Importa backup</button>
   </div>
 </nav>
 </div>
@@ -1224,31 +1224,31 @@
     <div class="goal-section">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
         <div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:3px;">Obiettivi Annuali</div>
-          <div style="font-size:12px;color:var(--txt-sec);">Imposta l'obiettivo annuale per calcolare l'obiettivo mensile dinamico</div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:3px;" data-t="goalsTitle">Obiettivi Annuali</div>
+          <div style="font-size:12px;color:var(--txt-sec);" data-t="goalsSub">Imposta l'obiettivo annuale per calcolare l'obiettivo mensile dinamico</div>
         </div>
         <div class="goal-inputs" style="display: flex; gap: 10px; flex-wrap: wrap;">
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl">AOIT (CHF)</label>
+            <label class="fl" data-t="goalAoit">AOIT (CHF)</label>
             <input type="number" class="fi" id="goalAoit" style="width:110px;" placeholder="0" oninput="saveGoal()">
           </div>
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl">Retention</label>
+            <label class="fl" data-t="goalRetention">Retention</label>
             <input type="number" class="fi" id="goalRetentions" style="width:110px;" placeholder="0" oninput="saveGoal()">
           </div>
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl">Internet</label>
+            <label class="fl" data-t="goalInternet">Internet</label>
             <input type="number" class="fi" id="goalNewInternet" style="width:110px;" placeholder="0" oninput="saveGoal()">
           </div>
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl">TV</label>
+            <label class="fl" data-t="goalTv">TV</label>
             <input type="number" class="fi" id="goalNewTv" style="width:110px;" placeholder="0" oninput="saveGoal()">
           </div>
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl">Mobile</label>
+            <label class="fl" data-t="goalMobile">Mobile</label>
             <input type="number" class="fi" id="goalNewMobile" style="width:110px;" placeholder="0" oninput="saveGoal()">
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="exportDashboardPDF()" style="align-self:flex-end; white-space:nowrap; width:70px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; font-size:12px; padding:4px 6px;">Esporta<br>PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportDashboardPDF()" data-th="exportPdfBtn" style="align-self:flex-end; white-space:nowrap; width:70px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; font-size:12px; padding:4px 6px;">Esporta<br>PDF</button>
         </div>
       </div>
 
@@ -1256,10 +1256,10 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
         <!-- AOIT Goals -->
         <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
-          <div style="font-weight: 700; font-size: 13px; color: var(--accent-lt); margin-bottom: 8px;">AOIT (CHF)</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-lt); margin-bottom: 8px;" data-t="goalAoit">AOIT (CHF)</div>
           
           <div class="goal-info-row">
-            <span id="goalAoitMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalAoitMonthLbl" style="font-size: 11px;" data-t="monthly">Mensile</span>
             <span id="goalAoitMonthInfo" style="color:var(--txt-sec); font-size: 11px;">CHF 0 / CHF 0</span>
           </div>
           <div class="goal-progress-track" style="height: 16px;">
@@ -1267,7 +1267,7 @@
           </div>
 
           <div class="goal-info-row">
-            <span style="font-size: 11px;">Annuale</span>
+            <span style="font-size: 11px;" data-t="annual">Annuale</span>
             <span id="goalAoitYearInfo" style="color:var(--txt-sec); font-size: 11px;">CHF 0 / CHF 0</span>
           </div>
           <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
@@ -1277,10 +1277,10 @@
 
         <!-- Retentions Goals -->
         <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
-          <div class="text-green" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Retention</div>
+          <div class="text-green" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;" data-t="goalRetention">Retention</div>
           
           <div class="goal-info-row">
-            <span id="goalRetentionsMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalRetentionsMonthLbl" style="font-size: 11px;" data-t="monthly">Mensile</span>
             <span id="goalRetentionsMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="height: 16px;">
@@ -1288,7 +1288,7 @@
           </div>
 
           <div class="goal-info-row">
-            <span style="font-size: 11px;">Annuale</span>
+            <span style="font-size: 11px;" data-t="annual">Annuale</span>
             <span id="goalRetentionsYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
@@ -1298,10 +1298,10 @@
 
         <!-- NEW Internet Goals -->
         <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
-          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Internet</div>
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;" data-t="goalInternet">Internet</div>
           
           <div class="goal-info-row">
-            <span id="goalNewInternetMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewInternetMonthLbl" style="font-size: 11px;" data-t="monthly">Mensile</span>
             <span id="goalNewInternetMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="height: 16px;">
@@ -1309,7 +1309,7 @@
           </div>
 
           <div class="goal-info-row">
-            <span style="font-size: 11px;">Annuale</span>
+            <span style="font-size: 11px;" data-t="annual">Annuale</span>
             <span id="goalNewInternetYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
@@ -1319,10 +1319,10 @@
 
         <!-- NEW TV Goals -->
         <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
-          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">TV</div>
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;" data-t="goalTv">TV</div>
           
           <div class="goal-info-row">
-            <span id="goalNewTvMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewTvMonthLbl" style="font-size: 11px;" data-t="monthly">Mensile</span>
             <span id="goalNewTvMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="height: 16px;">
@@ -1330,7 +1330,7 @@
           </div>
 
           <div class="goal-info-row">
-            <span style="font-size: 11px;">Annuale</span>
+            <span style="font-size: 11px;" data-t="annual">Annuale</span>
             <span id="goalNewTvYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
@@ -1340,10 +1340,10 @@
 
         <!-- NEW Mobile Goals -->
         <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: var(--r);">
-          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Mobile</div>
+          <div class="text-yellow" style="font-weight: 700; font-size: 13px; margin-bottom: 8px;" data-t="goalMobile">Mobile</div>
           
           <div class="goal-info-row">
-            <span id="goalNewMobileMonthLbl" style="font-size: 11px;">Mensile</span>
+            <span id="goalNewMobileMonthLbl" style="font-size: 11px;" data-t="monthly">Mensile</span>
             <span id="goalNewMobileMonthInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="height: 16px;">
@@ -1351,7 +1351,7 @@
           </div>
 
           <div class="goal-info-row">
-            <span style="font-size: 11px;">Annuale</span>
+            <span style="font-size: 11px;" data-t="annual">Annuale</span>
             <span id="goalNewMobileYearInfo" style="color:var(--txt-sec); font-size: 11px;">0 / 0</span>
           </div>
           <div class="goal-progress-track" style="margin-bottom:0; height: 16px;">
@@ -1363,7 +1363,7 @@
 
     <!-- Monthly breakdown -->
     <div class="card" style="margin-top: 18px;">
-      <div class="card-head"><span class="card-title">Dettaglio Mensile</span></div>
+      <div class="card-head"><span class="card-title" data-t="detailMonthly">Dettaglio Mensile</span></div>
       <div class="tbl-wrap">
         <table>
           <colgroup>
@@ -1375,12 +1375,12 @@
           </colgroup>
           <thead>
             <tr>
-              <th>Mese</th>
+              <th data-t="thMonth">Mese</th>
               <th>AOIT</th>
-              <th>Retention</th>
-              <th>Internet</th>
-              <th>TV</th>
-              <th>Mobile</th>
+              <th data-t="thRetention">Retention</th>
+              <th data-t="thInternet">Internet</th>
+              <th data-t="thTv">TV</th>
+              <th data-t="thMobile">Mobile</th>
             </tr>
           </thead>
           <tbody id="statMonthlyBody"></tbody>
@@ -1391,7 +1391,7 @@
     <!-- Charts -->
     <div class="chart-grid">
       <div class="chart-card">
-        <div class="chart-title" id="chartMonthlyTitle">AOIT mensili (CHF)</div>
+        <div class="chart-title" id="chartMonthlyTitle" data-t="chartMonthlyTitle">AOIT mensili (CHF)</div>
         <canvas id="chartMonthly" height="110"></canvas>
       </div>
       <div class="chart-card">
@@ -1408,12 +1408,12 @@
     <div class="card">
       <div class="card-head">
         <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex:1;">
-          <span class="card-title">Registro Vendite <span id="salesYearLbl" style="color:var(--primary-lt);"></span></span>
-          <input class="search-box" id="sSearch" placeholder="Cerca prodotto, SCN, note..." oninput="renderSales()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
+          <span class="card-title"><span data-t="salesTitle">Registro Vendite</span> <span id="salesYearLbl" style="color:var(--primary-lt);"></span></span>
+          <input class="search-box" id="sSearch" data-t-ph="searchSalesPh" placeholder="Cerca prodotto, SCN, note..." oninput="renderSales()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
         </div>
         <div class="btn-group">
-          <button class="btn btn-ghost btn-sm" onclick="exportSalesPDF()">Esporta PDF</button>
-          <button class="btn btn-primary" onclick="openSaleModal()">+ Aggiungi Vendita</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportSalesPDF()" data-t="exportPdf">Esporta PDF</button>
+          <button class="btn btn-primary" onclick="openSaleModal()" data-t="addSale">+ Aggiungi Vendita</button>
         </div>
       </div>
 
@@ -1426,13 +1426,13 @@
         <table>
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Prodotto</th>
-              <th>SCN</th>
-              <th>AOIT</th>
-              <th>Note</th>
-              <th style="width:80px">Azioni</th>
+              <th data-t="thDate">Data</th>
+              <th data-t="thType">Tipo</th>
+              <th data-t="thProduct">Prodotto</th>
+              <th data-t="thScn">SCN</th>
+              <th data-t="thAoit">AOIT</th>
+              <th data-t="thNotes">Note</th>
+              <th style="width:80px" data-t="thActions">Azioni</th>
             </tr>
           </thead>
           <tbody id="salesBody"></tbody>
@@ -1440,12 +1440,12 @@
       </div>
 
       <div class="total-bar">
-        <span class="total-label">TOTALE AOIT</span>
+        <span class="total-label" data-t="totalAoit">TOTALE AOIT</span>
         <span class="total-val" id="salesTot">CHF 0</span>
       </div>
     </div>
     <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-      <button class="btn btn-danger-ghost" onclick="deleteAllSales()">Elimina tutte le vendite</button>
+      <button class="btn btn-danger-ghost" onclick="deleteAllSales()" data-t="delAllSales">Elimina tutte le vendite</button>
     </div>
   </div>
 
@@ -1456,14 +1456,14 @@
     <div class="card" style="margin-bottom: 24px;">
       <div class="card-head">
         <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex:1;">
-          <span class="card-title">Database AOIT</span>
-          <input class="search-box" id="pSearch" placeholder="Cerca prodotto o categoria..." oninput="renderProducts()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
+          <span class="card-title" data-t="productsTitle">Database AOIT</span>
+          <input class="search-box" id="pSearch" data-t-ph="searchProdPh" placeholder="Cerca prodotto o categoria..." oninput="renderProducts()" style="max-width:280px; margin:0; padding: 6px 12px; height: 32px; font-size: 13px;">
         </div>
         <div class="btn-group">
-          <button class="btn btn-ghost btn-sm" onclick="exportProductCatalogList()">Esporta CSV</button>
-          <button class="btn btn-ghost btn-sm" onclick="importProductCatalogList()">Importa CSV</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportProductsPDF()">Esporta PDF</button>
-          <button class="btn btn-primary"      onclick="openProductModal()">+ Aggiungi Prodotto</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportProductCatalogList()" data-t="exportCsv">Esporta CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="importProductCatalogList()" data-t="importCsv">Importa CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportProductsPDF()" data-t="exportPdf">Esporta PDF</button>
+          <button class="btn btn-primary"      onclick="openProductModal()" data-t="addProduct">+ Aggiungi Prodotto</button>
         </div>
       </div>
     </div>
@@ -1472,7 +1472,7 @@
 
     <div class="card" style="margin-top: 0;">
       <div class="total-bar" style="border-radius: var(--r); border: none;">
-        <span class="total-label">Totale AOIT anno corrente:</span>
+        <span class="total-label" data-t="totalYearPrefix">Totale AOIT anno corrente:</span>
         <span class="total-val" id="productsTot">CHF 0</span>
       </div>
     </div>
@@ -1484,9 +1484,9 @@
   <div class="tab-panel" id="panel-archive">
     <div class="card">
       <div class="card-head">
-        <span class="card-title">Archivio Anni Precedenti</span>
+        <span class="card-title" data-t="archiveTitle">Archivio Anni Precedenti</span>
         <button class="btn btn-ghost" onclick="archiveCurrentYear()">
-          Archivia anno <span id="archCurYr"></span>
+          <span data-t="archiveYearBtn">Archivia anno</span> <span id="archCurYr"></span>
         </button>
       </div>
       <div style="padding:20px;">
@@ -1501,19 +1501,19 @@
   <div class="tab-panel" id="panel-offerte" style="display:none">
     <div class="card">
       <div class="card-head">
-        <span class="card-title">Promozioni Swisscom in corso</span>
+        <span class="card-title" data-t="offersTitle">Promozioni Swisscom in corso</span>
         <span id="offersTimestamp" style="font-size:11.5px;color:var(--txt-muted);font-weight:600;"></span>
       </div>
       <div id="offersContent" style="padding:20px 24px;">
         <div id="offersLoading" style="display:flex;align-items:center;gap:10px;padding:20px 0;color:var(--txt-sec);">
           <span style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;"></span>
-          Caricamento offerte…
+          <span data-t="offersLoading">Caricamento offerte…</span>
         </div>
         <div id="offersError" style="display:none;padding:20px 0;color:var(--txt-sec);">
           <span style="font-size:24px;margin-right:8px;">⚠️</span>
-          Impossibile caricare le promozioni. Verifica la connessione e riprova.
+          <span data-t="offersError">Impossibile caricare le promozioni. Verifica la connessione e riprova.</span>
         </div>
-        <div id="offersEmpty" style="display:none;padding:20px 0;color:var(--txt-sec);">
+        <div id="offersEmpty" style="display:none;padding:20px 0;color:var(--txt-sec);" data-t="offersEmpty">
           Nessuna promozione disponibile al momento.
         </div>
         <div id="offersGrid" style="display:none;"></div>
@@ -1538,8 +1538,8 @@
     <h3 id="cfmTitle">Conferma</h3>
     <p id="cfmMsg"></p>
     <div class="cfm-acts">
-      <button class="btn btn-ghost"         onclick="cfmResolve(false)">Annulla</button>
-      <button class="btn btn-danger-ghost"  onclick="cfmResolve(true)">Conferma</button>
+      <button class="btn btn-ghost"         onclick="cfmResolve(false)" data-t="cancelWord">Annulla</button>
+      <button class="btn btn-danger-ghost"  onclick="cfmResolve(true)" data-t="confirmWord">Conferma</button>
     </div>
   </div>
 </div>
@@ -1555,7 +1555,7 @@
       <input type="hidden" id="saleId">
 
       <div class="fg">
-        <label class="fl">Tipo vendita</label>
+        <label class="fl" data-t="saleType">Tipo vendita</label>
         <div class="type-sel">
           <div class="type-opt" id="tAOIT" onclick="selectType('AOIT')">AOIT</div>
           <div class="type-opt" id="tRetentions"  onclick="selectType('Retentions')">Retention</div>
@@ -1567,15 +1567,15 @@
       <!-- AOIT -->
       <div id="secAOIT" style="display:none;">
         <div class="fg">
-          <label class="fl">Prodotto AOIT</label>
+          <label class="fl" data-t="aoitProduct">Prodotto AOIT</label>
           <div class="combobox" id="aoitCombobox">
-            <input type="text" class="fi combobox-input" id="aoitProdInput" placeholder="Cerca prodotto..." autocomplete="off" oninput="onAoitInput()" onfocus="onAoitFocus()" onkeydown="onAoitKeydown(event)">
+            <input type="text" class="fi combobox-input" id="aoitProdInput" data-t-ph="searchProductPh" placeholder="Cerca prodotto..." autocomplete="off" oninput="onAoitInput()" onfocus="onAoitFocus()" onkeydown="onAoitKeydown(event)">
             <input type="hidden" id="aoitProd" value="">
             <div class="combobox-list" id="aoitProdList"></div>
           </div>
         </div>
         <div class="comm-preview" id="aoitCommBox" style="display:none;">
-          <span class="comm-lbl">AOIT calcolato</span>
+          <span class="comm-lbl" data-t="aoitCalc">AOIT calcolato</span>
           <span class="comm-val" id="aoitCommVal">CHF 0</span>
         </div>
       </div>
@@ -1583,9 +1583,9 @@
       <!-- Retentions -->
       <div id="secRetentions" style="display:none;">
         <div class="fg">
-          <label class="fl">Tipo contratto</label>
+          <label class="fl" data-t="contractType">Tipo contratto</label>
           <div class="combobox" id="retentionsCombobox">
-            <input type="text" class="fi combobox-input" id="retentionsTypeInput" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onRetentionInput()" onfocus="onRetentionFocus()" onkeydown="onRetentionKeydown(event)">
+            <input type="text" class="fi combobox-input" id="retentionsTypeInput" data-t-ph="searchContractPh" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onRetentionInput()" onfocus="onRetentionFocus()" onkeydown="onRetentionKeydown(event)">
             <input type="hidden" id="retentionsType" value="">
             <div class="combobox-list" id="retentionsTypeList"></div>
           </div>
@@ -1596,9 +1596,9 @@
       <!-- NEW -->
       <div id="secNEW" style="display:none;">
         <div class="fg">
-          <label class="fl">Tipo contratto</label>
+          <label class="fl" data-t="contractType">Tipo contratto</label>
           <div class="combobox" id="newCombobox">
-            <input type="text" class="fi combobox-input" id="newTypeInput" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onNewInput()" onfocus="onNewFocus()" onkeydown="onNewKeydown(event)">
+            <input type="text" class="fi combobox-input" id="newTypeInput" data-t-ph="searchContractPh" placeholder="Cerca tipo contratto..." autocomplete="off" oninput="onNewInput()" onfocus="onNewFocus()" onkeydown="onNewKeydown(event)">
             <input type="hidden" id="newType" value="">
             <div class="combobox-list" id="newTypeList"></div>
           </div>
@@ -1609,24 +1609,24 @@
       <div class="form-row">
         <div class="fg">
           <label class="fl">SCN</label>
-          <input type="text" class="fi" id="saleSCN" placeholder="es. 34564534">
+          <input type="text" class="fi" id="saleSCN" data-t-ph="scnPh" placeholder="es. 34564534">
         </div>
         <div class="fg">
-          <label class="fl">Data</label>
+          <label class="fl" data-t="dateLabel">Data</label>
           <input type="date" class="fi" id="saleDate">
         </div>
       </div>
 
       <div class="fg">
-        <label class="fl">Note</label>
-        <textarea class="fta" id="saleNotes" placeholder="Note opzionali..."></textarea>
+        <label class="fl" data-t="notesLabel">Note</label>
+        <textarea class="fta" id="saleNotes" data-t-ph="notesPh" placeholder="Note opzionali..."></textarea>
       </div>
 
       <input type="hidden" id="saleStatus" value="ok">
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost"    onclick="closeSaleModal()">Annulla</button>
-      <button class="btn btn-primary"  onclick="saveSale()">Salva</button>
+      <button class="btn btn-ghost"    onclick="closeSaleModal()" data-t="cancelWord">Annulla</button>
+      <button class="btn btn-primary"  onclick="saveSale()" data-t="saveWord">Salva</button>
     </div>
   </div>
 </div>
@@ -1641,7 +1641,7 @@
     <div class="modal-body">
       <input type="hidden" id="prodId">
       <div class="fg">
-        <label class="fl">Categoria</label>
+        <label class="fl" data-t="category">Categoria</label>
         <select class="fs" id="prodCat">
           <option value="TV">TV</option>
           <option value="INTERNET">INTERNET</option>
@@ -1650,24 +1650,24 @@
         </select>
       </div>
       <div class="fg">
-        <label class="fl">Nome Prodotto</label>
-        <input type="text" class="fi" id="prodName" placeholder="es. Blue Binge">
+        <label class="fl" data-t="nameProduct">Nome Prodotto</label>
+        <input type="text" class="fi" id="prodName" data-t-ph="nameProductPh" placeholder="es. Blue Binge">
       </div>
       <!-- Upgrade helper -->
       <div style="margin-top: 14px; margin-bottom: 14px; padding: 12px; border: 1px dashed var(--border); border-radius: var(--r-sm); background: rgba(255,255,255,0.01);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--txt-sec); text-transform: uppercase;">Calcolatore Upgrade</span>
+          <span style="font-size: 11px; font-weight: 700; color: var(--txt-sec); text-transform: uppercase;" data-t="upgradeCalc">Calcolatore Upgrade</span>
           <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
-            <input type="checkbox" id="prodIsUpgrade" onchange="toggleUpgradeHelper()"> Usa upgrade
+            <input type="checkbox" id="prodIsUpgrade" onchange="toggleUpgradeHelper()"> <span data-t="useUpgrade">Usa upgrade</span>
           </label>
         </div>
         <div id="upgradeHelperFields" style="display: none; gap: 10px; flex-direction: column;">
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl" style="font-size: 9px;">Pacchetto di partenza (A)</label>
+            <label class="fl" style="font-size: 9px;" data-t="packA">Pacchetto di partenza (A)</label>
             <select class="fs" id="upgradeProdA" onchange="calculateUpgradeDiff()" style="font-size: 12px; padding: 6px 10px;"></select>
           </div>
           <div class="fg" style="margin-bottom:0;">
-            <label class="fl" style="font-size: 9px;">Pacchetto di arrivo (B)</label>
+            <label class="fl" style="font-size: 9px;" data-t="packB">Pacchetto di arrivo (B)</label>
             <select class="fs" id="upgradeProdB" onchange="calculateUpgradeDiff()" style="font-size: 12px; padding: 6px 10px;"></select>
           </div>
         </div>
@@ -1675,22 +1675,22 @@
 
       <div class="form-row" id="prodPriceRow">
         <div class="fg">
-          <label class="fl">Prezzo senza IVA (CHF / mese)</label>
+          <label class="fl" data-t="priceNoIva">Prezzo senza IVA (CHF / mese)</label>
           <input type="number" class="fi" id="prodPrice" placeholder="18.41" step="0.01" min="0" oninput="updateProdComm()">
         </div>
         <div class="fg">
-          <label class="fl">Durata contratto (mesi)</label>
+          <label class="fl" data-t="duration">Durata contratto (mesi)</label>
           <input type="number" class="fi" id="prodMonths" placeholder="24" min="1" oninput="updateProdComm()">
         </div>
       </div>
       <div class="comm-preview">
-        <span class="comm-lbl">AOIT calcolato</span>
+        <span class="comm-lbl" data-t="aoitCalc">AOIT calcolato</span>
         <span class="comm-val" id="prodCommVal">CHF 0</span>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost"    onclick="closeProductModal()">Annulla</button>
-      <button class="btn btn-primary"  onclick="saveProduct()">Salva</button>
+      <button class="btn btn-ghost"    onclick="closeProductModal()" data-t="cancelWord">Annulla</button>
+      <button class="btn btn-primary"  onclick="saveProduct()" data-t="saveWord">Salva</button>
     </div>
   </div>
 </div>
@@ -1773,8 +1773,202 @@ function updateThemeIcon() {
 // ----------------------------------------------------------------
 // Constants & state
 // ----------------------------------------------------------------
-const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+let MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
                 'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MONTHS_L = {
+  it: ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
+  de: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  fr: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December']
+};
+
+// ----------------------------------------------------------------
+// Lingua globale (dal menu laterale di index.html): it/de/fr/en
+// ----------------------------------------------------------------
+const LANG_KEY = 'mylollotool-lang';
+const LANGS = ['it', 'de', 'fr', 'en'];
+const T = {
+  docTitle:{it:'DataSales V1.1',de:'DataSales V1.1',fr:'DataSales V1.1',en:'DataSales V1.1'},
+  unsavedPrefix:{it:'Attenzione:',de:'Achtung:',fr:'Attention :',en:'Warning:'},
+  unsavedText:{it:'ci sono modifiche non salvate in backup locale.',de:'es gibt nicht gesicherte Änderungen im lokalen Backup.',fr:'il y a des modifications non sauvegardées en backup local.',en:'there are unsaved changes in the local backup.'},
+  exportBackup:{it:'Esporta backup',de:'Backup exportieren',fr:'Exporter le backup',en:'Export backup'},
+  close:{it:'Chiudi',de:'Schliessen',fr:'Fermer',en:'Close'},
+  yearLabel:{it:'Anno:',de:'Jahr:',fr:'Année :',en:'Year:'},
+  tabDashboard:{it:'Dashboard',de:'Dashboard',fr:'Tableau de bord',en:'Dashboard'},
+  tabSales:{it:'Vendite',de:'Verkäufe',fr:'Ventes',en:'Sales'},
+  tabProducts:{it:'Database AOIT',de:'AOIT-Datenbank',fr:'Base AOIT',en:'AOIT Database'},
+  tabArchive:{it:'Archivio',de:'Archiv',fr:'Archives',en:'Archive'},
+  tabOffers:{it:'Offerte',de:'Angebote',fr:'Offres',en:'Offers'},
+  lastBackupNever:{it:'Ultimo backup: mai',de:'Letztes Backup: nie',fr:'Dernier backup : jamais',en:'Last backup: never'},
+  lastBackupPrefix:{it:'Ultimo backup: ',de:'Letztes Backup: ',fr:'Dernier backup : ',en:'Last backup: '},
+  lastBackupToday:{it:'Ultimo backup: oggi alle ',de:'Letztes Backup: heute um ',fr:'Dernier backup : aujourd’hui à ',en:'Last backup: today at '},
+  backupBtn:{it:'Backup',de:'Backup',fr:'Backup',en:'Backup'},
+  importBackupBtn:{it:'Importa backup',de:'Backup importieren',fr:'Importer le backup',en:'Import backup'},
+  confirmWord:{it:'Conferma',de:'Bestätigen',fr:'Confirmer',en:'Confirm'},
+  cancelWord:{it:'Annulla',de:'Abbrechen',fr:'Annuler',en:'Cancel'},
+  saveWord:{it:'Salva',de:'Speichern',fr:'Enregistrer',en:'Save'},
+  goalsTitle:{it:'Obiettivi Annuali',de:'Jahresziele',fr:'Objectifs annuels',en:'Annual goals'},
+  goalsSub:{it:'Imposta l’obiettivo annuale per calcolare l’obiettivo mensile dinamico',de:'Setze das Jahresziel zur Berechnung des dynamischen Monatsziels',fr:'Définissez l’objectif annuel pour calculer l’objectif mensuel dynamique',en:'Set the annual goal to compute the dynamic monthly goal'},
+  goalAoit:{it:'AOIT (CHF)',de:'AOIT (CHF)',fr:'AOIT (CHF)',en:'AOIT (CHF)'},
+  goalRetention:{it:'Retention',de:'Retention',fr:'Rétention',en:'Retention'},
+  goalInternet:{it:'Internet',de:'Internet',fr:'Internet',en:'Internet'},
+  goalTv:{it:'TV',de:'TV',fr:'TV',en:'TV'},
+  goalMobile:{it:'Mobile',de:'Mobile',fr:'Mobile',en:'Mobile'},
+  exportPdfBtn:{it:'Esporta<br>PDF',de:'PDF<br>exportieren',fr:'Exporter<br>PDF',en:'Export<br>PDF'},
+  monthly:{it:'Mensile',de:'Monatlich',fr:'Mensuel',en:'Monthly'},
+  annual:{it:'Annuale',de:'Jährlich',fr:'Annuel',en:'Annual'},
+  detailMonthly:{it:'Dettaglio Mensile',de:'Monatsdetail',fr:'Détail mensuel',en:'Monthly detail'},
+  thMonth:{it:'Mese',de:'Monat',fr:'Mois',en:'Month'},
+  thRetention:{it:'Retention',de:'Retention',fr:'Rétention',en:'Retention'},
+  thInternet:{it:'Internet',de:'Internet',fr:'Internet',en:'Internet'},
+  thTv:{it:'TV',de:'TV',fr:'TV',en:'TV'},
+  thMobile:{it:'Mobile',de:'Mobile',fr:'Mobile',en:'Mobile'},
+  chartMonthlyTitle:{it:'AOIT mensili (CHF)',de:'Monatliche AOIT (CHF)',fr:'AOIT mensuelles (CHF)',en:'Monthly AOIT (CHF)'},
+  chartBar:{it:'AOIT mensili',de:'Monatliche AOIT',fr:'AOIT mensuelles',en:'Monthly AOIT'},
+  noDataAoit:{it:'Nessun dato AOIT',de:'Keine AOIT-Daten',fr:'Aucune donnée AOIT',en:'No AOIT data'},
+  salesTitle:{it:'Registro Vendite',de:'Verkaufsregister',fr:'Registre des ventes',en:'Sales register'},
+  searchSalesPh:{it:'Cerca prodotto, SCN, note...',de:'Produkt, SCN, Notizen suchen...',fr:'Rechercher produit, SCN, notes...',en:'Search product, SCN, notes...'},
+  exportPdf:{it:'Esporta PDF',de:'PDF exportieren',fr:'Exporter PDF',en:'Export PDF'},
+  addSale:{it:'+ Aggiungi Vendita',de:'+ Verkauf hinzufügen',fr:'+ Ajouter une vente',en:'+ Add sale'},
+  thDate:{it:'Data',de:'Datum',fr:'Date',en:'Date'},
+  thType:{it:'Tipo',de:'Typ',fr:'Type',en:'Type'},
+  thProduct:{it:'Prodotto',de:'Produkt',fr:'Produit',en:'Product'},
+  thScn:{it:'SCN',de:'SCN',fr:'SCN',en:'SCN'},
+  thAoit:{it:'AOIT',de:'AOIT',fr:'AOIT',en:'AOIT'},
+  thNotes:{it:'Note',de:'Notizen',fr:'Notes',en:'Notes'},
+  thActions:{it:'Azioni',de:'Aktionen',fr:'Actions',en:'Actions'},
+  totalAoit:{it:'TOTALE AOIT',de:'AOIT GESAMT',fr:'AOIT TOTAL',en:'TOTAL AOIT'},
+  delAllSales:{it:'Elimina tutte le vendite',de:'Alle Verkäufe löschen',fr:'Supprimer toutes les ventes',en:'Delete all sales'},
+  emptySalesT:{it:'Nessuna vendita trovata',de:'Keine Verkäufe gefunden',fr:'Aucune vente trouvée',en:'No sales found'},
+  emptySalesP:{it:'Aggiungi una vendita o modifica i filtri',de:'Füge einen Verkauf hinzu oder ändere die Filter',fr:'Ajoutez une vente ou modifiez les filtres',en:'Add a sale or change the filters'},
+  editTitle:{it:'Modifica',de:'Bearbeiten',fr:'Modifier',en:'Edit'},
+  deleteTitle:{it:'Elimina',de:'Löschen',fr:'Supprimer',en:'Delete'},
+  monthOne:{it:'mese',de:'Monat',fr:'mois',en:'month'},
+  monthMany:{it:'mesi',de:'Monate',fr:'mois',en:'months'},
+  saleModalAdd:{it:'Aggiungi Vendita',de:'Verkauf hinzufügen',fr:'Ajouter une vente',en:'Add sale'},
+  saleModalEdit:{it:'Modifica Vendita',de:'Verkauf bearbeiten',fr:'Modifier la vente',en:'Edit sale'},
+  saleType:{it:'Tipo vendita',de:'Verkaufstyp',fr:'Type de vente',en:'Sale type'},
+  aoitProduct:{it:'Prodotto AOIT',de:'AOIT-Produkt',fr:'Produit AOIT',en:'AOIT product'},
+  searchProductPh:{it:'Cerca prodotto...',de:'Produkt suchen...',fr:'Rechercher un produit...',en:'Search product...'},
+  aoitCalc:{it:'AOIT calcolato',de:'Berechnete AOIT',fr:'AOIT calculée',en:'Calculated AOIT'},
+  contractType:{it:'Tipo contratto',de:'Vertragstyp',fr:'Type de contrat',en:'Contract type'},
+  searchContractPh:{it:'Cerca tipo contratto...',de:'Vertragstyp suchen...',fr:'Rechercher un type de contrat...',en:'Search contract type...'},
+  scnPh:{it:'es. 34564534',de:'z. B. 34564534',fr:'ex. 34564534',en:'e.g. 34564534'},
+  dateLabel:{it:'Data',de:'Datum',fr:'Date',en:'Date'},
+  notesLabel:{it:'Note',de:'Notizen',fr:'Notes',en:'Notes'},
+  notesPh:{it:'Note opzionali...',de:'Optionale Notizen...',fr:'Notes facultatives...',en:'Optional notes...'},
+  emptyProductsT:{it:'Nessun prodotto trovato',de:'Kein Produkt gefunden',fr:'Aucun produit trouvé',en:'No products found'},
+  emptyComboT:{it:'Nessun risultato',de:'Kein Ergebnis',fr:'Aucun résultat',en:'No results'},
+  productsTitle:{it:'Database AOIT',de:'AOIT-Datenbank',fr:'Base AOIT',en:'AOIT Database'},
+  searchProdPh:{it:'Cerca prodotto o categoria...',de:'Produkt oder Kategorie suchen...',fr:'Rechercher un produit ou une catégorie...',en:'Search product or category...'},
+  exportCsv:{it:'Esporta CSV',de:'CSV exportieren',fr:'Exporter CSV',en:'Export CSV'},
+  importCsv:{it:'Importa CSV',de:'CSV importieren',fr:'Importer CSV',en:'Import CSV'},
+  addProduct:{it:'+ Aggiungi Prodotto',de:'+ Produkt hinzufügen',fr:'+ Ajouter un produit',en:'+ Add product'},
+  totalYearPrefix:{it:'Totale AOIT anno corrente:',de:'AOIT gesamt laufendes Jahr:',fr:'AOIT total année en cours :',en:'Current year total AOIT:'},
+  prodModalAdd:{it:'Aggiungi Prodotto',de:'Produkt hinzufügen',fr:'Ajouter un produit',en:'Add product'},
+  prodModalEdit:{it:'Modifica Prodotto',de:'Produkt bearbeiten',fr:'Modifier le produit',en:'Edit product'},
+  category:{it:'Categoria',de:'Kategorie',fr:'Catégorie',en:'Category'},
+  nameProduct:{it:'Nome Prodotto',de:'Produktname',fr:'Nom du produit',en:'Product name'},
+  nameProductPh:{it:'es. Blue Binge',de:'z. B. Blue Binge',fr:'ex. Blue Binge',en:'e.g. Blue Binge'},
+  upgradeCalc:{it:'Calcolatore Upgrade',de:'Upgrade-Rechner',fr:'Calculateur Upgrade',en:'Upgrade calculator'},
+  useUpgrade:{it:'Usa upgrade',de:'Upgrade nutzen',fr:'Utiliser upgrade',en:'Use upgrade'},
+  packA:{it:'Pacchetto di partenza (A)',de:'Startpaket (A)',fr:'Pack de départ (A)',en:'Starting package (A)'},
+  packB:{it:'Pacchetto di arrivo (B)',de:'Zielpaket (B)',fr:'Pack d’arrivée (B)',en:'Target package (B)'},
+  priceNoIva:{it:'Prezzo senza IVA (CHF / mese)',de:'Preis ohne MwSt. (CHF / Monat)',fr:'Prix sans TVA (CHF / mois)',en:'Price excl. VAT (CHF / month)'},
+  duration:{it:'Durata contratto (mesi)',de:'Vertragsdauer (Monate)',fr:'Durée du contrat (mois)',en:'Contract duration (months)'},
+  selectPack:{it:'Seleziona pacchetto...',de:'Paket wählen...',fr:'Choisir un pack...',en:'Select package...'},
+  sortCol:{it:'Ordinamento',de:'Sortierung',fr:'Tri',en:'Order'},
+  monthsCol:{it:'Mesi',de:'Monate',fr:'Mois',en:'Months'},
+  qtyCol:{it:'Qtà vendute',de:'Verk. Menge',fr:'Qté vendue',en:'Qty sold'},
+  totYearCol:{it:'Tot. AOIT anno',de:'AOIT ges. Jahr',fr:'AOIT tot. année',en:'Year AOIT tot.'},
+  dragSort:{it:'Trascina per ordinare',de:'Zum Sortieren ziehen',fr:'Glisser pour trier',en:'Drag to sort'},
+  archiveTitle:{it:'Archivio Anni Precedenti',de:'Archiv früherer Jahre',fr:'Archives des années précédentes',en:'Previous years archive'},
+  archiveYearBtn:{it:'Archivia anno',de:'Jahr archivieren',fr:'Archiver l’année',en:'Archive year'},
+  archiveEmptyT:{it:'Nessun anno archiviato',de:'Kein Jahr archiviert',fr:'Aucune année archivée',en:'No archived years'},
+  archiveEmptyP:{it:'Usa il pulsante "{b}" per conservare i dati storici',de:'Nutze den Knopf „{b}“, um historische Daten zu behalten',fr:'Utilisez le bouton « {b} » pour conserver les données historiques',en:'Use the "{b}" button to keep historical data'},
+  archiveSalesWord:{it:'vendite',de:'Verkäufe',fr:'ventes',en:'sales'},
+  viewBtn:{it:'Visualizza',de:'Ansehen',fr:'Voir',en:'View'},
+  offersTitle:{it:'Promozioni Swisscom in corso',de:'Laufende Swisscom-Aktionen',fr:'Promotions Swisscom en cours',en:'Current Swisscom promotions'},
+  offersLoading:{it:'Caricamento offerte…',de:'Angebote werden geladen…',fr:'Chargement des offres…',en:'Loading offers…'},
+  offersError:{it:'Impossibile caricare le promozioni. Verifica la connessione e riprova.',de:'Aktionen konnten nicht geladen werden. Verbindung prüfen und erneut versuchen.',fr:'Impossible de charger les promotions. Vérifiez la connexion et réessayez.',en:'Could not load promotions. Check the connection and retry.'},
+  offersEmpty:{it:'Nessuna promozione disponibile al momento.',de:'Zurzeit keine Aktionen verfügbar.',fr:'Aucune promotion disponible pour le moment.',en:'No promotions available right now.'},
+  offersUpdated:{it:'Aggiornato il: ',de:'Aktualisiert am: ',fr:'Mis à jour le : ',en:'Updated on: '},
+  seeOffer:{it:'Vedi offerta →',de:'Angebot ansehen →',fr:'Voir l’offre →',en:'See offer →'},
+  toastBackupOk:{it:'Backup esportato con successo',de:'Backup erfolgreich exportiert',fr:'Backup exporté avec succès',en:'Backup exported successfully'},
+  cfmBackupTitle:{it:'Importare Backup?',de:'Backup importieren?',fr:'Importer le backup ?',en:'Import backup?'},
+  cfmBackupMsg:{it:'Questo sovrascriverà tutti i prodotti, le vendite e i dati attuali con quelli contenuti nel backup.',de:'Dies überschreibt alle Produkte, Verkäufe und aktuellen Daten mit dem Backup-Inhalt.',fr:'Cela remplacera tous les produits, ventes et données actuelles par le contenu du backup.',en:'This will overwrite all products, sales and current data with the backup content.'},
+  toastBackupImported:{it:'Backup importato con successo! Ricarico...',de:'Backup erfolgreich importiert! Lade neu...',fr:'Backup importé avec succès ! Rechargement...',en:'Backup imported successfully! Reloading...'},
+  toastBackupImportErr:{it:'Errore importazione backup: ',de:'Fehler beim Backup-Import: ',fr:'Erreur d’importation du backup : ',en:'Backup import error: '},
+  beforeUnloadMsg:{it:'Hai modifiche non salvate: esporta un backup prima di uscire.',de:'Ungesicherte Änderungen: exportiere vor dem Verlassen ein Backup.',fr:'Modifications non sauvegardées : exportez un backup avant de quitter.',en:'Unsaved changes: export a backup before leaving.'},
+  bootErrT:{it:'Errore inizializzazione',de:'Initialisierungsfehler',fr:'Erreur d’initialisation',en:'Initialization error'},
+  bootErrP:{it:'Assicurarsi di avere una connessione internet per il primo avvio',de:'Stelle sicher, dass beim ersten Start eine Internetverbindung besteht',fr:'Assurez-vous d’avoir une connexion internet au premier démarrage',en:'Make sure you have an internet connection on first start'},
+  bootErrP2:{it:'(necessaria per caricare sql.js).',de:'(nötig zum Laden von sql.js).',fr:'(nécessaire pour charger sql.js).',en:'(needed to load sql.js).'},
+  selType:{it:'Seleziona il tipo di vendita',de:'Verkaufstyp wählen',fr:'Sélectionnez le type de vente',en:'Select the sale type'},
+  insDate:{it:'Inserisci una data',de:'Datum eingeben',fr:'Saisissez une date',en:'Enter a date'},
+  selProd:{it:'Seleziona un prodotto AOIT',de:'AOIT-Produkt wählen',fr:'Sélectionnez un produit AOIT',en:'Select an AOIT product'},
+  prodNotFound:{it:'Prodotto non trovato',de:'Produkt nicht gefunden',fr:'Produit introuvable',en:'Product not found'},
+  saleUpd:{it:'Vendita aggiornata',de:'Verkauf aktualisiert',fr:'Vente mise à jour',en:'Sale updated'},
+  saleAdd:{it:'Vendita aggiunta',de:'Verkauf hinzugefügt',fr:'Vente ajoutée',en:'Sale added'},
+  errPrefix:{it:'Errore: ',de:'Fehler: ',fr:'Erreur : ',en:'Error: '},
+  cfmDelSaleT:{it:'Eliminare questa vendita?',de:'Diesen Verkauf löschen?',fr:'Supprimer cette vente ?',en:'Delete this sale?'},
+  cfmDelSaleM:{it:'L’operazione non può essere annullata.',de:'Der Vorgang kann nicht rückgängig gemacht werden.',fr:'L’opération ne peut pas être annulée.',en:'This operation cannot be undone.'},
+  saleDeleted:{it:'Vendita eliminata',de:'Verkauf gelöscht',fr:'Vente supprimée',en:'Sale deleted'},
+  delErr:{it:'Errore eliminazione',de:'Fehler beim Löschen',fr:'Erreur de suppression',en:'Deletion error'},
+  cfmDelAllT:{it:'Eliminare tutte le vendite?',de:'Alle Verkäufe löschen?',fr:'Supprimer toutes les ventes ?',en:'Delete all sales?'},
+  cfmDelAllM:{it:'Questa operazione eliminerà definitivamente tutte le vendite dell’anno corrente {y}. L’operazione non può essere annullata.',de:'Dies löscht endgültig alle Verkäufe des laufenden Jahres {y}. Der Vorgang kann nicht rückgängig gemacht werden.',fr:'Cela supprimera définitivement toutes les ventes de l’année en cours {y}. L’opération ne peut pas être annulée.',en:'This will permanently delete all sales of the current year {y}. This operation cannot be undone.'},
+  allSalesDeleted:{it:'Tutte le vendite eliminate',de:'Alle Verkäufe gelöscht',fr:'Toutes les ventes supprimées',en:'All sales deleted'},
+  delAllErr:{it:'Errore eliminazione: ',de:'Fehler beim Löschen: ',fr:'Erreur de suppression : ',en:'Deletion error: '},
+  insName:{it:'Inserisci il nome',de:'Namen eingeben',fr:'Saisissez le nom',en:'Enter the name'},
+  badPrice:{it:'Prezzo non valido',de:'Ungültiger Preis',fr:'Prix invalide',en:'Invalid price'},
+  badDuration:{it:'Durata non valida',de:'Ungültige Dauer',fr:'Durée invalide',en:'Invalid duration'},
+  prodUpd:{it:'Prodotto aggiornato',de:'Produkt aktualisiert',fr:'Produit mis à jour',en:'Product updated'},
+  prodAdd:{it:'Prodotto aggiunto',de:'Produkt hinzugefügt',fr:'Produit ajouté',en:'Product added'},
+  cfmDelProdT:{it:'Eliminare questo prodotto?',de:'Dieses Produkt löschen?',fr:'Supprimer ce produit ?',en:'Delete this product?'},
+  prodDeleted:{it:'Prodotto eliminato',de:'Produkt gelöscht',fr:'Produit supprimé',en:'Product deleted'},
+  cfmArchiveT:{it:'Archiviare l’anno {y}?',de:'Jahr {y} archivieren?',fr:'Archiver l’année {y} ?',en:'Archive year {y}?'},
+  cfmArchiveM:{it:'I dati rimarranno accessibili nella sezione Archivio.',de:'Die Daten bleiben im Archiv zugänglich.',fr:'Les données resteront accessibles dans la section Archives.',en:'Data will stay accessible in the Archive section.'},
+  yearArchived:{it:'Anno {y} archiviato',de:'Jahr {y} archiviert',fr:'Année {y} archivée',en:'Year {y} archived'},
+  pdfEmpty:{it:'Nessun dato da esportare',de:'Keine Daten zum Exportieren',fr:'Aucune donnée à exporter',en:'No data to export'},
+  reportWord:{it:'Report',de:'Bericht',fr:'Rapport',en:'Report'},
+  pdfBanner:{it:'Totale Commissioni',de:'Provisionen gesamt',fr:'Commissions totales',en:'Total commissions'},
+  pdfDistrib:{it:'Distribuzione AOIT',de:'AOIT-Verteilung',fr:'Distribution AOIT',en:'AOIT distribution'},
+  pdfProdCol:{it:'Prodotto',de:'Produkt',fr:'Produit',en:'Product'},
+  thAoit:{it:'AOIT',de:'AOIT',fr:'AOIT',en:'AOIT'},
+  prodCol:{it:'Prodotto',de:'Produkt',fr:'Produit',en:'Product'},
+  pdfCommCol:{it:'Commissione',de:'Provision',fr:'Commission',en:'Commission'},
+  pageWord:{it:'Pagina',de:'Seite',fr:'Page',en:'Page'},
+  pdfExported:{it:'PDF report esportato',de:'PDF-Bericht exportiert',fr:'Rapport PDF exporté',en:'PDF report exported'},
+  pdfExportErr:{it:'Errore export PDF: ',de:'Fehler beim PDF-Export: ',fr:'Erreur d’export PDF : ',en:'PDF export error: '},
+  pdfExportErrShort:{it:'Errore export PDF',de:'Fehler beim PDF-Export',fr:'Erreur d’export PDF',en:'PDF export error'},
+  pdfStatusCancelled:{it:'Annullata',de:'Storniert',fr:'Annulée',en:'Cancelled'},
+  pdfNoSales:{it:'Nessuna vendita',de:'Keine Verkäufe',fr:'Aucune vente',en:'No sales'},
+  statusCol:{it:'Stato',de:'Status',fr:'Statut',en:'Status'},
+  pdfExportedShort:{it:'PDF esportato',de:'PDF exportiert',fr:'PDF exporté',en:'PDF exported'},
+  pdfMonthsSuffix:{it:' mesi',de:' Monate',fr:' mois',en:' months'},
+  priceMonth:{it:'Prezzo/mese',de:'Preis/Monat',fr:'Prix/mois',en:'Price/month'},
+  csvHeader:{it:'Categoria,Prodotto,Prezzo/mese,Mesi,AOIT',de:'Kategorie,Produkt,Preis/Monat,Monate,AOIT',fr:'Catégorie,Produit,Prix/mois,Mois,AOIT',en:'Category,Product,Price/month,Months,AOIT'},
+  csvEmpty:{it:'Nessun prodotto da esportare',de:'Keine Produkte zum Exportieren',fr:'Aucun produit à exporter',en:'No products to export'},
+  csvExported:{it:'Lista prodotti AOIT esportata',de:'AOIT-Produktliste exportiert',fr:'Liste produits AOIT exportée',en:'AOIT product list exported'},
+  cfmCsvTitle:{it:'Importare lista prodotti AOIT?',de:'AOIT-Produktliste importieren?',fr:'Importer la liste produits AOIT ?',en:'Import AOIT product list?'},
+  cfmCsvMsg:{it:'Questa operazione sostituirà il catalogo attuale con il contenuto del file, senza includere vendite personali.',de:'Dies ersetzt den aktuellen Katalog durch den Dateiinhalt, ohne persönliche Verkäufe.',fr:'Cela remplacera le catalogue actuel par le contenu du fichier, sans inclure les ventes personnelles.',en:'This will replace the current catalog with the file content, without personal sales.'},
+  csvEmptyFile:{it:'File vuoto o non valido.',de:'Leere oder ungültige Datei.',fr:'Fichier vide ou invalide.',en:'Empty or invalid file.'},
+  csvBadFormat:{it:'Formato file non valido.',de:'Ungültiges Dateiformat.',fr:'Format de fichier invalide.',en:'Invalid file format.'},
+  csvNoValid:{it:'Nessun prodotto valido trovato nel file.',de:'Kein gültiges Produkt in der Datei gefunden.',fr:'Aucun produit valide trouvé dans le fichier.',en:'No valid products found in the file.'},
+  csvImported:{it:'Lista prodotti AOIT importata con successo',de:'AOIT-Produktliste erfolgreich importiert',fr:'Liste produits AOIT importée avec succès',en:'AOIT product list imported successfully'},
+  csvImportErr:{it:'Errore importazione lista prodotti: ',de:'Fehler beim Import der Produktliste: ',fr:'Erreur d’importation de la liste produits : ',en:'Product list import error: '},
+  dbProdExported:{it:'Database Prodotti (.db) esportato',de:'Produktdatenbank (.db) exportiert',fr:'Base produits (.db) exportée',en:'Products database (.db) exported'},
+  cfmDbProdTitle:{it:'Importare Database Prodotti?',de:'Produktdatenbank importieren?',fr:'Importer la base produits ?',en:'Import products database?'},
+  cfmDbProdMsg:{it:'Questo sovrascriverà tutti i prodotti attuali con quelli contenuti nel file .db.',de:'Dies überschreibt alle aktuellen Produkte mit dem Inhalt der .db-Datei.',fr:'Cela remplacera tous les produits actuels par le contenu du fichier .db.',en:'This will overwrite all current products with the .db file content.'},
+  dbProdImported:{it:'Database Prodotti (.db) importato con successo',de:'Produktdatenbank (.db) erfolgreich importiert',fr:'Base produits (.db) importée avec succès',en:'Products database (.db) imported successfully'},
+  dbLoadErr:{it:'Errore nel caricamento del database: ',de:'Fehler beim Laden der Datenbank: ',fr:'Erreur de chargement de la base : ',en:'Database loading error: '},
+  dbSalesExported:{it:'Database Vendite {y} (.db) esportato',de:'Verkaufsdatenbank {y} (.db) exportiert',fr:'Base ventes {y} (.db) exportée',en:'Sales database {y} (.db) exported'},
+  cfmDbSalesTitle:{it:'Importare Database Vendite {y}?',de:'Verkaufsdatenbank {y} importieren?',fr:'Importer la base ventes {y} ?',en:'Import sales database {y}?'},
+  cfmDbSalesMsg:{it:'Questo sovrascriverà tutte le vendite correnti di quest’anno con quelle del file .db.',de:'Dies überschreibt alle laufenden Verkäufe dieses Jahres mit der .db-Datei.',fr:'Cela remplacera toutes les ventes en cours de cette année par celles du fichier .db.',en:'This will overwrite all current year sales with the .db file.'},
+  dbSalesImported:{it:'Database Vendite (.db) importato con successo',de:'Verkaufsdatenbank (.db) erfolgreich importiert',fr:'Base ventes (.db) importée avec succès',en:'Sales database (.db) imported successfully'},
+  backupInvalid:{it:'File di backup non valido o vuoto.',de:'Ungültige oder leere Backup-Datei.',fr:'Fichier de backup invalide ou vide.',en:'Invalid or empty backup file.'},
+};
+let curLang = (() => { try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) return g; } catch (e) {} return 'it'; })();
+function t(k, v) { let s = (T[k] && (T[k][curLang] || T[k].it)) || k; if (v) for (const x in v) s = s.replace('{' + x + '}', v[x]); return s; }
 
 const CAT_MAP = {
   'TV':         'c-tv',
@@ -1846,7 +2040,7 @@ const newTypes = [
 // ----------------------------------------------------------------
 window.addEventListener('beforeunload', (event) => {
   if (!unsavedBackupChanges) return;
-  const message = 'Hai modifiche non salvate: esporta un backup prima di uscire.';
+  const message = t('beforeUnloadMsg');
   event.preventDefault();
   event.returnValue = message;
   return message;
@@ -1894,9 +2088,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     initializeSortOrders();
     buildYearSel();
-    updateLastBackupLabel();
-    refresh();
     isBooting = false;
+    applyLang(curLang); // testi statici + updateLastBackupLabel + refresh()
     updateUnsavedBackupBanner();
     const savedTab = localStorage.getItem('activeTab');
     if (savedTab && document.getElementById('panel-' + savedTab)) {
@@ -1904,11 +2097,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (e) {
     document.body.innerHTML = `<div style="padding:40px;text-align:center;color:red;">
-      <h2>Errore inizializzazione</h2>
+      <h2>${t('bootErrT')}</h2>
       <p style="margin-top:10px;font-family:monospace;">${escH(e.message)}</p>
       <p style="margin-top:14px;font-size:13px;color:#666;">
-        Assicurarsi di avere una connessione internet per il primo avvio
-        (necessaria per caricare sql.js).
+        ${t('bootErrP')}
+        ${t('bootErrP2')}
       </p>
     </div>`;
   }
@@ -1925,6 +2118,32 @@ function refresh() {
   renderStats();
   renderArchive();
 }
+
+// ----------------------------------------------------------------
+// Lingua globale (dal menu laterale di index.html): ridisegna con t()
+// ----------------------------------------------------------------
+function applyLang(l) {
+  curLang = LANGS.includes(l) ? l : 'it';
+  try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
+  document.documentElement.lang = curLang;
+  MONTHS = MONTHS_L[curLang];
+  document.title = t('docTitle');
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll('[data-th]').forEach(el => { el.innerHTML = t(el.dataset.th); });
+  document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+  document.querySelectorAll('[data-t-title]').forEach(el => { el.title = t(el.dataset.tTitle); });
+  document.querySelectorAll('[data-t-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.tAria)); });
+  try { updateLastBackupLabel(); } catch (e) {}
+  // Solo ridisegno (niente migrate/sync: quelli scrivono su DB e vanno solo al boot,
+  // altrimenti scatta il banner "modifiche non salvate" senza motivo)
+  try { if (!isBooting) { renderSales(); renderProducts(); loadGoals(); renderStats(); renderArchive(); } } catch (e) {}
+}
+window.addEventListener('message', (e) => {
+  if (e?.data?.type === LANG_KEY && LANGS.includes(e.data.lang)) applyLang(e.data.lang);
+});
+window.addEventListener('storage', (e) => {
+  if (e.key === LANG_KEY && LANGS.includes(e.newValue)) applyLang(e.newValue);
+});
 
 // ----------------------------------------------------------------
 // DATABASE — Products (taasalo3: db prodotti)
@@ -2117,7 +2336,7 @@ function renderSales() {
   });
 
   if (!sales.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><h3>Nessuna vendita trovata</h3><p>Aggiungi una vendita o modifica i filtri</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><h3>${t('emptySalesT')}</h3><p>${t('emptySalesP')}</p></div></td></tr>`;
     document.getElementById('salesTot').textContent = 'CHF 0';
     syncHeaderGoal(0, 0, 0, 0, 0);
     return;
@@ -2142,8 +2361,8 @@ function renderSales() {
       </td>
       <td>
         <div style="display:flex;gap:5px;">
-          <button class="btn-icon"     title="Modifica" onclick="editSale(${s.id})">&#9998;</button>
-          <button class="btn-icon del" title="Elimina"  onclick="deleteSale(${s.id})">&#x2715;</button>
+          <button class="btn-icon"     title="${t('editTitle')}" onclick="editSale(${s.id})">&#9998;</button>
+          <button class="btn-icon del" title="${t('deleteTitle')}"  onclick="deleteSale(${s.id})">&#x2715;</button>
         </div>
       </td>`;
     tbody.appendChild(tr);
@@ -2167,7 +2386,7 @@ function clearSalesFilters() {
 function openSaleModal(data) {
   if (data && data.type === 'DMC') data.type = 'Retentions';
   document.getElementById('saleModal').classList.add('open');
-  document.getElementById('saleModalTitle').textContent = data ? 'Modifica Vendita' : 'Aggiungi Vendita';
+  document.getElementById('saleModalTitle').textContent = data ? t('saleModalEdit') : t('saleModalAdd');
   document.getElementById('saleId').value     = data ? data.id : '';
   document.getElementById('saleDate').value   = data ? data.sale_date : todayISO();
   document.getElementById('saleSCN').value    = data ? (data.scn   || '') : '';
@@ -2296,7 +2515,7 @@ function renderAoitList(filter) {
     : aoitProducts;
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="combobox-empty">Nessun prodotto trovato</div>';
+    list.innerHTML = `<div class="combobox-empty">${t('emptyProductsT')}</div>`;
     list.classList.add('open');
     aoitHighlightIdx = -1;
     return;
@@ -2395,7 +2614,7 @@ function renderComboList(listId, items, filter) {
     : items;
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="combobox-empty">Nessun risultato</div>';
+    list.innerHTML = `<div class="combobox-empty">${t('emptyComboT')}</div>`;
     list.classList.add('open');
     return;
   }
@@ -2500,7 +2719,7 @@ function closeSaleModal() {
 
 function saveSale() {
   const type = v('saleType');
-  if (!type) { toast('Seleziona il tipo di vendita', 'err'); return; }
+  if (!type) { toast(t('selType'), 'err'); return; }
 
   const id     = v('saleId');
   const scn    = v('saleSCN').trim();
@@ -2508,15 +2727,15 @@ function saveSale() {
   const notes  = v('saleNotes').trim();
   const status = v('saleStatus');
 
-  if (!date) { toast('Inserisci una data', 'err'); return; }
+  if (!date) { toast(t('insDate'), 'err'); return; }
 
   let productId = null, productName = '', commission = 0;
 
   if (type === 'AOIT') {
     const hidden = document.getElementById('aoitProd');
-    if (!hidden.value) { toast('Seleziona un prodotto AOIT', 'err'); return; }
+    if (!hidden.value) { toast(t('selProd'), 'err'); return; }
     const prod = aoitProducts.find(p => p.id == hidden.value);
-    if (!prod) { toast('Prodotto non trovato', 'err'); return; }
+    if (!prod) { toast(t('prodNotFound'), 'err'); return; }
     productId   = prod.id;
     productName = prod.name;
     commission  = prod.commission || 0;
@@ -2544,8 +2763,8 @@ function saveSale() {
     closeSaleModal();
     renderSales();
     renderStats();
-    toast(id ? 'Vendita aggiornata' : 'Vendita aggiunta', 'ok');
-  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+    toast(id ? t('saleUpd') : t('saleAdd'), 'ok');
+  } catch(e) { toast(t('errPrefix') + e.message, 'err'); }
 }
 
 function editSale(id) {
@@ -2556,24 +2775,24 @@ function editSale(id) {
 }
 
 async function deleteSale(id) {
-  if (!await cfm('Eliminare questa vendita?', 'L\'operazione non puo essere annullata.')) return;
+  if (!await cfm(t('cfmDelSaleT'), t('cfmDelSaleM'))) return;
   try {
     dbS.run('DELETE FROM sales WHERE id=?', [parseInt(id)]);
     saveS(dbS, curYear);
     renderSales(); renderStats();
-    toast('Vendita eliminata', 'ok');
-  } catch(e) { toast('Errore eliminazione', 'err'); }
+    toast(t('saleDeleted'), 'ok');
+  } catch(e) { toast(t('delErr'), 'err'); }
 }
 
 async function deleteAllSales() {
-  if (!await cfm('Eliminare tutte le vendite?', 'Questa operazione eliminerà definitivamente tutte le vendite dell\'anno corrente ' + curYear + '. L\'operazione non può essere annullata.')) return;
+  if (!await cfm(t('cfmDelAllT'), t('cfmDelAllM', { y: curYear }))) return;
   try {
     dbS.run('DELETE FROM sales');
     saveS(dbS, curYear);
     renderSales();
     renderStats();
-    toast('Tutte le vendite eliminate', 'ok');
-  } catch(e) { toast('Errore eliminazione: ' + e.message, 'err'); }
+    toast(t('allSalesDeleted'), 'ok');
+  } catch(e) { toast(t('delAllErr') + e.message, 'err'); }
 }
 
 // ----------------------------------------------------------------
@@ -2600,7 +2819,7 @@ function renderProducts() {
   }
 
   if (!products.length) {
-    container.innerHTML = `<div class="card"><div class="empty"><h3>Nessun prodotto trovato</h3></div></div>`;
+    container.innerHTML = `<div class="card"><div class="empty"><h3>${t('emptyProductsT')}</h3></div></div>`;
     document.getElementById('productsTot').textContent = 'CHF 0';
     return;
   }
@@ -2655,13 +2874,13 @@ function renderProducts() {
       table.innerHTML = `
         <thead>
           <tr>
-            <th style="width: 140px;">Ordinamento</th>
-            <th>Prodotto</th>
-            <th>Mesi</th>
-            <th>AOIT</th>
-            <th>Qtà vendute</th>
-            <th>Tot. AOIT anno</th>
-            <th style="width:80px">Azioni</th>
+            <th style="width: 140px;">${t('sortCol')}</th>
+            <th>${t('prodCol')}</th>
+            <th>${t('monthsCol')}</th>
+            <th>${t('thAoit')}</th>
+            <th>${t('qtyCol')}</th>
+            <th>${t('totYearCol')}</th>
+            <th style="width:80px">${t('thActions')}</th>
           </tr>
         </thead>
       `;
@@ -2685,7 +2904,7 @@ function renderProducts() {
     tr.innerHTML = `
       <td>
         <div style="display:flex;align-items:center;gap:4px;">
-          <div class="drag-handle" title="Trascina per ordinare">
+          <div class="drag-handle" title="${t('dragSort')}">
             <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
               <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
@@ -2695,14 +2914,14 @@ function renderProducts() {
         </div>
       </td>
       <td style="font-weight:500;">${hl(escH(p.name), search)}</td>
-      <td>${p.months} ${p.months==1?'mese':'mesi'}</td>
+      <td>${p.months} ${p.months==1?t('monthOne'):t('monthMany')}</td>
       <td style="font-weight:700;color:var(--txt);">CHF ${fCHF(comm)}</td>
       <td>${qty > 0 ? '<span class="qty">'+qty+'</span>' : '0'}</td>
       <td style="font-weight:700;color:var(--success);">${aoitTot > 0 ? 'CHF '+fCHF(aoitTot) : '—'}</td>
       <td>
         <div style="display:flex;gap:5px;">
-          <button class="btn-icon"     title="Modifica" onclick="editProduct(${p.id})">&#9998;</button>
-          <button class="btn-icon del" title="Elimina"  onclick="deleteProduct(${p.id})">&#x2715;</button>
+          <button class="btn-icon"     title="${t('editTitle')}" onclick="editProduct(${p.id})">&#9998;</button>
+          <button class="btn-icon del" title="${t('deleteTitle')}"  onclick="deleteProduct(${p.id})">&#x2715;</button>
         </div>
       </td>`;
     currentTbody.appendChild(tr);
@@ -2844,7 +3063,7 @@ function syncSalesCommissions() {
 
 function openProductModal(data) {
   document.getElementById('productModal').classList.add('open');
-  document.getElementById('prodModalTitle').textContent = data ? 'Modifica Prodotto' : 'Aggiungi Prodotto';
+  document.getElementById('prodModalTitle').textContent = data ? t('prodModalEdit') : t('prodModalAdd');
   document.getElementById('prodId').value     = data ? data.id : '';
   document.getElementById('prodCat').value    = data ? data.category  : 'TV';
   document.getElementById('prodName').value   = data ? data.name      : '';
@@ -2874,7 +3093,7 @@ function populateUpgradeProds(guessedA, guessedB) {
   const selA = document.getElementById('upgradeProdA');
   const selB = document.getElementById('upgradeProdB');
   
-  const optHtml = '<option value="">Seleziona pacchetto...</option>';
+  const optHtml = `<option value="">${t('selectPack')}</option>`;
   selA.innerHTML = optHtml;
   selB.innerHTML = optHtml;
   
@@ -2957,9 +3176,9 @@ function saveProduct() {
   const price  = parseFloat(v('prodPrice'));
   const months = parseInt(v('prodMonths'));
 
-  if (!name)               { toast('Inserisci il nome', 'err'); return; }
-  if (isNaN(price)||price<0){ toast('Prezzo non valido', 'err'); return; }
-  if (isNaN(months)||months<1){ toast('Durata non valida', 'err'); return; }
+  if (!name)               { toast(t('insName'), 'err'); return; }
+  if (isNaN(price)||price<0){ toast(t('badPrice'), 'err'); return; }
+  if (isNaN(months)||months<1){ toast(t('badDuration'), 'err'); return; }
 
   try {
     if (id) {
@@ -2977,8 +3196,8 @@ function saveProduct() {
     saveP(dbP);
     closeProductModal();
     renderProducts();
-    toast(id ? 'Prodotto aggiornato' : 'Prodotto aggiunto', 'ok');
-  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+    toast(id ? t('prodUpd') : t('prodAdd'), 'ok');
+  } catch(e) { toast(t('errPrefix') + e.message, 'err'); }
 }
 
 function editProduct(id) {
@@ -2989,13 +3208,13 @@ function editProduct(id) {
 }
 
 async function deleteProduct(id) {
-  if (!await cfm('Eliminare questo prodotto?', 'L\'operazione non puo essere annullata.')) return;
+  if (!await cfm(t('cfmDelProdT'), t('cfmDelSaleM'))) return;
   try {
     dbP.run('UPDATE products SET is_active=0 WHERE id=?', [parseInt(id)]);
     saveP(dbP);
     renderProducts();
-    toast('Prodotto eliminato', 'ok');
-  } catch(e) { toast('Errore eliminazione', 'err'); }
+    toast(t('prodDeleted'), 'ok');
+  } catch(e) { toast(t('delErr'), 'err'); }
 }
 
 // ----------------------------------------------------------------
@@ -3171,31 +3390,31 @@ function updateGoalProgress() {
   const newMobMonthPct = newMobMonthTgt > 0 ? Math.round(newMobMonthAch / newMobMonthTgt * 100) : 0;
   const newMobYearPct = newMobYearly > 0 ? Math.round(newMobYearAch / newMobYearly * 100) : 0;
 
-  setText('goalAoitMonthLbl', 'Mensile ' + mName);
+  setText('goalAoitMonthLbl', t('monthly') + ' ' + mName);
   setText('goalAoitMonthInfo', 'CHF ' + fCHF(aoitMonthAch) + ' / CHF ' + fCHF(aoitMonthTgt));
   setText('goalAoitYearInfo', 'CHF ' + fCHF(aoitYearAch) + ' / CHF ' + fCHF(aoitYearly));
   setBar('goalAoitMonthBar', aoitMonthPct);
   setBar('goalAoitYearBar', aoitYearPct);
 
-  setText('goalRetentionsMonthLbl', 'Mensile ' + mName);
+  setText('goalRetentionsMonthLbl', t('monthly') + ' ' + mName);
   setText('goalRetentionsMonthInfo', retMonthAch + ' / ' + retMonthTgt);
   setText('goalRetentionsYearInfo', retYearAch + ' / ' + retYearly);
   setBar('goalRetentionsMonthBar', retMonthPct);
   setBar('goalRetentionsYearBar', retYearPct);
 
-  setText('goalNewInternetMonthLbl', 'Mensile ' + mName);
+  setText('goalNewInternetMonthLbl', t('monthly') + ' ' + mName);
   setText('goalNewInternetMonthInfo', newIntMonthAch + ' / ' + newIntMonthTgt);
   setText('goalNewInternetYearInfo', newIntYearAch + ' / ' + newIntYearly);
   setBar('goalNewInternetMonthBar', newIntMonthPct);
   setBar('goalNewInternetYearBar', newIntYearPct);
 
-  setText('goalNewTvMonthLbl', 'Mensile ' + mName);
+  setText('goalNewTvMonthLbl', t('monthly') + ' ' + mName);
   setText('goalNewTvMonthInfo', newTvMonthAch + ' / ' + newTvMonthTgt);
   setText('goalNewTvYearInfo', newTvYearAch + ' / ' + newTvYearly);
   setBar('goalNewTvMonthBar', newTvMonthPct);
   setBar('goalNewTvYearBar', newTvYearPct);
 
-  setText('goalNewMobileMonthLbl', 'Mensile ' + mName);
+  setText('goalNewMobileMonthLbl', t('monthly') + ' ' + mName);
   setText('goalNewMobileMonthInfo', newMobMonthAch + ' / ' + newMobMonthTgt);
   setText('goalNewMobileYearInfo', newMobYearAch + ' / ' + newMobYearly);
   setBar('goalNewMobileMonthBar', newMobMonthPct);
@@ -3322,7 +3541,7 @@ function renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYe
   if (titleEl) {
     const totStr = fCHF(aoitT);
     const goalStr = aoitYearlyGoal > 0 ? ' / ' + fCHF(aoitYearlyGoal) : '';
-    titleEl.innerHTML = 'AOIT mensili&nbsp;&nbsp;<span style="color:#0284C7">' + totStr + goalStr + '</span>';
+    titleEl.innerHTML = t('chartBar')+'&nbsp;&nbsp;<span style="color:#0284C7">' + totStr + goalStr + '</span>';
   }
 
   const ctxM = document.getElementById('chartMonthly').getContext('2d');
@@ -3374,7 +3593,7 @@ function renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYe
   chTypes = new Chart(ctxT, {
     type: 'doughnut',
     data: {
-      labels: aoitProdLabels.length ? aoitProdLabels : ['Nessun dato AOIT'],
+      labels: aoitProdLabels.length ? aoitProdLabels : [t('noDataAoit')],
       datasets:[{
         data: aoitProdData.length ? aoitProdData : [1],
         backgroundColor: aoitProdLabels.length ? aoitColors.slice(0, aoitProdLabels.length) : ['rgba(200,200,200,.3)'],
@@ -3401,7 +3620,7 @@ function renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYe
       </div>`
     ).join('');
   } else {
-    legendEl.innerHTML = '<div style="grid-column:1/-1; color:var(--txt-sec); font-size:11px;">Nessun dato AOIT</div>';
+    legendEl.innerHTML = `<div style="grid-column:1/-1; color:var(--txt-sec); font-size:11px;">${t('noDataAoit')}</div>`;
   }
 }
 
@@ -3412,7 +3631,7 @@ function renderArchive() {
   const archived = getArchived().sort((a,b) => b - a);
   const list = document.getElementById('archiveList');
   if (!archived.length) {
-    list.innerHTML = `<div class="empty"><h3>Nessun anno archiviato</h3><p>Usa il pulsante "Archivia anno" per conservare i dati storici</p></div>`;
+    list.innerHTML = `<div class="empty"><h3>${t('archiveEmptyT')}</h3><p>${t('archiveEmptyP', { b: t('archiveYearBtn') })}</p></div>`;
     return;
   }
   list.innerHTML = '';
@@ -3431,10 +3650,10 @@ function renderArchive() {
     div.innerHTML = `
       <div>
         <div class="archive-year">${yr}</div>
-        <div class="archive-stats">${cnt} vendite &nbsp;|&nbsp; CHF ${fCHF(tot)} AOIT</div>
+        <div class="archive-stats">${cnt} ${t('archiveSalesWord')} &nbsp;|&nbsp; CHF ${fCHF(tot)} AOIT</div>
       </div>
       <div class="btn-group">
-        <button class="btn btn-ghost btn-sm" onclick="viewArchivedYear(${yr})">Visualizza</button>
+        <button class="btn btn-ghost btn-sm" onclick="viewArchivedYear(${yr})">${t('viewBtn')}</button>
         <button class="btn btn-ghost btn-sm" onclick="exportArchPDF(${yr})">PDF</button>
       </div>`;
     list.appendChild(div);
@@ -3447,7 +3666,7 @@ function getArchived() {
 }
 
 async function archiveCurrentYear() {
-  if (!await cfm(`Archiviare l'anno ${curYear}?`, 'I dati rimarranno accessibili nella sezione Archivio.')) return;
+  if (!await cfm(t('cfmArchiveT', { y: curYear }), t('cfmArchiveM'))) return;
   const arr = getArchived();
   if (!arr.includes(curYear)) {
     arr.push(curYear);
@@ -3455,7 +3674,7 @@ async function archiveCurrentYear() {
   }
   addYear(curYear);
   renderArchive();
-  toast('Anno ' + curYear + ' archiviato', 'ok');
+  toast(t('yearArchived', { y: curYear }), 'ok');
 }
 
 function viewArchivedYear(yr) {
@@ -3548,7 +3767,7 @@ function renderOffersData(data) {
 
   if (data.scraped_at) {
     const d = new Date(data.scraped_at);
-    tsEl.textContent = 'Aggiornato il: ' + d.toLocaleDateString('it-CH', {
+    tsEl.textContent = t('offersUpdated') + d.toLocaleDateString(`${curLang}-CH`, {
       day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
     });
   }
@@ -3593,7 +3812,7 @@ function renderOffersData(data) {
 
       let linkHtml = '';
       if (o.link) {
-        linkHtml = `<div class="offer-card-link"><a href="${escH(o.link)}" target="_blank" rel="noopener">Vedi offerta →</a></div>`;
+        linkHtml = `<div class="offer-card-link"><a href="${escH(o.link)}" target="_blank" rel="noopener">${t('seeOffer')}</a></div>`;
       }
 
       const card = document.createElement('div');
@@ -3619,7 +3838,7 @@ function renderOffersData(data) {
 function exportDashboardPDF() {
   try {
     const r = dbS.exec('SELECT type,product_name,sale_date,commission,status FROM sales');
-    if (!r.length) { toast('Nessun dato da esportare', 'err'); return; }
+    if (!r.length) { toast(t('pdfEmpty'), 'err'); return; }
     const sales = r[0].values.map(v => obj(r[0].columns, v));
     const okS = sales.filter(s => s.status === 'ok');
     const now = new Date(), cmi = now.getMonth();
@@ -3653,21 +3872,21 @@ function exportDashboardPDF() {
     // Header band
     doc.setFillColor(...B); doc.rect(0,0,pw,18,'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold').setFontSize(15);
-    doc.text('DataSales — Report '+curYear,14,12);
+    doc.text('DataSales — '+t('reportWord')+' '+curYear,14,12);
 
     // Summary banner
     let y=28;
     doc.setFillColor(...B); doc.roundedRect(14,y,pw-28,11,1.5,1.5,'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold').setFontSize(9);
-    doc.text('Totale Commissioni',18,y+4.5);
+    doc.text(t('pdfBanner'),18,y+4.5);
     doc.setFontSize(13); doc.text('CHF '+fCHF(tot),70,y+5);
     y+=18;
 
     // Goals
     doc.setFont('helvetica','bold').setFontSize(11).setTextColor(...B);
-    doc.text('Obiettivi Annuali',14,y); y+=4;
+    doc.text(t('goalsTitle'),14,y); y+=4;
     doc.autoTable({
-      head:[['','Annuale','%']],
+      head:[['',t('annual'),'%']],
       body:cats.map((c,i)=>[c, i===0?'CHF '+fCHF(achY[i])+' / CHF '+fCHF([gy,rY,niY,tvY,mbY][i]):achY[i]+' / '+[gy,rY,niY,tvY,mbY][i], [gy,rY,niY,tvY,mbY][i]>0?Math.round(achY[i]/[gy,rY,niY,tvY,mbY][i]*100)+'%':'—']),
       startY:y, styles:{fontSize:8,cellPadding:3},
       headStyles:{fillColor:B,fontStyle:'bold',fontSize:9,textColor:255},
@@ -3685,9 +3904,9 @@ function exportDashboardPDF() {
 
     // Monthly
     doc.setFont('helvetica','bold').setFontSize(11).setTextColor(...B);
-    doc.text('Dettaglio Mensile',14,y); y+=4;
+    doc.text(t('detailMonthly'),14,y); y+=4;
     doc.autoTable({
-      head:[['Mese','AOIT','Ret.','Internet','TV','Mobile']],
+      head:[[t('thMonth'), 'AOIT', 'Ret.',t('thInternet'),t('thTv'),t('thMobile')]],
       body:monthly.map(m=>[m[0],m[1]>0?'CHF '+fCHF(m[1]):'—',m[2]>0?String(m[2]):'—',m[3]>0?'CHF '+fCHF(m[3]):'—',m[4]>0?'CHF '+fCHF(m[4]):'—',m[5]>0?'CHF '+fCHF(m[5]):'—']),
       startY:y, styles:{fontSize:8,cellPadding:3},
       headStyles:{fillColor:B,fontStyle:'bold',fontSize:9,textColor:255},
@@ -3706,10 +3925,10 @@ function exportDashboardPDF() {
     // Products
     if(pLbl.length){
       doc.setFont('helvetica','bold').setFontSize(11).setTextColor(139,92,246);
-      doc.text('Distribuzione AOIT',14,y); y+=4;
+      doc.text(t('pdfDistrib'),14,y); y+=4;
       const sorted=pLbl.map((l,i)=>[l,'CHF '+fCHF(pDat[i])]).sort((a,b)=>parseFloat(b[1].replace(/[^0-9.]/g,''))-parseFloat(a[1].replace(/[^0-9.]/g,'')));
       doc.autoTable({
-        head:[['Prodotto','Commissione']], body:sorted, startY:y,
+        head:[[t('pdfProdCol'),t('pdfCommCol')]], body:sorted, startY:y,
         styles:{fontSize:8,cellPadding:3},
         headStyles:{fillColor:[139,92,246],fontStyle:'bold',fontSize:9,textColor:255},
         alternateRowStyles:{fillColor:[245,247,250]},
@@ -3720,13 +3939,13 @@ function exportDashboardPDF() {
     // Footer
     for(let i=1;i<=doc.internal.getNumberOfPages();i++){
       doc.setPage(i).setDrawColor(200,200,200).line(14,doc.internal.pageSize.height-10,pw-14,doc.internal.pageSize.height-10);
-      doc.setFontSize(7).setTextColor(150).text('DataSales | © 2026 Loris Salerno | Report '+curYear+' | Pagina '+i,14,doc.internal.pageSize.height-6);
+      doc.setFontSize(7).setTextColor(150).text('DataSales | © 2026 Loris Salerno | '+t('reportWord')+' '+curYear+' | '+t('pageWord')+' '+i,14,doc.internal.pageSize.height-6);
     }
     const blob=doc.output('blob'), a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='DataSales_Report_'+curYear+'.pdf'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast('PDF report esportato','ok');
-  } catch(e){ toast('Errore export PDF: '+e.message,'err'); }
+    toast(t('pdfExported'),'ok');
+  } catch(e){ toast(t('pdfExportErr')+e.message,'err'); }
 }
 
 // ----------------------------------------------------------------
@@ -3742,26 +3961,26 @@ function exportSalesPDFFrom(db, yr) {
   let rows = [];
   try {
     rows = db.exec('SELECT type,product_name,scn,sale_date,commission,status,notes FROM sales ORDER BY sale_date DESC');
-  } catch(e) { toast('Errore export PDF', 'err'); return; }
+  } catch(e) { toast(t('pdfExportErrShort'), 'err'); return; }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
 
   doc.setFont('helvetica','bold');
   doc.setFontSize(15); doc.setTextColor(0,58,140);
-  doc.text('DataSales — Registro Vendite ' + yr, 14, 15);
+  doc.text('DataSales — '+t('salesTitle')+' ' + yr, 14, 15);
 
   const body = rows.length && rows[0].values.length
     ? rows[0].values.map(r => [
         r[0], r[1], r[2]||'', r[3],
         r[4] ? 'CHF '+fCHF(parseFloat(r[4])) : '—',
-        r[5]==='ok' ? 'OK' : 'Annullata',
+        r[5]==='ok' ? 'OK' : t('pdfStatusCancelled'),
         r[6]||''
       ])
-    : [['Nessuna vendita','','','','','','']];
+    : [[t('pdfNoSales'),'','','','','','']];
 
   doc.autoTable({
-    head: [['Tipo','Prodotto','SCN','Data','AOIT','Stato','Note']],
+    head: [[t('thType'),t('thProduct'),t('thScn'),t('thDate'),t('thAoit'),t('statusCol'),t('thNotes')]],
     body,
     startY: 20,
     styles: { fontSize: 8, cellPadding: 3 },
@@ -3779,7 +3998,7 @@ function exportSalesPDFFrom(db, yr) {
   a.download = `DataSales_Vendite_${yr}.pdf`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('PDF esportato', 'ok');
+  toast(t('pdfExportedShort'), 'ok');
 }
 
 // ----------------------------------------------------------------
@@ -3793,24 +4012,24 @@ function exportProductsPDF() {
   let rows = [];
   try {
     rows = dbP.exec("SELECT category,name,price_chf,months FROM products WHERE is_active=1 ORDER BY CASE WHEN UPPER(category)='INTERNET' THEN 1 WHEN UPPER(category)='TV' THEN 2 WHEN UPPER(category)='MOBILE' THEN 3 WHEN UPPER(category) IN ('MY SERVICE', 'MYSERVICE') THEN 4 ELSE 5 END,sort_order,name");
-  } catch(e) { toast('Errore export PDF', 'err'); return; }
+  } catch(e) { toast(t('pdfExportErrShort'), 'err'); return; }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm' });
 
   doc.setFont('helvetica','bold');
   doc.setFontSize(15); doc.setTextColor(0,58,140);
-  doc.text('DataSales — Database AOIT', 14, 15);
+  doc.text('DataSales — '+t('tabProducts'), 14, 15);
 
   const body = rows.length
     ? rows[0].values.map(r => {
         const comm = parseFloat(r[2]) * parseInt(r[3]);
-        return [r[0], r[1], 'CHF '+fCHF(r[2]), r[3]+' mesi', 'CHF '+fCHF(comm)];
+        return [r[0], r[1], 'CHF '+fCHF(r[2]), r[3]+t('pdfMonthsSuffix'), 'CHF '+fCHF(comm)];
       })
     : [];
 
   doc.autoTable({
-    head: [['Categoria','Prodotto','Prezzo/mese','Mesi','AOIT']],
+    head: [[t('category'),t('pdfProdCol'),t('priceMonth'),t('monthsCol'),t('thAoit')]],
     body,
     startY: 20,
     styles: { fontSize: 8, cellPadding: 3 },
@@ -3828,7 +4047,7 @@ function exportProductsPDF() {
   a.download = 'DataSales_Prodotti.pdf';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('PDF esportato', 'ok');
+  toast(t('pdfExportedShort'), 'ok');
 }
 
 // ----------------------------------------------------------------
@@ -3902,13 +4121,13 @@ function exportProductCatalogList() {
   } catch (e) {}
 
   if (!rows.length) {
-    toast('Nessun prodotto da esportare', 'err');
+    toast(t('csvEmpty'), 'err');
     return;
   }
 
   const cols = rows[0].columns;
   const products = rows[0].values.map(r => obj(cols, r));
-  const lines = ['Categoria,Prodotto,Prezzo/mese,Mesi,AOIT'];
+  const lines = [t('csvHeader')];
 
   products.forEach(p => {
     const aoit = getProductCommission(p, products);
@@ -3930,7 +4149,7 @@ function exportProductCatalogList() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast('Lista prodotti AOIT esportata', 'ok');
+  toast(t('csvExported'), 'ok');
 }
 
 function importProductCatalogList() {
@@ -3984,7 +4203,7 @@ function parseCsv(text) {
 async function handleProductsListImport(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (!await cfm('Importare lista prodotti AOIT?', 'Questa operazione sostituirà il catalogo attuale con il contenuto del file, senza includere vendite personali.')) {
+  if (!await cfm(t('cfmCsvTitle'), t('cfmCsvMsg'))) {
     event.target.value = '';
     return;
   }
@@ -3992,19 +4211,22 @@ async function handleProductsListImport(event) {
   try {
     const text = await file.text();
     const rows = parseCsv(text);
-    if (rows.length < 2) throw new Error('File vuoto o non valido.');
+    if (rows.length < 2) throw new Error(t('csvEmptyFile'));
 
     const header = rows[0].map(c => c.trim().toLowerCase());
-    const idx = {
-      category: header.indexOf('categoria'),
-      name: header.indexOf('prodotto'),
-      price: header.indexOf('prezzo/mese'),
-      months: header.indexOf('mesi'),
-      aoit: header.indexOf('aoit')
+    // L'header CSV cambia con la lingua: accetta tutte le varianti (it/de/fr/en)
+    const HDR = {
+      category: ['categoria','kategorie','catégorie','categorie','category'],
+      name: ['prodotto','produkt','produit','product'],
+      price: ['prezzo/mese','preis/monat','prix/mois','price/month'],
+      months: ['mesi','monate','mois','months'],
+      aoit: ['aoit']
     };
+    const col = key => header.findIndex(h => HDR[key].includes(h));
+    const idx = { category: col('category'), name: col('name'), price: col('price'), months: col('months'), aoit: col('aoit') };
 
     if (idx.category < 0 || idx.name < 0 || idx.price < 0 || idx.months < 0) {
-      throw new Error('Formato file non valido.');
+      throw new Error(t('csvBadFormat'));
     }
 
     const imported = [];
@@ -4019,7 +4241,7 @@ async function handleProductsListImport(event) {
       imported.push([cat, name, price, months]);
     }
 
-    if (!imported.length) throw new Error('Nessun prodotto valido trovato nel file.');
+    if (!imported.length) throw new Error(t('csvNoValid'));
 
     dbP.run('UPDATE products SET is_active=0');
     let maxOrd = 0;
@@ -4034,9 +4256,9 @@ async function handleProductsListImport(event) {
 
     saveP(dbP);
     renderProducts();
-    toast('Lista prodotti AOIT importata con successo', 'ok');
+    toast(t('csvImported'), 'ok');
   } catch (e) {
-    toast('Errore importazione lista prodotti: ' + e.message, 'err');
+    toast(t('csvImportErr') + e.message, 'err');
   }
 
   event.target.value = '';
@@ -4045,7 +4267,7 @@ async function handleProductsListImport(event) {
 function exportProductsDBFile() {
   const bin = dbP.export();
   dlBinaryFile('lollodb_products.db', bin, 'application/x-sqlite3');
-  toast('Database Prodotti (.db) esportato', 'ok');
+  toast(t('dbProdExported'), 'ok');
 }
 
 function importProductsDBFile() {
@@ -4055,7 +4277,7 @@ function importProductsDBFile() {
 async function handleProductsDBImport(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (!await cfm('Importare Database Prodotti?', 'Questo sovrascriverà tutti i prodotti attuali con quelli contenuti nel file .db.')) {
+  if (!await cfm(t('cfmDbProdTitle'), t('cfmDbProdMsg'))) {
     event.target.value = ''; return;
   }
   try {
@@ -4063,9 +4285,9 @@ async function handleProductsDBImport(event) {
     dbP = new SQL.Database(new Uint8Array(buf));
     saveP(dbP);
     renderProducts();
-    toast('Database Prodotti (.db) importato con successo', 'ok');
+    toast(t('dbProdImported'), 'ok');
   } catch(e) {
-    toast('Errore nel caricamento del database: ' + e.message, 'err');
+    toast(t('dbLoadErr') + e.message, 'err');
   }
   event.target.value = '';
 }
@@ -4073,7 +4295,7 @@ async function handleProductsDBImport(event) {
 function exportSalesDBFile() {
   const bin = dbS.export();
   dlBinaryFile(`lollodb_sales_${curYear}.db`, bin, 'application/x-sqlite3');
-  toast(`Database Vendite ${curYear} (.db) esportato`, 'ok');
+  toast(t('dbSalesExported', { y: curYear }), 'ok');
 }
 
 function importSalesDBFile() {
@@ -4083,7 +4305,7 @@ function importSalesDBFile() {
 async function handleSalesDBImport(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (!await cfm(`Importare Database Vendite ${curYear}?`, 'Questo sovrascriverà tutte le vendite correnti di quest\'anno con quelle del file .db.')) {
+  if (!await cfm(t('cfmDbSalesTitle', { y: curYear }), t('cfmDbSalesMsg'))) {
     event.target.value = ''; return;
   }
   try {
@@ -4092,9 +4314,9 @@ async function handleSalesDBImport(event) {
     saveS(dbS, curYear);
     renderSales();
     renderStats();
-    toast('Database Vendite (.db) importato con successo', 'ok');
+    toast(t('dbSalesImported'), 'ok');
   } catch(e) {
-    toast('Errore nel caricamento del database: ' + e.message, 'err');
+    toast(t('dbLoadErr') + e.message, 'err');
   }
   event.target.value = '';
 }
@@ -4165,7 +4387,7 @@ function exportFullBackup() {
   updateLastBackupLabel();
   unsavedBackupChanges = false;
   updateUnsavedBackupBanner();
-  toast('Backup esportato con successo', 'ok');
+  toast(t('toastBackupOk'), 'ok');
 }
 
 function triggerFullBackupImport() {
@@ -4175,7 +4397,7 @@ function triggerFullBackupImport() {
 async function importFullBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (!await cfm('Importare Backup?', 'Questo sovrascriverà tutti i prodotti, le vendite e i dati attuali con quelli contenuti nel backup.')) {
+  if (!await cfm(t('cfmBackupTitle'), t('cfmBackupMsg'))) {
     event.target.value = ''; return;
   }
   try {
@@ -4189,7 +4411,7 @@ async function importFullBackup(event) {
       }
     }
     if (!hasKeys) {
-      throw new Error('File di backup non valido o vuoto.');
+      throw new Error(t('backupInvalid'));
     }
     
     for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -4201,10 +4423,10 @@ async function importFullBackup(event) {
     for (const key in backup) {
       localStorage.setItem(key, backup[key]);
     }
-    toast('Backup importato con successo! Ricarico...', 'ok');
+    toast(t('toastBackupImported'), 'ok');
     setTimeout(() => location.reload(), 1500);
   } catch(e) {
-    toast('Errore importazione backup: ' + e.message, 'err');
+    toast(t('toastBackupImportErr') + e.message, 'err');
   }
   event.target.value = '';
 }
@@ -4214,7 +4436,7 @@ function updateLastBackupLabel() {
   if (!lbl) return;
   const last = localStorage.getItem('lollodata_last_backup');
   if (!last) {
-    lbl.textContent = 'Ultimo backup: mai';
+    lbl.textContent = t('lastBackupNever');
     return;
   }
   const parts = last.split(', ');
@@ -4223,11 +4445,11 @@ function updateLastBackupLabel() {
     const [d, m, y] = datePart.split('/');
     const now = new Date();
     if (parseInt(d) === now.getDate() && parseInt(m) - 1 === now.getMonth() && parseInt(y) === now.getFullYear()) {
-      lbl.textContent = `Ultimo backup: oggi alle ${timePart.substring(0, 5)}`;
+      lbl.textContent = t('lastBackupToday') + timePart.substring(0, 5);
       return;
     }
   }
-  lbl.textContent = `Ultimo backup: ${last}`;
+  lbl.textContent = t('lastBackupPrefix') + last;
 }
 
 // Close modals on backdrop click

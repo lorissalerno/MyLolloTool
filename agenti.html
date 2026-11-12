@@ -128,18 +128,18 @@
 </head>
 <body>
 
-  <h1><span data-i="bot"></span>Agenti AI</h1>
-  <p class="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p>
+  <h1><span data-i="bot"></span><span data-t="title">Agenti AI</span></h1>
+  <p class="sub" data-t="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p>
 
   <div class="toolbar">
     <div class="search-box">
       <span data-i="search"></span>
-      <input id="search" type="text" placeholder="Cerca un agente...">
+      <input id="search" type="text" data-t-ph="searchPh" placeholder="Cerca un agente...">
     </div>
-    <button class="btn primary" id="btn-add"><span data-i="plus"></span>Aggiungi agente</button>
-    <button class="btn" id="btn-export" title="Scarica la lista come file .json"><span data-i="download"></span>Esporta</button>
-    <button class="btn" id="btn-import" title="Carica una lista da file .json"><span data-i="upload"></span>Importa</button>
-    <button class="btn" id="btn-width" title="Alterna card strette e larghe" aria-pressed="false"><span data-i="expand"></span><span id="btn-width-txt">Larga</span></button>
+    <button class="btn primary" id="btn-add"><span data-i="plus"></span><span data-t="add">Aggiungi agente</span></button>
+    <button class="btn" id="btn-export" data-t-title="exportTitle" title="Scarica la lista come file .json"><span data-i="download"></span><span data-t="export">Esporta</span></button>
+    <button class="btn" id="btn-import" data-t-title="importTitle" title="Carica una lista da file .json"><span data-i="upload"></span><span data-t="import">Importa</span></button>
+    <button class="btn" id="btn-width" data-t-title="widthTitle" title="Alterna card strette e larghe" aria-pressed="false"><span data-i="expand"></span><span id="btn-width-txt">Larga</span></button>
     <input type="file" id="file-import" accept=".json,application/json" hidden>
   </div>
 
@@ -150,42 +150,42 @@
     <form id="form" class="dialog" autocomplete="off">
       <h2 id="form-title">Nuovo agente</h2>
 
-      <label class="field">Nome
-        <input name="nome" type="text" required maxlength="40" placeholder="Es. Assistente Vendite">
+      <label class="field"><span data-t="name">Nome</span>
+        <input name="nome" type="text" required maxlength="40" data-t-ph="namePh" placeholder="Es. Assistente Vendite">
       </label>
-      <label class="field">Link
+      <label class="field"><span data-t="link">Link</span>
         <input name="url" type="url" required placeholder="https://bernard.swisscom.com/agents/...">
       </label>
-      <label class="field">Descrizione <span class="opt">(facoltativa)</span>
-        <input name="descrizione" type="text" maxlength="80" placeholder="A cosa serve">
+      <label class="field"><span data-t="desc">Descrizione</span> <span class="opt" data-t="optional">(facoltativa)</span>
+        <input name="descrizione" type="text" maxlength="80" data-t-ph="descPh" placeholder="A cosa serve">
       </label>
-      <label class="field">Categoria <span class="opt">(facoltativa)</span>
-        <input name="categoria" type="text" maxlength="30" list="cat-list" placeholder="Es. Swisscom, Esterni...">
+      <label class="field"><span data-t="cat">Categoria</span> <span class="opt" data-t="optional">(facoltativa)</span>
+        <input name="categoria" type="text" maxlength="30" list="cat-list" data-t-ph="catPh" placeholder="Es. Swisscom, Esterni...">
         <datalist id="cat-list"></datalist>
       </label>
 
       <fieldset>
-        <legend>Icona</legend>
+        <legend data-t="icon">Icona</legend>
         <div id="icon-picker" class="icon-picker"></div>
       </fieldset>
 
       <fieldset>
-        <legend>Apertura</legend>
+        <legend data-t="opening">Apertura</legend>
         <div class="modes">
           <label class="mode">
             <input type="radio" name="modo" value="tab">
-            <span><b><span data-i="external"></span>Nuova scheda</b><small>Funziona sempre</small></span>
+            <span><b><span data-i="external"></span><span data-t="newTab">Nuova scheda</span></b><small data-t="alwaysWorks">Funziona sempre</small></span>
           </label>
           <label class="mode">
             <input type="radio" name="modo" value="frame">
-            <span><b><span data-i="frame"></span>Integrato</b><small>Solo se il sito lo permette</small></span>
+            <span><b><span data-i="frame"></span><span data-t="integrated">Integrato</span></b><small data-t="onlyIfAllowed">Solo se il sito lo permette</small></span>
           </label>
         </div>
       </fieldset>
 
       <div class="actions">
-        <button type="button" class="btn" id="btn-cancel">Annulla</button>
-        <button type="submit" class="btn primary">Salva</button>
+        <button type="button" class="btn" id="btn-cancel" data-t="cancel">Annulla</button>
+        <button type="submit" class="btn primary" data-t="save">Salva</button>
       </div>
     </form>
   </div>
@@ -193,12 +193,12 @@
   <!-- Visualizzatore integrato -->
   <div id="viewer" hidden>
     <div class="viewer-bar">
-      <button class="btn" id="btn-back"><span data-i="back"></span>Indietro</button>
+      <button class="btn" id="btn-back"><span data-i="back"></span><span data-t="back">Indietro</span></button>
       <strong id="viewer-title"></strong>
-      <span class="hint">Pagina vuota o errore? Il sito non permette l'integrazione: apri in nuova scheda.</span>
-      <a class="btn" id="viewer-ext" target="_blank" rel="noopener"><span data-i="external"></span>Nuova scheda</a>
+      <span class="hint" data-t="viewerHint">Pagina vuota o errore? Il sito non permette l'integrazione: apri in nuova scheda.</span>
+      <a class="btn" id="viewer-ext" target="_blank" rel="noopener"><span data-i="external"></span><span data-t="newTab">Nuova scheda</span></a>
     </div>
-    <iframe id="viewer-frame" title="Agente" allow="clipboard-read; clipboard-write; microphone"></iframe>
+    <iframe id="viewer-frame" data-t-title="viewerFrameTitle" title="Agente" allow="clipboard-read; clipboard-write; microphone"></iframe>
   </div>
 
   <script>
@@ -244,10 +244,101 @@
     const isUrl = u => /^https?:\/\//i.test(u);
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
+    // ===== Lingua globale (dal menu laterale di index.html) =====
+    const LANG_KEY = 'mylollotool-lang';
+    const LANGS = ['it', 'de', 'fr', 'en'];
+    const T = {
+      title:      { it: 'Agenti AI', de: 'KI-Agenten', fr: 'Agents IA', en: 'AI agents' },
+      sub:        { it: 'I tuoi collegamenti rapidi agli agenti e strumenti AI', de: 'Deine Schnellzugriffe auf KI-Agenten und Tools', fr: 'Tes accès rapides aux agents et outils IA', en: 'Your quick links to AI agents and tools' },
+      searchPh:   { it: 'Cerca un agente...', de: 'Agent suchen...', fr: 'Rechercher un agent...', en: 'Search an agent...' },
+      add:        { it: 'Aggiungi agente', de: 'Agent hinzufügen', fr: 'Ajouter un agent', en: 'Add agent' },
+      exportTitle:{ it: 'Scarica la lista come file .json', de: 'Liste als .json-Datei herunterladen', fr: 'Télécharger la liste en .json', en: 'Download list as .json file' },
+      export:     { it: 'Esporta', de: 'Exportieren', fr: 'Exporter', en: 'Export' },
+      importTitle:{ it: 'Carica una lista da file .json', de: 'Liste aus .json-Datei laden', fr: 'Charger une liste depuis un fichier .json', en: 'Load list from .json file' },
+      import:     { it: 'Importa', de: 'Importieren', fr: 'Importer', en: 'Import' },
+      widthTitle: { it: 'Alterna card strette e larghe', de: 'Zwischen schmalen und breiten Karten wechseln', fr: 'Alterner cartes étroites et larges', en: 'Toggle narrow/wide cards' },
+      wide:       { it: 'Larga', de: 'Breit', fr: 'Large', en: 'Wide' },
+      narrow:     { it: 'Stretta', de: 'Schmal', fr: 'Étroite', en: 'Narrow' },
+      newAgent:   { it: 'Nuovo agente', de: 'Neuer Agent', fr: 'Nouvel agent', en: 'New agent' },
+      editAgent:  { it: 'Modifica agente', de: 'Agent bearbeiten', fr: 'Modifier l’agent', en: 'Edit agent' },
+      name:       { it: 'Nome', de: 'Name', fr: 'Nom', en: 'Name' },
+      namePh:     { it: 'Es. Assistente Vendite', de: 'Z. B. Verkaufsassistent', fr: 'Ex. Assistant ventes', en: 'E.g. Sales assistant' },
+      link:       { it: 'Link', de: 'Link', fr: 'Lien', en: 'Link' },
+      desc:       { it: 'Descrizione', de: 'Beschreibung', fr: 'Description', en: 'Description' },
+      optional:   { it: '(facoltativa)', de: '(optional)', fr: '(facultatif)', en: '(optional)' },
+      descPh:     { it: 'A cosa serve', de: 'Wozu dient er', fr: 'À quoi sert-il', en: 'What is it for' },
+      cat:        { it: 'Categoria', de: 'Kategorie', fr: 'Catégorie', en: 'Category' },
+      catPh:      { it: 'Es. Swisscom, Esterni...', de: 'Z. B. Swisscom, Externe...', fr: 'Ex. Swisscom, Externes...', en: 'E.g. Swisscom, External...' },
+      icon:       { it: 'Icona', de: 'Symbol', fr: 'Icône', en: 'Icon' },
+      opening:    { it: 'Apertura', de: 'Öffnen', fr: 'Ouverture', en: 'Opening' },
+      newTab:     { it: 'Nuova scheda', de: 'Neuer Tab', fr: 'Nouvel onglet', en: 'New tab' },
+      alwaysWorks:{ it: 'Funziona sempre', de: 'Funktioniert immer', fr: 'Fonctionne toujours', en: 'Always works' },
+      integrated: { it: 'Integrato', de: 'Integriert', fr: 'Intégré', en: 'Embedded' },
+      onlyIfAllowed: { it: 'Solo se il sito lo permette', de: 'Nur wenn die Seite es erlaubt', fr: 'Seulement si le site le permet', en: 'Only if the site allows it' },
+      cancel:     { it: 'Annulla', de: 'Abbrechen', fr: 'Annuler', en: 'Cancel' },
+      save:       { it: 'Salva', de: 'Speichern', fr: 'Enregistrer', en: 'Save' },
+      back:       { it: 'Indietro', de: 'Zurück', fr: 'Retour', en: 'Back' },
+      viewerHint: { it: 'Pagina vuota o errore? Il sito non permette l’integrazione: apri in nuova scheda.', de: 'Leere Seite oder Fehler? Die Seite erlaubt keine Einbettung: in neuem Tab öffnen.', fr: 'Page vide ou erreur ? Le site ne permet pas l’intégration : ouvrir dans un nouvel onglet.', en: 'Blank page or error? The site does not allow embedding: open in a new tab.' },
+      viewerFrameTitle: { it: 'Agente', de: 'Agent', fr: 'Agent', en: 'Agent' },
+      openEmbedded: { it: 'Si apre integrato', de: 'Wird eingebettet geöffnet', fr: 'S’ouvre intégré', en: 'Opens embedded' },
+      openTab:    { it: 'Si apre in una nuova scheda', de: 'Wird in neuem Tab geöffnet', fr: 'S’ouvre dans un nouvel onglet', en: 'Opens in a new tab' },
+      edit:       { it: 'Modifica', de: 'Bearbeiten', fr: 'Modifier', en: 'Edit' },
+      delete:     { it: 'Elimina', de: 'Löschen', fr: 'Supprimer', en: 'Delete' },
+      emptyNone:  { it: 'Nessun agente. Clicca', de: 'Keine Agenten. Klicke', fr: 'Aucun agent. Clique', en: 'No agents. Click' },
+      emptyToStart: { it: 'per iniziare.', de: 'um zu beginnen.', fr: 'pour commencer.', en: 'to get started.' },
+      emptyFound:{ it: 'Nessun agente trovato.', de: 'Keine Agenten gefunden.', fr: 'Aucun agent trouvé.', en: 'No agents found.' },
+      general:    { it: 'Generale', de: 'Allgemein', fr: 'Général', en: 'General' },
+      confirmDelete: { it: 'Eliminare "{n}"?', de: '"{n}" löschen?', fr: 'Supprimer « {n} » ?', en: 'Delete "{n}"?' },
+      invalidUrl: { it: 'Il link deve iniziare con http:// o https://', de: 'Der Link muss mit http:// oder https:// beginnen', fr: 'Le lien doit commencer par http:// ou https://', en: 'The link must start with http:// or https://' },
+      confirmImport: { it: 'Importare {n} agenti? La lista attuale verrà sostituita.', de: '{n} Agenten importieren? Die aktuelle Liste wird ersetzt.', fr: 'Importer {n} agents ? La liste actuelle sera remplacée.', en: 'Import {n} agents? The current list will be replaced.' },
+      invalidFile: { it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
+      defaultName: { it: 'Il mio agente Bernard', de: 'Mein Bernard-Agent', fr: 'Mon agent Bernard', en: 'My Bernard agent' },
+      defaultDesc: { it: 'Agente personalizzato su Bernard', de: 'Benutzerdefinierter Agent auf Bernard', fr: 'Agent personnalisé sur Bernard', en: 'Custom agent on Bernard' },
+    };
+    const ICONL = {
+      bot:       { it: 'Robot', de: 'Roboter', fr: 'Robot', en: 'Robot' },
+      chat:      { it: 'Chat', de: 'Chat', fr: 'Chat', en: 'Chat' },
+      sparkle:   { it: 'AI', de: 'KI', fr: 'IA', en: 'AI' },
+      lightbulb: { it: 'Idea', de: 'Idee', fr: 'Idée', en: 'Idea' },
+      doc:       { it: 'Documento', de: 'Dokument', fr: 'Document', en: 'Document' },
+      book:      { it: 'Conoscenza', de: 'Wissen', fr: 'Connaissance', en: 'Knowledge' },
+      search:    { it: 'Ricerca', de: 'Suche', fr: 'Recherche', en: 'Search' },
+      code:      { it: 'Codice', de: 'Code', fr: 'Code', en: 'Code' },
+      chart:     { it: 'Analisi', de: 'Analyse', fr: 'Analyse', en: 'Analytics' },
+      calendar:  { it: 'Calendario', de: 'Kalender', fr: 'Calendrier', en: 'Calendar' },
+      mail:      { it: 'Email', de: 'E-Mail', fr: 'E-mail', en: 'Email' },
+      users:     { it: 'Team / Clienti', de: 'Team / Kunden', fr: 'Équipe / Clients', en: 'Team / Clients' },
+      headset:   { it: 'Supporto', de: 'Support', fr: 'Assistance', en: 'Support' },
+      briefcase: { it: 'Lavoro / Vendite', de: 'Arbeit / Verkauf', fr: 'Travail / Ventes', en: 'Work / Sales' },
+      globe:     { it: 'Web / Lingue', de: 'Web / Sprachen', fr: 'Web / Langues', en: 'Web / Languages' },
+      shield:    { it: 'Sicurezza', de: 'Sicherheit', fr: 'Sécurité', en: 'Security' },
+      zap:       { it: 'Automazione', de: 'Automatisierung', fr: 'Automatisation', en: 'Automation' },
+      sliders:   { it: 'Impostazioni', de: 'Einstellungen', fr: 'Paramètres', en: 'Settings' },
+      image:     { it: 'Immagini', de: 'Bilder', fr: 'Images', en: 'Images' },
+      star:      { it: 'Preferito', de: 'Favorit', fr: 'Favori', en: 'Favorite' },
+    };
+    let curLang = (function() {
+      try {
+        const g = localStorage.getItem(LANG_KEY);
+        if (LANGS.includes(g)) return g;
+      } catch (e) {}
+      return 'it';
+    })();
+    function t(key, vars) {
+      const e = T[key];
+      let s = (!e ? key : (e[curLang] || e.it || key));
+      if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+      return s;
+    }
+    function iconLabel(k) {
+      const e = ICONL[k];
+      return (!e ? k : (e[curLang] || e.it || k));
+    }
+
     // ===== Dati (salvati nel browser) =====
     const KEY = 'mylollotool-agenti';
     const DEFAULT = [
-      { id: 'default-1', nome: 'Il mio agente Bernard', descrizione: 'Agente personalizzato su Bernard',
+      { id: 'default-1', nome: t('defaultName'), descrizione: t('defaultDesc'),
         categoria: 'Swisscom', icona: 'bot', modo: 'tab',
         url: 'https://bernard.swisscom.com/agents/3c048982-6a12-4118-9e5d-7a2a545d388e' },
     ];
@@ -267,11 +358,17 @@
 
     document.querySelectorAll('[data-i]').forEach(el => el.outerHTML = svg(el.dataset.i));
 
-    $('icon-picker').innerHTML = Object.entries(ICONE).map(([k, [label]]) => `
-      <label class="icon-opt" title="${label}">
-        <input type="radio" name="icona" value="${k}" aria-label="${label}">
-        <span>${svg(k)}</span>
-      </label>`).join('');
+    function renderIconPicker() {
+      $('icon-picker').innerHTML = Object.entries(ICONE).map(([k]) => {
+        const label = iconLabel(k);
+        return `
+        <label class="icon-opt" title="${esc(label)}">
+          <input type="radio" name="icona" value="${k}" aria-label="${esc(label)}">
+          <span>${svg(k)}</span>
+        </label>`;
+      }).join('');
+    }
+    renderIconPicker();
 
     // ===== Visualizzazione =====
     function card(a) {
@@ -283,10 +380,10 @@
             <span class="icon">${svg(a.icona)}</span>
             <div><h3>${esc(a.nome)}</h3>${a.descrizione ? `<p>${esc(a.descrizione)}</p>` : ''}</div>
           </a>
-          <span class="badge" title="${frame ? 'Si apre integrato' : 'Si apre in una nuova scheda'}">${svg(frame ? 'frame' : 'external')}</span>
+          <span class="badge" title="${esc(frame ? t('openEmbedded') : t('openTab'))}">${svg(frame ? 'frame' : 'external')}</span>
           <div class="card-actions">
-            <button data-action="edit" title="Modifica">${svg('edit')}</button>
-            <button data-action="delete" title="Elimina">${svg('trash')}</button>
+            <button data-action="edit" title="${esc(t('edit'))}">${svg('edit')}</button>
+            <button data-action="delete" title="${esc(t('delete'))}">${svg('trash')}</button>
           </div>
         </div>`;
     }
@@ -296,14 +393,14 @@
         .map(c => `<option value="${esc(c)}">`).join('');
 
       if (!agenti.length) {
-        container.innerHTML = '<div class="empty">Nessun agente. Clicca <b>Aggiungi agente</b> per iniziare.</div>';
+        container.innerHTML = `<div class="empty">${esc(t('emptyNone'))} <b>${esc(t('add'))}</b> ${esc(t('emptyToStart'))}</div>`;
         return;
       }
       const f = search.value.toLowerCase().trim();
       const list = agenti.filter(a => [a.nome, a.descrizione, a.categoria].join(' ').toLowerCase().includes(f));
-      if (!list.length) { container.innerHTML = '<div class="empty">Nessun agente trovato.</div>'; return; }
+      if (!list.length) { container.innerHTML = `<div class="empty">${esc(t('emptyFound'))}</div>`; return; }
 
-      const cat = a => a.categoria || 'Generale';
+      const cat = a => a.categoria || t('general');
       container.innerHTML = [...new Set(list.map(cat))].map(c => `
         <section class="category">
           <h2>${esc(c)}</h2>
@@ -320,7 +417,7 @@
 
       if (act === 'open' && a.modo === 'frame') { e.preventDefault(); openViewer(a); }
       if (act === 'edit') openForm(a);
-      if (act === 'delete' && confirm(`Eliminare "${a.nome}"?`)) {
+      if (act === 'delete' && confirm(t('confirmDelete', { n: a.nome }))) {
         agenti = agenti.filter(x => x.id !== a.id); save(); render();
       }
     });
@@ -332,8 +429,8 @@
     function applyWidth(w) {
       const wide = w === 'wide';
       document.body.classList.toggle('wide', wide);
-      const t = $('btn-width-txt');
-      if (t) t.textContent = wide ? 'Stretta' : 'Larga';
+      const tt = $('btn-width-txt');
+      if (tt) tt.textContent = wide ? t('narrow') : t('wide');
       const b = $('btn-width');
       if (b) b.setAttribute('aria-pressed', String(wide));
       try { localStorage.setItem(WIDTH_KEY, wide ? 'wide' : 'normal'); } catch (e) {}
@@ -348,7 +445,7 @@
     function openForm(a) {
       editId = a?.id ?? null;
       form.reset();
-      $('form-title').textContent = a ? 'Modifica agente' : 'Nuovo agente';
+      $('form-title').textContent = a ? t('editAgent') : t('newAgent');
       F.nome.value        = a?.nome ?? '';
       F.url.value         = a?.url ?? '';
       F.descrizione.value = a?.descrizione ?? '';
@@ -370,7 +467,7 @@
         icona: F.icona.value || 'bot',
         modo: F.modo.value === 'frame' ? 'frame' : 'tab',
       };
-      if (!isUrl(dati.url)) { alert('Il link deve iniziare con http:// o https://'); return; }
+      if (!isUrl(dati.url)) { alert(t('invalidUrl')); return; }
 
       if (editId) agenti = agenti.map(a => a.id === editId ? { ...a, ...dati } : a);
       else agenti.push({ id: uid(), ...dati });
@@ -418,10 +515,10 @@
           descrizione: String(x.descrizione || ''), categoria: String(x.categoria || ''),
           icona: ICONE[x.icona] ? x.icona : 'bot', modo: x.modo === 'frame' ? 'frame' : 'tab',
         }));
-        if (confirm(`Importare ${nuovi.length} agenti? La lista attuale verrà sostituita.`)) {
+        if (confirm(t('confirmImport', { n: nuovi.length }))) {
           agenti = nuovi; save(); render();
         }
-      } catch { alert('File non valido.'); }
+      } catch { alert(t('invalidFile')); }
       e.target.value = '';
     };
 
@@ -446,7 +543,27 @@
       });
     })();
 
-    render();
+    // ===== Lingua globale (dal menu laterale di index.html) =====
+    function applyLang(l) {
+      curLang = LANGS.includes(l) ? l : 'it';
+      document.documentElement.lang = curLang;
+      try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
+      document.title = t('title');
+      document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+      document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+      document.querySelectorAll('[data-t-title]').forEach(el => { el.title = t(el.dataset.tTitle); });
+      renderIconPicker();
+      render();
+      try { applyWidth(document.body.classList.contains('wide') ? 'wide' : 'normal'); } catch (e) {}
+    }
+    window.addEventListener('message', (e) => {
+      if (e?.data?.type === LANG_KEY && LANGS.includes(e.data.lang)) applyLang(e.data.lang);
+    });
+    window.addEventListener('storage', (e) => {
+      if (e.key === LANG_KEY && LANGS.includes(e.newValue)) applyLang(e.newValue);
+    });
+
+    applyLang(curLang);
   </script>
 </body>
 </html>

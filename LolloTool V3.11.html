@@ -465,7 +465,6 @@
           <label><input type="checkbox" id="chk-longmeasure" checked> <span id="lbl-longmeasure">Monitoring</span></label>
         </div>
       </div>
-      <button class="lang-toggle" id="langBtn" title="Cambia lingua">IT</button>
       <button class="expand-toggle" id="expandBtn" title="Espandi / Riduci">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
@@ -847,7 +846,13 @@
     };
 
     // Initialize language from localStorage ASAP so __() and applyTranslations() can use it
-    const _savedLang = localStorage.getItem('sct-lang') || 'it';
+    // Fonte unica: chiave globale del menu laterale, poi legacy sct-lang
+    const GLOBAL_LANG_KEY = 'mylollotool-lang';
+    const _savedLang = (function() {
+      const g = localStorage.getItem(GLOBAL_LANG_KEY);
+      if (g === 'it' || g === 'de' || g === 'fr' || g === 'en') return g;
+      return localStorage.getItem('sct-lang') || 'it';
+    })();
     window.__sctLang = function() { return _savedLang; };
 
     window.__ = function(key) {
@@ -958,25 +963,37 @@
       if (lblMon) lblMon.textContent = __('lblMonitoring');
     }
 
-    // ---- Language toggle — Loris Salerno | taasalo3 ----
+    // ---- Language (dal menu laterale di index.html; nessun pulsante in pagina) ----
     (function(){
-      const langBtn = document.getElementById('langBtn');
+      const langBtn = document.getElementById('langBtn'); // rimosso: resta null
       const langs = ['it', 'de', 'fr', 'en'];
       const langLabels = { it: 'IT', de: 'DE', fr: 'FR', en: 'EN' };
       // Read the already-initialized lang from window.__sctLang
       let currentLang = window.__sctLang ? window.__sctLang() : 'it';
 
       function setLang(lang) {
+        if (!langs.includes(lang)) lang = 'it';
         currentLang = lang;
-        langBtn.textContent = langLabels[lang];
-        localStorage.setItem('sct-lang', lang);
+        if (langBtn) langBtn.textContent = langLabels[lang];
+        try {
+          localStorage.setItem('sct-lang', lang);
+          localStorage.setItem(GLOBAL_LANG_KEY, lang);
+        } catch (e) {}
         document.documentElement.lang = lang;
         // Update the global getter so __() returns the right language
         window.__sctLang = function() { return currentLang; };
         if (typeof applyTranslations === 'function') applyTranslations();
       }
+      // Comando dal menu laterale di index.html (stessa origine)
+      window.__sctSetLang = setLang;
+      window.addEventListener('message', (e) => {
+        if (e?.data?.type === GLOBAL_LANG_KEY && langs.includes(e.data.lang)) setLang(e.data.lang);
+      });
+      window.addEventListener('storage', (e) => {
+        if (e.key === GLOBAL_LANG_KEY && langs.includes(e.newValue)) setLang(e.newValue);
+      });
 
-      langBtn.addEventListener('click', (e) => {
+      if (langBtn) langBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const idx = langs.indexOf(currentLang);

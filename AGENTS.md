@@ -12,28 +12,28 @@ Nessuna build, nessun bundler. UI in italiano.
 - `agenti.html` — card link agenti, storage `mylollotool-agenti`. Toggle larghezza card (280px/360px) in toolbar, stato in `mylollotool-agenti-width`. Nessuna dipendenza esterna.
 - `DataSales.html`, `Turni Swisscom.html` — hanno dipendenze CDN: i test offline devono tollerare errori rete.
 
-## Tema globale unificato (2026-11-12)
+## Tema + lingua globali (2026-11-12)
 
-Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#theme-box`, segmented control con SVG sole/luna, senza label testuale).
+Fonte unica in fondo alla sidebar di `index.html` (`#theme-box`, riga `.pref-row`): pulsante tema icona (click = cambia, metodo SCT) + pulsante lingua `IT/DE/FR/EN` (click = ciclo, metodo SCT).
 
-- Chiave globale: `localStorage['mylollotool-theme']` = `light` | `dark` (default `light`).
-- Chiavi storiche sincronizzate da `index.html` (`syncLegacyKeys`): `sct-theme`=`light|dark`, `turni_tema`=`white|dark`, `theme`=`light|dark`.
-- Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme', theme})` su click e su `iframe load` + retry 120ms.
+- Chiavi globali: `localStorage['mylollotool-theme']` (`light`|`dark`, default `light`), `localStorage['mylollotool-lang']` (`it|de|fr|en`, default `it`).
+- Chiavi storiche sincronizzate da `index.html`: tema (`syncLegacyKeys`: `sct-theme`, `turni_tema`=`white|dark`, `theme`) e lingua (`sct-lang`, legacy SCT Tool).
+- Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme'|'mylollotool-lang', ...})` su click e su `iframe load` (+ retry tema 120ms); backup via `storage` event.
 - Nessun reload richiesto: `paintFrameNow()` scrive direttamente nel DOM dell'iframe (stessa origine): `body.dark` (Lollo/agenti), `.light-theme` (DataSales), `dataset.theme` (Turni).
 - Sidebar `index.html`: segue il tema via `body[data-mtheme]` (`paintMenuTheme` in `setGlobalTheme` + handler `storage`): light `#E5E7EB`/testo `#1F2937`, dark `#26262E`/testo `#EEEEF0` (più chiaro del dark pagine `#0D0D10`).
 - `fixToggleOverlap()` in `index.html`: il pulsante menu (`#toggle` 40px a 14,14, centro 34px come header DataSales 68px) sposta a destra gli header toccati (`.app-header`, `.header-row`, `header`, `.brand`, `h1`) con `marginLeft` fino a 66px + `width:auto` (evita overflow destro con `width:100%`). Usa posizione originale per non flappare; retry su `load`+400ms e `resize`.
 - Agenti: barra superiore allineata al pulsante (`h1`/`sub` con `margin-left:42px`, `h1 min-height:40px` centrato a 34px; niente più `padding-top:70px`).
 - Menu personalizzabile: matita in testata sidebar → modalità modifica: trascina le voci col mouse per riordinare, occhio SVG a destra per mostra/nascondi. Stato in `localStorage['mylollotool-menu']` (ordine + hidden); nuove voci in coda; `loadPage` usa solo voci visibili.
 - Backup via `storage` event in entrambe le direzioni (stessa origine, anche altre schede).
-- Ritorno: le pagine figlie rispondono con `window.parent.postMessage({type:'mylollotool-theme', theme})` quando l'utente cambia tema dentro la pagina; `index.html` aggiorna solo bottoni e chiavi (broadcast=false per evitare loop).
+- Ritorno: nessuna pagina figlia cambia più tema/lingua da sola (pulsanti rimossi); l'handler `message` in `index.html` resta come backup (broadcast=false per evitare loop).
 - Apertura diretta (senza iframe): ogni pagina legge prima la chiave globale, poi fallback storico.
 
 Dettagli per file (palette unica DataSales — dark `#0D0D10/#141417/#1A1A1F`, light `#F3F4F6/#FFFFFF/#F9FAFB`; testo dark `#EEEEF0`, light `#1F2937`; accent `#3B82F6`/`#60A5FA` dark, `#2563EB` light; bordi dark `#2A2A35`, light `#E5E7EB`):
 
-- LolloTool: `body.dark`. Usa variabile `GLOBAL_KEY`, non stringa letterale (grep cerca `GLOBAL_KEY`). Listener `message` + `applyTheme(t, notifyParent)`. Pulsante tema rimosso (2026-11-12): fonte unica nel menu di `index.html`; JS con guard su `btn` nullo.
-- Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale. Pulsante `#tema` rimosso (2026-11-12): `setTema` con guard su elemento mancante.
-- DataSales: `:root.light-theme` (assenza classe = dark). Helper `applyThemeFromGlobal()`. Non chiamare `renderStats()` prima del boot (`chMonthly/chTypes` in TDZ): usare try/catch esistente. Pulsante `#themeToggleBtn` rimosso (2026-11-12): `updateThemeIcon()` no-op, sync solo da `index.html`.
-- agenti: `body.dark` (CSS aggiunto in questo repo). Solo ricezione + lettura iniziale, nessun bottone tema nella pagina.
+- LolloTool: `body.dark`. Usa variabile `GLOBAL_KEY`, non stringa letterale (grep cerca `GLOBAL_KEY`). Listener `message` + `applyTheme(t, notifyParent)`. Pulsante tema rimosso (2026-11-12): fonte unica nel menu di `index.html`; JS con guard su `btn` nullo. Pulsante lingua `#langBtn` rimosso: `setLang` esposta come `window.__sctSetLang`, comandata da menu via `message`/`storage` (`mylollotool-lang`); dizionario it/de/fr/en già esistente.
+- Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale. Pulsante `#tema` rimosso (2026-11-12): `setTema` con guard su elemento mancante. i18n it/de/fr/en: dizionario `T` + `GIORNI_L`/`MESI_L`/`NOMI_L`, `applyLang()` (testi statici via `data-t`/`data-th`/`data-t-ph`/`data-t-title` + `paintButtons()` + re-render), listener `message`/`storage`.
+- DataSales: `:root.light-theme` (assenza classe = dark). Helper `applyThemeFromGlobal()`. Non chiamare `renderStats()` prima del boot (`chMonthly/chTypes` in TDZ): usare try/catch esistente. Pulsante `#themeToggleBtn` rimosso (2026-11-12): `updateThemeIcon()` no-op, sync solo da `index.html`. i18n it/de/fr/en: dizionario `T` + `MONTHS_L`, `applyLang()` (attributi `data-t*` + re-render parziale). ATTENZIONE: `applyLang` NON deve chiamare `refresh()` (migrate/sync scrivono su DB e settano flag modifiche) ma solo `renderSales/renderProducts/loadGoals/renderStats/renderArchive`. Header CSV tradotto: l'import accetta header in tutte le lingue (`HDR` map).
+- agenti: `body.dark` (CSS aggiunto in questo repo). Solo ricezione + lettura iniziale, nessun bottone tema nella pagina. i18n it/de/fr/en: dizionario `T` + `ICONL`, `applyLang()` (attributi `data-t*` + `renderIconPicker()` + re-render), listener `message`/`storage`.
 
 ## Test locale
 
@@ -48,6 +48,7 @@ Test rapidi senza browser:
 ```bash
 grep -c "mylollotool-theme" index.html DataSales.html agenti.html
 grep -c "GLOBAL_KEY\|mylollotool-theme" "LolloTool V3.11.html"
+grep -c "mylollotool-lang" index.html DataSales.html agenti.html "Turni Swisscom.html"
 ```
 
 Check sintassi JS (estrarre solo `<script>` senza `src`, dopo `<!DOCTYPE html>` per LolloTool — il commento iniziale contiene la stringa `<script>` e dà falso errore):
@@ -56,7 +57,7 @@ Check sintassi JS (estrarre solo `<script>` senza `src`, dopo `<!DOCTYPE html>` 
 python3 -c "estrai script e node --check"
 ```
 
-Con Playwright: naviga su `index.html`, apri sidebar (`#toggle`), clicca `#theme-dark`, verifica `localStorage` (`mylollotool-theme`, `sct-theme`, `turni_tema`, `theme`) e classi iframe (`body.dark` / `dataset.theme` / `.light-theme`). Screenshot sempre con `scale:"css"`. Errori console attesi non bloccanti: `favicon.ico 404`, immagine esterna `rcp.scsstatic.ch`.
+Con Playwright: naviga su `index.html`, apri sidebar (`#toggle`), clicca `#theme-toggle` / `#lang-btn`, verifica `localStorage` (`mylollotool-theme`, `mylollotool-lang`, `sct-theme`, `turni_tema`, `theme`, `sct-lang`) e classi iframe (`body.dark` / `dataset.theme` / `.light-theme`) + testi tradotti. Screenshot sempre con `scale:"css"`. Errori console attesi non bloccanti: `favicon.ico 404`, immagine esterna `rcp.scsstatic.ch`.
 
 ## Convenzioni
 

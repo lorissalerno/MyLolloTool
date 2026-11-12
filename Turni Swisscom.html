@@ -229,17 +229,17 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 </style>
 </head>
 <body>
-<div class="overlay screen" id="overlay">Rilascia qui il file .ics / .txt</div>
+<div class="overlay screen" id="overlay" data-t="overlayDrop">Rilascia qui il file .ics / .txt</div>
 <div class="wrap screen">
 <header>
-  <div class="brand"><img class="logo" src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="Swisscom"><div><h1>I miei turni</h1><div class="sub" id="sub"></div></div></div>
+  <div class="brand"><img class="logo" src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="Swisscom"><div><h1 data-t="appTitle">I miei turni</h1><div class="sub" id="sub"></div></div></div>
   <div class="right" id="tools">
     <button class="stato none" id="stato"></button>
-    <button class="iconbtn" id="menu" title="Menu" aria-expanded="false"></button>
+    <button class="iconbtn" id="menu" data-t-title="menuTitle" title="Menu" aria-expanded="false"></button>
     <span id="drop">
-      <button id="aggiorna" class="tbtn" title="Aggiorna dal link"></button>
-      <button class="tbtn sec" id="pdfb" title="Scarica il PDF"></button>
-      <button class="iconbtn" id="canc" title="Cancella turni"></button>
+      <button id="aggiorna" class="tbtn" data-t-title="updTitle" title="Aggiorna dal link"></button>
+      <button class="tbtn sec" id="pdfb" data-t-title="pdfTitle" title="Scarica il PDF"></button>
+      <button class="iconbtn" id="canc" data-t-title="cancTitle" title="Cancella turni"></button>
     </span>
   </div>
 </header>
@@ -249,32 +249,32 @@ button:disabled{opacity:.35;cursor:default;filter:none}
   <section class="card panel" id="panel">
    <div class="dhead">
      <div class="dico" id="dico"></div>
-     <div class="dtit"><div class="ptitle" id="ptitle"></div><div class="dsub">Il link resta <b>solo in questo browser</b>: condividi la pagina senza condividere i tuoi turni.</div></div>
-     <button class="iconbtn" id="chiudiX" title="Chiudi"></button>
+     <div class="dtit"><div class="ptitle" id="ptitle"></div><div class="dsub" data-th="panelSub">Il link resta <b>solo in questo browser</b>: condividi la pagina senza condividere i tuoi turni.</div></div>
+     <button class="iconbtn" id="chiudiX" data-t-title="close" title="Chiudi"></button>
    </div>
    <div class="field">
-     <input id="linkIn" type="password" autocomplete="off" spellcheck="false" placeholder="Incolla qui il link .ics del calendario…">
-     <button class="iconbtn eyeIn" id="eye" title="Mostra / nascondi link"></button>
+     <input id="linkIn" type="password" autocomplete="off" spellcheck="false" data-t-ph="linkPh" placeholder="Incolla qui il link .ics del calendario…">
+     <button class="iconbtn eyeIn" id="eye" data-t-title="eyeTitle" title="Mostra / nascondi link"></button>
    </div>
    <div class="ctaRow"><button id="salva"></button><button class="sec" id="rimuovi"></button></div>
    <div class="pinfo" id="pinfo"></div>
-   <div class="orca">Oppure usa il codice QR</div>
-   <button class="qropt" id="qrCam"><span class="qi"></span><span><b>Scansiona con la fotocamera</b><small>Inquadra il QR: il link si inserisce e si verifica da solo</small></span></button>
-   <button class="qropt" id="qrFileBtn"><span class="qi"></span><span><b>Carica immagine del QR</b><small>Scegli uno screenshot che contiene il codice</small></span></button>
+   <div class="orca" data-t="qrUse">Oppure usa il codice QR</div>
+   <button class="qropt" id="qrCam"><span class="qi"></span><span><b data-t="qrCamT">Scansiona con la fotocamera</b><small data-t="qrCamS">Inquadra il QR: il link si inserisce e si verifica da solo</small></span></button>
+   <button class="qropt" id="qrFileBtn"><span class="qi"></span><span><b data-t="qrFileT">Carica immagine del QR</b><small data-t="qrFileS">Scegli uno screenshot che contiene il codice</small></span></button>
    <video id="qrVideo" class="qrvid" playsinline muted autoplay></video>
    <div class="pinfo" id="qrHint"></div>
   </section>
  </div>
 </div>
  <div class="modal screen" id="tmodal" hidden><div class="dialog tdialog" id="tdialog" role="dialog" aria-modal="true"></div></div>
- <div class="modal screen" id="pmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="pico"></div><div class="dtit"><div class="ptitle">Scarica il PDF</div><div class="dsub">Scegli quali settimane includere. Ogni mese resta su un foglio separato.</div></div><button class="iconbtn" id="pchiudi" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="pdfOggi"></button><button class="sec" id="pdfTutte"></button></div></div></div>
- <div class="modal screen" id="cmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="cico"></div><div class="dtit"><div class="ptitle">Cancellare tutti i turni?</div><div class="dsub">Verranno eliminati i turni salvati in questo browser. Il link resta collegato.</div></div><button class="iconbtn" id="cchiudi" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="cancSi"></button><button class="sec" id="cancNo"></button></div></div></div>
+ <div class="modal screen" id="pmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="pico"></div><div class="dtit"><div class="ptitle" data-t="pdfDlgT">Scarica il PDF</div><div class="dsub" data-t="pdfDlgS">Scegli quali settimane includere. Ogni mese resta su un foglio separato.</div></div><button class="iconbtn" id="pchiudi" data-t-title="close" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="pdfOggi"></button><button class="sec" id="pdfTutte"></button></div></div></div>
+ <div class="modal screen" id="cmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="cico"></div><div class="dtit"><div class="ptitle" data-t="cancDlgT">Cancellare tutti i turni?</div><div class="dsub" data-t="cancDlgS">Verranno eliminati i turni salvati in questo browser. Il link resta collegato.</div></div><button class="iconbtn" id="cchiudi" data-t-title="close" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="cancSi"></button><button class="sec" id="cancNo"></button></div></div></div>
 
 <section class="card steps" id="steps" hidden>
-  <div class="ptitle" style="color:var(--warn)">Il calendario è in download</div>
+  <div class="ptitle" style="color:var(--warn)" data-t="stepsT">Il calendario è in download</div>
   <ol>
-    <li>Il browser ha scaricato il file <b>.ics</b> aggiornato.</li>
-    <li><b>Trascina il file</b> in un punto qualsiasi di questa pagina, oppure <a id="scegli">sceglilo qui</a>.</li>
+    <li data-th="steps1">Il browser ha scaricato il file <b>.ics</b> aggiornato.</li>
+    <li><b data-t="stepsDrag">Trascina il file</b> <span data-t="stepsMid">in un punto qualsiasi di questa pagina, oppure</span> <a id="scegli" data-t="stepsHere">sceglilo qui</a>.</li>
   </ol>
   <button class="sec" id="scarica"></button>
 </section>
@@ -282,8 +282,8 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 <div id="toasts" class="screen"></div>
 
 <div class="nav" id="nav">
-  <button class="sec" id="prev" title="Mostra la settimana precedente (←)"></button>
-  <button class="sec" id="oggi">Oggi</button>
+  <button class="sec" id="prev" data-t-title="prevTitle" title="Mostra la settimana precedente (←)"></button>
+  <button class="sec" id="oggi" data-t="today">Oggi</button>
 </div>
 
 <div id="out"></div>
@@ -295,8 +295,9 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 
 <script>
 /* ===== Date & parsing (pure) ===== */
-const GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
-const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let GIORNI=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+let MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let NOMI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const pad=n=>String(n).padStart(2,'0');
 const hm=m=>pad(Math.floor(m/60))+':'+pad(m%60);
 const kParse=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(Date.UTC(y,m-1,d));};
@@ -384,13 +385,13 @@ function parseTXT(txt){
     const k=`${m[4]}-${m[3]}-${m[2]}`, info=m[5], d={segs:[]};
     if(isVac(info)) d.vac=true;
     else{
-      const t=info.match(/Da (\d{1,2}):(\d{2}) a (\d{1,2}):(\d{2})\s*:?\s*(.*)/);
-      if(t){
-        const S=+t[1]*60+ +t[2], E=+t[3]*60+ +t[4];
-        const acts=[...t[5].matchAll(/([^,]+?)\s+(\d{1,2}):(\d{2})(?=\s*(,|$))/g)].map(a=>({n:a[1].trim(),s:+a[2]*60+ +a[3]}));
+      const tm=info.match(/Da (\d{1,2}):(\d{2}) a (\d{1,2}):(\d{2})\s*:?\s*(.*)/);
+      if(tm){
+        const S=+tm[1]*60+ +tm[2], E=+tm[3]*60+ +tm[4];
+        const acts=[...tm[5].matchAll(/([^,]+?)\s+(\d{1,2}):(\d{2})(?=\s*(,|$))/g)].map(a=>({n:a[1].trim(),s:+a[2]*60+ +a[3]}));
         if(acts.length) acts.forEach((a,i)=>d.segs.push({s:a.s,e:i<acts.length-1?acts[i+1].s:E,n:a.n,d:''}));
-        else d.segs.push({s:S,e:E,n:'Turno',d:''});
-      } else d.altro=info.replace(/permesso giornata intera\s*-\s*/i,'').trim()||'Assente';
+        else d.segs.push({s:S,e:E,n:t('turnoFallback'),d:''});
+      } else d.altro=info.replace(/permesso giornata intera\s*-\s*/i,'').trim()||t('assenteFallback');
     }
     days[k]=d;
   });
@@ -459,6 +460,154 @@ window.addEventListener('storage',e=>{
   }
 });
 
+/* ===== Lingua globale (dal menu laterale di index.html) ===== */
+const LANG_KEY='mylollotool-lang';
+const LANGS=['it','de','fr','en'];
+const GIORNI_L={
+  it:['Lun','Mar','Mer','Gio','Ven','Sab','Dom'],
+  de:['Mo','Di','Mi','Do','Fr','Sa','So'],
+  fr:['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+  en:['Mon','Tue','Wed','Thu','Fri','Sat','Sun']};
+const MESI_L={
+  it:['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
+  de:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  fr:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+  en:['January','February','March','April','May','June','July','August','September','October','November','December']};
+const NOMI_L={
+  it:['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'],
+  de:['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'],
+  fr:['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],
+  en:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']};
+const T={
+  docTitle:{it:'I miei turni',de:'Meine Schichten',fr:'Mes gardes',en:'My shifts'},
+  appTitle:{it:'I miei turni',de:'Meine Schichten',fr:'Mes gardes',en:'My shifts'},
+  overlayDrop:{it:'Rilascia qui il file .ics / .txt',de:'.ics- / .txt-Datei hier ablegen',fr:'Déposez ici le fichier .ics / .txt',en:'Drop the .ics / .txt file here'},
+  menuTitle:{it:'Menu',de:'Menü',fr:'Menu',en:'Menu'},
+  updTitle:{it:'Aggiorna dal link',de:'Über Link aktualisieren',fr:'Actualiser depuis le lien',en:'Refresh from link'},
+  pdfTitle:{it:'Scarica il PDF',de:'PDF herunterladen',fr:'Télécharger le PDF',en:'Download PDF'},
+  cancTitle:{it:'Cancella turni',de:'Schichten löschen',fr:'Supprimer les gardes',en:'Delete shifts'},
+  panelSub:{it:'Il link resta <b>solo in questo browser</b>: condividi la pagina senza condividere i tuoi turni.',de:'Der Link bleibt <b>nur in diesem Browser</b>: Teile die Seite, ohne deine Schichten zu teilen.',fr:'Le lien reste <b>uniquement dans ce navigateur</b> : partagez la page sans partager vos gardes.',en:'The link stays <b>only in this browser</b>: share the page without sharing your shifts.'},
+  close:{it:'Chiudi',de:'Schliessen',fr:'Fermer',en:'Close'},
+  linkPh:{it:'Incolla qui il link .ics del calendario…',de:'Kalender-.ics-Link hier einfügen…',fr:'Collez ici le lien .ics du calendrier…',en:'Paste the calendar .ics link here…'},
+  eyeTitle:{it:'Mostra / nascondi link',de:'Link ein-/ausblenden',fr:'Afficher / masquer le lien',en:'Show / hide link'},
+  qrUse:{it:'Oppure usa il codice QR',de:'Oder QR-Code verwenden',fr:'Ou utilisez le QR code',en:'Or use the QR code'},
+  qrCamT:{it:'Scansiona con la fotocamera',de:'Mit Kamera scannen',fr:'Scanner avec la caméra',en:'Scan with camera'},
+  qrCamS:{it:'Inquadra il QR: il link si inserisce e si verifica da solo',de:'QR einrahmen: Der Link wird automatisch eingefügt und geprüft',fr:'Cadrez le QR : le lien est inséré et vérifié tout seul',en:'Frame the QR: the link is inserted and verified by itself'},
+  qrFileT:{it:'Carica immagine del QR',de:'QR-Bild laden',fr:'Charger une image du QR',en:'Upload QR image'},
+  qrFileS:{it:'Scegli uno screenshot che contiene il codice',de:'Screenshot mit Code wählen',fr:'Choisissez une capture contenant le code',en:'Choose a screenshot containing the code'},
+  pdfDlgT:{it:'Scarica il PDF',de:'PDF herunterladen',fr:'Télécharger le PDF',en:'Download PDF'},
+  pdfDlgS:{it:'Scegli quali settimane includere. Ogni mese resta su un foglio separato.',de:'Wähle die Wochen. Jeder Monat bleibt auf einem separaten Blatt.',fr:'Choisissez les semaines à inclure. Chaque mois reste sur une feuille séparée.',en:'Choose which weeks to include. Each month stays on a separate sheet.'},
+  cancDlgT:{it:'Cancellare tutti i turni?',de:'Alle Schichten löschen?',fr:'Supprimer toutes les gardes ?',en:'Delete all shifts?'},
+  cancDlgS:{it:'Verranno eliminati i turni salvati in questo browser. Il link resta collegato.',de:'Die in diesem Browser gespeicherten Schichten werden gelöscht. Der Link bleibt verbunden.',fr:'Les gardes enregistrées dans ce navigateur seront supprimées. Le lien reste connecté.',en:'Shifts saved in this browser will be deleted. The link stays connected.'},
+  stepsT:{it:'Il calendario è in download',de:'Kalender wird heruntergeladen',fr:'Le calendrier est en téléchargement',en:'Calendar is downloading'},
+  steps1:{it:'Il browser ha scaricato il file <b>.ics</b> aggiornato.',de:'Der Browser hat die aktualisierte <b>.ics</b>-Datei heruntergeladen.',fr:'Le navigateur a téléchargé le fichier <b>.ics</b> mis à jour.',en:'The browser downloaded the updated <b>.ics</b> file.'},
+  stepsDrag:{it:'Trascina il file',de:'Datei hierher ziehen',fr:'Glissez le fichier',en:'Drag the file'},
+  stepsMid:{it:'in un punto qualsiasi di questa pagina, oppure',de:'an eine beliebige Stelle dieser Seite, oder',fr:'n’importe où sur cette page, ou',en:'anywhere on this page, or'},
+  stepsHere:{it:'sceglilo qui',de:'hier wählen',fr:'choisissez-le ici',en:'choose it here'},
+  dlAgain:{it:'Scarica di nuovo',de:'Erneut herunterladen',fr:'Télécharger à nouveau',en:'Download again'},
+  prevTitle:{it:'Mostra la settimana precedente (←)',de:'Vorherige Woche anzeigen (←)',fr:'Afficher la semaine précédente (←)',en:'Show previous week (←)'},
+  today:{it:'Oggi',de:'Heute',fr:'Aujourd’hui',en:'Today'},
+  statoOk:{it:'Link attivo',de:'Link aktiv',fr:'Lien actif',en:'Link active'},
+  statoSaved:{it:'Link salvato',de:'Link gespeichert',fr:'Lien enregistré',en:'Link saved'},
+  statoErr:{it:'Link non valido',de:'Ungültiger Link',fr:'Lien invalide',en:'Invalid link'},
+  statoNone:{it:'Nessun link',de:'Kein Link',fr:'Aucun lien',en:'No link'},
+  statoOkT:{it:'Sincronizzazione automatica attiva',de:'Automatische Synchronisierung aktiv',fr:'Synchronisation automatique active',en:'Automatic sync active'},
+  statoLast:{it:'ultimo aggiornamento',de:'letzte Aktualisierung',fr:'dernière mise à jour',en:'last update'},
+  statoSavedT:{it:'Il browser blocca la lettura diretta: aggiorna in 2 clic',de:'Der Browser blockiert direktes Lesen: in 2 Klicks aktualisieren',fr:'Le navigateur bloque la lecture directe : actualiser en 2 clics',en:'Browser blocks direct reading: refresh in 2 clicks'},
+  statoErrT:{it:'Errore sul link',de:'Fehler beim Link',fr:'Erreur sur le lien',en:'Link error'},
+  statoNoneT:{it:'Clicca per collegare il link del calendario',de:'Klicken, um den Kalender-Link zu verbinden',fr:'Cliquez pour connecter le lien du calendrier',en:'Click to connect the calendar link'},
+  subUpd:{it:'Ultimo aggiornamento',de:'Letzte Aktualisierung',fr:'Dernière mise à jour',en:'Last update'},
+  subNone:{it:'Nessun aggiornamento',de:'Keine Aktualisierung',fr:'Aucune mise à jour',en:'No updates'},
+  updBtn:{it:'Aggiorna',de:'Aktualisieren',fr:'Actualiser',en:'Refresh'},
+  pdfBtn:{it:'PDF',de:'PDF',fr:'PDF',en:'PDF'},
+  cancBtn:{it:'Cancella',de:'Löschen',fr:'Supprimer',en:'Delete'},
+  prevWeek:{it:'Settimana precedente',de:'Vorherige Woche',fr:'Semaine précédente',en:'Previous week'},
+  err401:{it:'Accesso negato o link scaduto (errore {s}).',de:'Zugriff verweigert oder Link abgelaufen (Fehler {s}).',fr:'Accès refusé ou lien expiré (erreur {s}).',en:'Access denied or link expired (error {s}).'},
+  err404:{it:'Calendario non trovato (errore 404).',de:'Kalender nicht gefunden (Fehler 404).',fr:'Calendrier introuvable (erreur 404).',en:'Calendar not found (error 404).'},
+  errSrv:{it:'Errore del server ({s}).',de:'Serverfehler ({s}).',fr:'Erreur du serveur ({s}).',en:'Server error ({s}).'},
+  errNoIcs:{it:'Il link non restituisce un calendario .ics.',de:'Der Link liefert keinen .ics-Kalender.',fr:'Le lien ne renvoie pas un calendrier .ics.',en:'The link does not return an .ics calendar.'},
+  panelHas:{it:'Link calendario collegato',de:'Kalender-Link verbunden',fr:'Lien du calendrier connecté',en:'Calendar link connected'},
+  panelNo:{it:'Collega il calendario',de:'Kalender verbinden',fr:'Connecter le calendrier',en:'Connect calendar'},
+  saveVerify:{it:'Salva e verifica',de:'Speichern und prüfen',fr:'Enregistrer et vérifier',en:'Save and verify'},
+  linkBtn:{it:'Collega',de:'Verbinden',fr:'Connecter',en:'Connect'},
+  removeBtn:{it:'Rimuovi',de:'Entfernen',fr:'Supprimer',en:'Remove'},
+  pinfoOk:{it:'✓ Il link funziona: i turni si aggiornano automaticamente.',de:'✓ Der Link funktioniert: Die Schichten werden automatisch aktualisiert.',fr:'✓ Le lien fonctionne : les gardes se mettent à jour automatiquement.',en:'✓ The link works: shifts update automatically.'},
+  pinfoSaved:{it:'Il link è salvato, ma il browser blocca la lettura diretta. Usa Aggiorna: scarica il file e trascinalo nella pagina.',de:'Der Link ist gespeichert, aber der Browser blockiert direktes Lesen. Nutze Aktualisieren: Lade die Datei herunter und ziehe sie auf die Seite.',fr:'Le lien est enregistré, mais le navigateur bloque la lecture directe. Utilisez Actualiser : téléchargez le fichier et glissez-le sur la page.',en:'The link is saved, but the browser blocks direct reading. Use Refresh: download the file and drag it onto the page.'},
+  linkBad:{it:'Il link deve iniziare con https:// e non contenere spazi.',de:'Der Link muss mit https:// beginnen und darf keine Leerzeichen enthalten.',fr:'Le lien doit commencer par https:// et ne pas contenir d’espaces.',en:'The link must start with https:// and contain no spaces.'},
+  verifying:{it:'Verifica in corso…',de:'Prüfung läuft…',fr:'Vérification en cours…',en:'Verifying…'},
+  linkedOk:{it:'✓ Collegato! Il link funziona e i turni sono aggiornati.',de:'✓ Verbunden! Der Link funktioniert und die Schichten sind aktuell.',fr:'✓ Connecté ! Le lien fonctionne et les gardes sont à jour.',en:'✓ Connected! The link works and shifts are up to date.'},
+  linkSaved2:{it:'Link salvato. Il browser non permette la lettura diretta: premi Aggiorna, poi trascina il file scaricato nella pagina.',de:'Link gespeichert. Der Browser erlaubt kein direktes Lesen: Drücke Aktualisieren und ziehe dann die Datei auf die Seite.',fr:'Lien enregistré. Le navigateur ne permet pas la lecture directe : appuyez sur Actualiser, puis glissez le fichier téléchargé sur la page.',en:'Link saved. The browser does not allow direct reading: press Refresh, then drag the downloaded file onto the page.'},
+  confirmRemove:{it:'Rimuovere il link? I turni salvati restano.',de:'Link entfernen? Gespeicherte Schichten bleiben.',fr:'Supprimer le lien ? Les gardes enregistrées restent.',en:'Remove the link? Saved shifts stay.'},
+  linkRemoved:{it:'Link rimosso.',de:'Link entfernt.',fr:'Lien supprimé.',en:'Link removed.'},
+  qrHintOk:{it:'Il link letto dal QR viene inserito qui sopra e verificato da solo.',de:'Der vom QR gelesene Link wird oben eingefügt und automatisch geprüft.',fr:'Le lien lu depuis le QR est inséré ci-dessus et vérifié tout seul.',en:'The link read from the QR is inserted above and verified by itself.'},
+  qrHintNo:{it:'Questo browser non sa leggere i QR: incolla il link qui sopra, oppure scansiona il QR con l’app Fotocamera del telefono.',de:'Dieser Browser kann keine QR lesen: Füge den Link oben ein oder scanne den QR mit der Kamera-App des Telefons.',fr:'Ce navigateur ne sait pas lire les QR : collez le lien ci-dessus, ou scannez le QR avec l’app Appareil photo du téléphone.',en:'This browser cannot read QR codes: paste the link above, or scan the QR with the phone Camera app.'},
+  qrCamRun:{it:'Interrompi la fotocamera',de:'Kamera stoppen',fr:'Arrêter la caméra',en:'Stop camera'},
+  qrCamIdle:{it:'Scansiona con la fotocamera',de:'Mit Kamera scannen',fr:'Scanner avec la caméra',en:'Scan with camera'},
+  qrNone:{it:'Nessun codice QR riconosciuto.',de:'Kein QR-Code erkannt.',fr:'Aucun QR code reconnu.',en:'No QR code recognized.'},
+  qrBad:{it:'Il QR non contiene un link https valido: ',de:'Der QR enthält keinen gültigen https-Link: ',fr:'Le QR ne contient pas un lien https valide : ',en:'The QR does not contain a valid https link: '},
+  qrReadVerify:{it:'QR letto: verifica del link…',de:'QR gelesen: Link wird geprüft…',fr:'QR lu : vérification du lien…',en:'QR read: verifying link…'},
+  qrNoCam:{it:'Fotocamera non disponibile qui (serve https o un browser aggiornato).',de:'Kamera hier nicht verfügbar (https oder aktueller Browser nötig).',fr:'Caméra indisponible ici (https ou navigateur récent requis).',en:'Camera not available here (https or updated browser required).'},
+  qrNoDet:{it:'Questo browser non sa leggere i QR: incolla il link a mano.',de:'Dieser Browser kann keine QR lesen: Füge den Link manuell ein.',fr:'Ce navigateur ne sait pas lire les QR : collez le lien à la main.',en:'This browser cannot read QR codes: paste the link manually.'},
+  qrDenied:{it:'Permesso fotocamera negato o fotocamera non disponibile.',de:'Kamerazugriff verweigert oder keine Kamera verfügbar.',fr:'Accès caméra refusé ou caméra indisponible.',en:'Camera permission denied or camera unavailable.'},
+  qrAim:{it:'Inquadra il codice QR del calendario.',de:'Kalender-QR einrahmen.',fr:'Cadrez le QR code du calendrier.',en:'Frame the calendar QR code.'},
+  qrReading:{it:'Lettura in corso…',de:'Wird gelesen…',fr:'Lecture en cours…',en:'Reading…'},
+  qrNoImg:{it:'Nessun QR trovato in questa immagine.',de:'Kein QR in diesem Bild gefunden.',fr:'Aucun QR trouvé dans cette image.',en:'No QR found in this image.'},
+  qrImgErr:{it:'Non riesco a leggere questa immagine.',de:'Dieses Bild kann nicht gelesen werden.',fr:'Impossible de lire cette image.',en:'Cannot read this image.'},
+  esitoNone:{it:'Nessun turno trovato nel file.',de:'Keine Schicht in der Datei gefunden.',fr:'Aucune garde trouvée dans le fichier.',en:'No shifts found in the file.'},
+  esitoFile:{it:'File importato',de:'Datei importiert',fr:'Fichier importé',en:'File imported'},
+  esitoLink:{it:'Aggiornato dal link',de:'Über Link aktualisiert',fr:'Mis à jour depuis le lien',en:'Updated from link'},
+  esitoDays:{it:'giorni letti',de:'Tage gelesen',fr:'jours lus',en:'days read'},
+  esitoNoChange:{it:'nessuna modifica',de:'keine Änderungen',fr:'aucune modification',en:'no changes'},
+  esitoUpd:{it:'{n} nuovi, {m} aggiornati',de:'{n} neu, {m} aktualisiert',fr:'{n} nouvelles, {m} mises à jour',en:'{n} new, {m} updated'},
+  esitoFreed:{it:'{n} diventati liberi',de:'{n} frei geworden',fr:'{n} devenues libres',en:'{n} became free'},
+  esitoPast:{it:'(di cui {n} nei giorni passati)',de:'(davon {n} in vergangenen Tagen)',fr:'(dont {n} dans les jours passés)',en:'(of which {n} in past days)'},
+  free:{it:'Libero',de:'Frei',fr:'Libre',en:'Free'},
+  vac:{it:'VACANZA',de:'URLAUB',fr:'VACANCES',en:'HOLIDAY'},
+  pauseFull:{it:'Pausa {d}',de:'Pause {d}',fr:'Pause {d}',en:'Break {d}'},
+  pauseShort:{it:'P {d}',de:'P {d}',fr:'P {d}',en:'B {d}'},
+  freeDay:{it:'Giorno libero',de:'Freier Tag',fr:'Jour libre',en:'Free day'},
+  workShift:{it:'Turno di lavoro',de:'Arbeitsschicht',fr:'Garde de travail',en:'Work shift'},
+  sufExtra:{it:' + Straordinario',de:' + Überstunden',fr:' + Heures sup.',en:' + Overtime'},
+  sufRecup:{it:' · Recupero',de:' · Kompensation',fr:' · Récupération',en:' · Time off in lieu'},
+  sufMeet:{it:' · Meeting',de:' · Meeting',fr:' · Réunion',en:' · Meeting'},
+  sufTrain:{it:' · Training',de:' · Training',fr:' · Formation',en:' · Training'},
+  work:{it:'lavoro',de:'Arbeit',fr:'travail',en:'work'},
+  pauseW:{it:'pausa',de:'Pause',fr:'pause',en:'break'},
+  extraW:{it:'straordinario',de:'Überstunden',fr:'heures sup.',en:'overtime'},
+  vacT:{it:'Vacanza',de:'Urlaub',fr:'Vacances',en:'Holiday'},
+  vacSub:{it:'Giornata intera · nessun turno',de:'Ganzer Tag · keine Schicht',fr:'Journée entière · aucune garde',en:'Whole day · no shifts'},
+  notes:{it:'Note',de:'Notizen',fr:'Notes',en:'Notes'},
+  statoLbl:{it:'Stato',de:'Status',fr:'Statut',en:'Status'},
+  noShiftTxt:{it:'Nessun turno salvato: goditi il giorno libero.',de:'Keine Schicht gespeichert: Geniesse den freien Tag.',fr:'Aucune garde enregistrée : profitez du jour libre.',en:'No shift saved: enjoy the free day.'},
+  todayBadge:{it:'OGGI',de:'HEUTE',fr:'AUJ.',en:'TODAY'},
+  weekend:{it:'WEEKEND',de:'WOCHENENDE',fr:'WEEK-END',en:'WEEKEND'},
+  emptySyncT:{it:'Nessun turno sincronizzato',de:'Keine Schicht synchronisiert',fr:'Aucune garde synchronisée',en:'No shifts synced'},
+  emptySaveT:{it:'Nessun turno salvato',de:'Keine Schicht gespeichert',fr:'Aucune garde enregistrée',en:'No shifts saved'},
+  emptySyncP:{it:'Il calendario è collegato ma non ci sono ancora turni: prova ad aggiornare.',de:'Der Kalender ist verbunden, aber es gibt noch keine Schichten: versuche zu aktualisieren.',fr:'Le calendrier est connecté mais il n’y a pas encore de gardes : essayez d’actualiser.',en:'The calendar is connected but there are no shifts yet: try refreshing.'},
+  emptySaveP:{it:'Collega il calendario del tuo lavoro: i turni arrivano da soli. Incolla il link .ics o leggilo dal codice QR, oppure trascina qui il file scaricato.',de:'Verbinde deinen Arbeitskalender: Die Schichten kommen von allein. Füge den .ics-Link ein oder lies ihn per QR-Code, oder ziehe die Datei hierher.',fr:'Connectez le calendrier de votre travail : les gardes arrivent toutes seules. Collez le lien .ics ou lisez-le depuis le QR code, ou glissez ici le fichier téléchargé.',en:'Connect your work calendar: shifts arrive by themselves. Paste the .ics link or read it from the QR code, or drag the downloaded file here.'},
+  emptyFuture:{it:'Nessun turno da oggi in poi. Premi <b>{u}</b> oppure usa il tasto qui sopra per vedere le settimane passate.',de:'Keine Schicht von heute an. Drücke <b>{u}</b> oder nutze die Taste oben für vergangene Wochen.',fr:'Aucune garde à partir d’aujourd’hui. Appuyez sur <b>{u}</b> ou utilisez le bouton ci-dessus pour voir les semaines passées.',en:'No shifts from today on. Press <b>{u}</b> or use the button above to see past weeks.'},
+  infoTitle:{it:'Ci sono note: clicca per vederle',de:'Notizen vorhanden: klicken zum Ansehen',fr:'Il y a des notes : cliquez pour les voir',en:'There are notes: click to see them'},
+  pdfEmpty:{it:'Nessun turno da stampare.',de:'Keine Schicht zu drucken.',fr:'Aucune garde à imprimer.',en:'No shifts to print.'},
+  pdfEmptyToday:{it:'Nessun turno da oggi in poi.',de:'Keine Schicht von heute an.',fr:'Aucune garde à partir d’aujourd’hui.',en:'No shifts from today on.'},
+  legTurno:{it:'Turno',de:'Schicht',fr:'Garde',en:'Shift'},
+  legTraining:{it:'Training',de:'Training',fr:'Formation',en:'Training'},
+  legMeeting:{it:'Meeting',de:'Meeting',fr:'Réunion',en:'Meeting'},
+  legStraord:{it:'Straord.',de:'Überstd.',fr:'H. sup.',en:'Overtime'},
+  legRecupero:{it:'Recupero',de:'Kompens.',fr:'Récup.',en:'TOIL'},
+  legPausa:{it:'Pausa',de:'Pause',fr:'Pause',en:'Break'},
+  legVacanza:{it:'Vacanza',de:'Urlaub',fr:'Vacances',en:'Holiday'},
+  pdfFrom:{it:'Solo da oggi in poi',de:'Nur von heute an',fr:'Seulement à partir d’aujourd’hui',en:'Only from today on'},
+  pdfAll:{it:'Anche le precedenti',de:'Auch frühere',fr:'Aussi les précédentes',en:'Also previous ones'},
+  cancYes:{it:'Sì, cancella tutto',de:'Ja, alles löschen',fr:'Oui, tout supprimer',en:'Yes, delete everything'},
+  cancDone:{it:'Turni cancellati.',de:'Schichten gelöscht.',fr:'Gardes supprimées.',en:'Shifts deleted.'},
+  cancNo:{it:'Mantieni i turni',de:'Schichten behalten',fr:'Garder les gardes',en:'Keep shifts'},
+  pdfDoc:{it:'Turni',de:'Schichten',fr:'Gardes',en:'Shifts'},
+  turnoFallback:{it:'Turno',de:'Schicht',fr:'Garde',en:'Shift'},
+  assenteFallback:{it:'Assente',de:'Abwesend',fr:'Absent',en:'Absent'},
+};
+let curLang=(()=>{try{const g=localStorage.getItem(LANG_KEY);if(LANGS.includes(g))return g;}catch(e){}return 'it';})();
+function t(k,v){let s=(T[k]&&(T[k][curLang]||T[k].it))||k;if(v)for(const x in v)s=s.replace('{'+x+'}',v[x]);return s;}
+
 /* ===== Messaggi (toast in basso a destra, 5s) ===== */
 function msg(t,err){
   const box=$('toasts'), el=document.createElement('div');
@@ -485,11 +634,11 @@ function merge(nuovi){
   save(d); return {letti:ks.length,nuo,agg,tolti,pass};
 }
 function esito(r,fonte){
-  if(!r){msg('Nessun turno trovato nel file.',true);return;}
-  let t=`${fonte}: ${r.letti} giorni letti`;
-  if(!r.nuo&&!r.agg&&!r.tolti) t+=', nessuna modifica';
-  else{ t+=`, ${r.nuo} nuovi, ${r.agg} aggiornati`; if(r.tolti) t+=`, ${r.tolti} diventati liberi`; if(r.pass) t+=` (di cui ${r.pass} nei giorni passati)`; }
-  msg(t+'.');
+  if(!r){msg(t('esitoNone'),true);return;}
+  let t2=`${fonte}: ${r.letti} ${t('esitoDays')}`;
+  if(!r.nuo&&!r.agg&&!r.tolti) t2+=', '+t('esitoNoChange');
+  else{ t2+=`, ${t('esitoUpd',{n:r.nuo,m:r.agg})}`; if(r.tolti) t2+=`, ${t('esitoFreed',{n:r.tolti})}`; if(r.pass) t2+=` ${t('esitoPast',{n:r.pass})}`; }
+  msg(t2+'.');
 }
 
 /* ===== Import file (solo trascinamento o dal riquadro "Aggiorna") ===== */
@@ -499,7 +648,7 @@ async function importa(files){
   const tot={letti:0,nuo:0,agg:0,tolti:0,pass:0}; let ok=false;
   for(const f of files){const r=merge(parseAuto(await leggiFile(f))); if(r){ok=true; for(const k in tot) tot[k]+=r[k];}}
   if(ok){ setMeta({last:Date.now(),via:'file'}); $('steps').hidden=true; }
-  render(); esito(ok?tot:null,'File importato');
+  render(); esito(ok?tot:null,t('esitoFile'));
 }
 
 /* ===== Link calendario ===== */
@@ -510,25 +659,25 @@ function setStato(s,m){
   stato=s; statoMsg=m||'';
   const b=$('stato'), M=meta();
   const ico={ok:IC.check,saved:IC.link,err:IC.warn,none:IC.unlink}[s];
-  const txt={ok:'Link attivo',saved:'Link salvato',err:'Link non valido',none:'Nessun link'}[s];
+  const txt={ok:t('statoOk'),saved:t('statoSaved'),err:t('statoErr'),none:t('statoNone')}[s];
   b.className='stato '+s; b.innerHTML=`<span class="dot">${ico}</span>${txt}`;
-  b.title={ok:'Sincronizzazione automatica attiva'+(M.last?' · ultimo aggiornamento '+fmtTs(M.last):''),
-           saved:'Il browser blocca la lettura diretta: aggiorna in 2 clic',
-           err:statoMsg||'Errore sul link',none:'Clicca per collegare il link del calendario'}[s];
+  b.title={ok:t('statoOkT')+(M.last?' · '+t('statoLast')+' '+fmtTs(M.last):''),
+           saved:t('statoSavedT'),
+           err:statoMsg||t('statoErrT'),none:t('statoNoneT')}[s];
   aggiornaSub();
 }
 function aggiornaSub(){
-  const M=meta(); $('sub').textContent=M.last?`Ultimo aggiornamento ${fmtTs(M.last)}`:'Nessun aggiornamento';
+  const M=meta(); $('sub').textContent=M.last?`${t('subUpd')} ${fmtTs(M.last)}`:t('subNone');
 }
 async function fetchLink(link){
   try{
     const r=await fetch(link,{cache:'no-store'});
-    if(r.status===401||r.status===403) return {err:'Accesso negato o link scaduto (errore '+r.status+').'};
-    if(r.status===404) return {err:'Calendario non trovato (errore 404).'};
-    if(!r.ok) return {err:'Errore del server ('+r.status+').'};
-    const t=await r.text();
-    if(!/BEGIN:VCALENDAR/.test(t)) return {err:'Il link non restituisce un calendario .ics.'};
-    return {txt:t};
+    if(r.status===401||r.status===403) return {err:t('err401',{s:r.status})};
+    if(r.status===404) return {err:t('err404')};
+    if(!r.ok) return {err:t('errSrv',{s:r.status})};
+    const t2=await r.text();
+    if(!/BEGIN:VCALENDAR/.test(t2)) return {err:t('errNoIcs')};
+    return {txt:t2};
   }catch(e){ return {cors:true}; }
 }
 async function sync(manuale){
@@ -539,7 +688,7 @@ async function sync(manuale){
   if(manuale) $('aggiorna').disabled=false;
   if(r.txt){
     const e=merge(parseICS(r.txt)); setMeta({last:Date.now(),via:'link'}); setStato('ok'); render();
-    if(manuale||(e&&(e.nuo||e.agg||e.tolti))) esito(e,'Aggiornato dal link');
+    if(manuale||(e&&(e.nuo||e.agg||e.tolti))) esito(e,t('esitoLink'));
     return 'ok';
   }
   if(r.err){ setStato('err',r.err); if(manuale) msg(r.err,true); return 'err'; }
@@ -553,14 +702,14 @@ function mostraSteps(){ $('steps').hidden=false; $('steps').scrollIntoView({beha
 function apriPanel(){
   const has=!!getLink();
   $('linkIn').value=getLink(); $('linkIn').type='password';
-  $('ptitle').innerHTML=has?'Link calendario collegato':'Collega il calendario';
+  $('ptitle').innerHTML=has?t('panelHas'):t('panelNo');
   $('dico').innerHTML=has?IC.link:IC.cal;
-  $('salva').innerHTML=IC.check+(has?'Salva e verifica':'Collega');
-  $('rimuovi').innerHTML=IC.unlink+'Rimuovi';
+  $('salva').innerHTML=IC.check+(has?t('saveVerify'):t('linkBtn'));
+  $('rimuovi').innerHTML=IC.unlink+t('removeBtn');
   $('rimuovi').hidden=!has;
   const pi=$('pinfo');
   pi.className='pinfo '+({ok:'ok',saved:'warn',err:'err'}[stato]||'');
-  pi.textContent={ok:'✓ Il link funziona: i turni si aggiornano automaticamente.',saved:'Il link è salvato, ma il browser blocca la lettura diretta. Usa Aggiorna: scarica il file e trascinalo nella pagina.',err:statoMsg,none:''}[stato]||'';
+  pi.textContent={ok:t('pinfoOk'),saved:t('pinfoSaved'),err:statoMsg,none:''}[stato]||'';
   qrPrepara();
   $('modal').hidden=false;
   requestAnimationFrame(()=>$('linkIn').focus());
@@ -568,16 +717,16 @@ function apriPanel(){
 function chiudiPanel(){ stopQR(); $('modal').hidden=true; }
 async function salvaLink(){
   const v=$('linkIn').value.trim(), pi=$('pinfo');
-  if(!/^https:\/\/\S+$/i.test(v)){pi.className='pinfo err';pi.textContent='Il link deve iniziare con https:// e non contenere spazi.';return;}
+  if(!/^https:\/\/\S+$/i.test(v)){pi.className='pinfo err';pi.textContent=t('linkBad');return;}
   localStorage.setItem(LS_LINK,v);
-  pi.className='pinfo';pi.textContent='Verifica in corso…';
+  pi.className='pinfo';pi.textContent=t('verifying');
   const r=await sync(false);
-  if(r==='ok'){pi.className='pinfo ok';pi.textContent='✓ Collegato! Il link funziona e i turni sono aggiornati.';setTimeout(chiudiPanel,900);}
+  if(r==='ok'){pi.className='pinfo ok';pi.textContent=t('linkedOk');setTimeout(chiudiPanel,900);}
   else if(r==='err'){pi.className='pinfo err';pi.textContent=statoMsg;}
-  else{pi.className='pinfo warn';pi.textContent='Link salvato. Il browser non permette la lettura diretta: premi Aggiorna, poi trascina il file scaricato nella pagina.';}
-  $('rimuovi').hidden=false; $('ptitle').textContent='Link calendario collegato';
+  else{pi.className='pinfo warn';pi.textContent=t('linkSaved2');}
+  $('rimuovi').hidden=false; $('ptitle').textContent=t('panelHas');
 }
-function rimuoviLink(){ if(!confirm('Rimuovere il link? I turni salvati restano.')) return; localStorage.removeItem(LS_LINK); setStato('none'); chiudiPanel(); $('steps').hidden=true; msg('Link rimosso.'); }
+function rimuoviLink(){ if(!confirm(t('confirmRemove'))) return; localStorage.removeItem(LS_LINK); setStato('none'); chiudiPanel(); $('steps').hidden=true; msg(t('linkRemoved')); }
 
 /* ===== QR: link del calendario letto dal codice ===== */
 let qrDet=null, qrStream=null, qrRun=false;
@@ -585,33 +734,33 @@ const qrHas=()=>{try{return typeof BarcodeDetector!=='undefined';}catch(e){retur
 function qrHint(t,c){const e=$('qrHint'); if(!e) return; e.className='pinfo '+(c||''); e.textContent=t||'';}
 async function qrDetector(){ if(qrDet) return qrDet; qrDet=new BarcodeDetector({formats:['qr_code']}); return qrDet; }
 function qrPrepara(){
-  if(qrHas()){ if(!$('qrHint').textContent) qrHint('Il link letto dal QR viene inserito qui sopra e verificato da solo.'); return; }
-  qrHint('Questo browser non sa leggere i QR: incolla il link qui sopra, oppure scansiona il QR con l\'app Fotocamera del telefono.','warn');
+  if(qrHas()){ if(!$('qrHint').textContent) qrHint(t('qrHintOk')); return; }
+  qrHint(t('qrHintNo'),'warn');
   $('qrCam').disabled=true; $('qrFileBtn').disabled=true;
 }
 function stopQR(){
   qrRun=false;
   if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; }
   const v=$('qrVideo'); if(v){ v.classList.remove('on'); v.srcObject=null; }
-  const b=$('qrCam'); if(b) b.querySelector('b').textContent='Scansiona con la fotocamera';
+  const b=$('qrCam'); if(b) b.querySelector('b').textContent=t('qrCamIdle');
 }
 function qrEsito(v){
   stopQR();
-  if(!v){ qrHint('Nessun codice QR riconosciuto.','err'); return; }
-  if(!/^https:\/\/\S+$/i.test(v)){ qrHint('Il QR non contiene un link https valido: '+String(v).slice(0,80),'err'); return; }
+  if(!v){ qrHint(t('qrNone'),'err'); return; }
+  if(!/^https:\/\/\S+$/i.test(v)){ qrHint(t('qrBad')+String(v).slice(0,80),'err'); return; }
   const i=$('linkIn'); i.value=v; i.type='text';
-  $('pinfo').className='pinfo'; $('pinfo').textContent='QR letto: verifica del link…';
+  $('pinfo').className='pinfo'; $('pinfo').textContent=t('qrReadVerify');
   salvaLink();
 }async function qrStart(){
   if(!qrHas()){ qrPrepara(); return; }
   if(qrStream){ stopQR(); qrHint(''); return; }
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ qrHint('Fotocamera non disponibile qui (serve https o un browser aggiornato).','warn'); return; }
-  let det; try{ det=await qrDetector(); }catch(e){ qrHint('Questo browser non sa leggere i QR: incolla il link a mano.','err'); return; }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ qrHint(t('qrNoCam'),'warn'); return; }
+  let det; try{ det=await qrDetector(); }catch(e){ qrHint(t('qrNoDet'),'err'); return; }
   try{ qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}); }
-  catch(e){ qrStream=null; qrHint('Permesso fotocamera negato o fotocamera non disponibile.','err'); return; }
+  catch(e){ qrStream=null; qrHint(t('qrDenied'),'err'); return; }
   const vid=$('qrVideo');
-  vid.srcObject=qrStream; vid.classList.add('on'); $('qrCam').querySelector('b').textContent='Interrompi la fotocamera';
-  qrHint('Inquadra il codice QR del calendario.');
+  vid.srcObject=qrStream; vid.classList.add('on'); $('qrCam').querySelector('b').textContent=t('qrCamRun');
+  qrHint(t('qrAim'));
   try{ await vid.play(); }catch(e){}
   qrRun=true;
   const giro=async()=>{
@@ -623,15 +772,15 @@ function qrEsito(v){
 }
 async function qrDaFile(f){
   if(!qrHas()){ qrPrepara(); return; }
-  qrHint('Lettura in corso…');
+  qrHint(t('qrReading'));
   try{
     const det=await qrDetector();
     const bmp=await createImageBitmap(f);
     const r=await det.detect(bmp);
     if(bmp.close) bmp.close();
-    if(!r.length){ qrHint('Nessun QR trovato in questa immagine.','err'); return; }
+    if(!r.length){ qrHint(t('qrNoImg'),'err'); return; }
     qrEsito(r[0].rawValue);
-  }catch(e){ qrHint('Non riesco a leggere questa immagine.','err'); }
+  }catch(e){ qrHint(t('qrImgErr'),'err'); }
 }
 
 /* ===== Vista ===== */
@@ -654,15 +803,15 @@ function scaleHTML(a,b,c){
   for(let i=0;i<=n;i++) h+=`<span class="${i===0?'first':i===n?'last':''}" style="left:${i/n*100}%">${pad(a/60+i)}</span>`;
   return `<div class="${c}">${h}</div>`;
 }
-function trackHTML(t,a,b,c){
+function trackHTML(turn,a,b,c){
   const n=(b-a)/60; let h='';
   for(let i=1;i<n;i++) h+=`<div class="gl" style="left:${i/n*100}%"></div>`;
   const P=m=>Math.min(100,Math.max(0,(m-a)/(b-a)*100));
-  if(!t) h+='<div class="free">Libero</div>';
-  else if(t.tipo==='vacanza') h+='<div class="seg vac" style="left:0;width:100%"><span>VACANZA</span></div>';
-  else if(t.tipo==='altro') h+=`<div class="seg altro" style="left:0;width:100%" title="${esc(t.label)}"><span>${esc(t.label)}</span></div>`;
+  if(!turn) h+=`<div class="free">${t('free')}</div>`;
+  else if(turn.tipo==='vacanza') h+=`<div class="seg vac" style="left:0;width:100%"><span>${t('vac')}</span></div>`;
+  else if(turn.tipo==='altro') h+=`<div class="seg altro" style="left:0;width:100%" title="${esc(turn.label)}"><span>${esc(turn.label)}</span></div>`;
   else{
-    const bs=blocchi(t), groups=[]; let cur=null;
+    const bs=blocchi(turn), groups=[]; let cur=null;
     bs.forEach((x,i)=>{ if(x.c==='pause'||x.c==='recup'||x.c==='extra'||x.c==='meet'){cur=null;} else if(!cur||x.s>cur.e){cur={s:x.s,e:x.e,idx:[i]};groups.push(cur);} else{cur.e=Math.max(cur.e,x.e);cur.idx.push(i);} });
     const multi=new Set(); groups.forEach(g=>{if(g.idx.length>1) g.idx.forEach(i=>multi.add(i));});
     bs.forEach((x,i)=>{
@@ -670,7 +819,7 @@ function trackHTML(t,a,b,c){
       const det=x.d?` · ${x.n} – ${x.d}`:x.n?` · ${x.n}`:'';
       const tl=i>0&&bs[i-1].e===x.s, tr=i<bs.length-1&&bs[i+1].s===x.e;
       let inn=`<span>${esc(lab)}</span>`;
-      if(x.c==='pause'){const du=dur(x.e-x.s);inn=`<span data-f="${esc(lab)}" data-m="${esc('Pausa '+du)}" data-s="${esc('P '+du)}">${esc(lab)}</span>`;}
+      if(x.c==='pause'){const du=dur(x.e-x.s);inn=`<span data-f="${esc(lab)}" data-m="${esc(t('pauseFull',{d:du}))}" data-s="${esc(t('pauseShort',{d:du}))}">${esc(lab)}</span>`;}
       else if(multi.has(i)){inn='<span></span>';}
       h+=`<div class="seg ${x.c}${tl?' nl':''}${tr?' nr':''}" style="left:${P(x.s)}%;width:${P(x.e)-P(x.s)}%" title="${esc(lab+det)}">${inn}</div>`;
     });
@@ -681,25 +830,24 @@ function trackHTML(t,a,b,c){
 const dur=m=>{const h=Math.floor(m/60),r=m%60;return h&&r?h+'h '+pad(r)+'m':h?h+'h':r+'m';};
 function noteUniche(t){const v=new Set(),o=[];if(t.note)o.push(t.note);(t.segs||[]).forEach(x=>{if(x.d&&!v.has(x.d)){v.add(x.d);o.push(x.d);}});return o;}
 function mostraTurno(k){
-  const t=load()[k], w=dow(k), oggi=k===oggiK();
-  const nomi=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
-  let ico=IC.cal, tipo='Giorno libero', corpo='';
-  if(t&&t.tipo==='turno'){
-    const vis=visSe(t),SE=effSE(t),S=SE[0],E=SE[1];
+  const turn=load()[k], w=dow(k), oggi=k===oggiK();
+  let ico=IC.cal, tipo=t('freeDay'), corpo='';
+  if(turn&&turn.tipo==='turno'){
+    const vis=visSe(turn),SE=effSE(turn),S=SE[0],E=SE[1];
     let lav=0,pausa=0,ext=0; vis.forEach(x=>{const c=cls(x.n); if(c==='pause')pausa+=x.e-x.s; else{lav+=x.e-x.s; if(c==='extra')ext+=x.e-x.s;}});
     const tg=new Set(vis.map(x=>cls(x.n)));
-    tipo='Turno di lavoro'+(tg.has('extra')?' + Straordinario':'')+(tg.has('recup')?' · Recupero':'')+(tg.has('meet')?' · Meeting':'')+(tg.has('train')?' · Training':''); ico=IC.cal;
-    corpo+=`<div class="ttot"><b>${hm(S)} – ${hm(E)}</b><span class="tpill">${dur(lav)} lavoro${pausa?' · '+dur(pausa)+' pausa':''}${ext?' · +'+dur(ext)+' straordinario':''}</span></div>`;
+    tipo=t('workShift')+(tg.has('extra')?t('sufExtra'):'')+(tg.has('recup')?t('sufRecup'):'')+(tg.has('meet')?t('sufMeet'):'')+(tg.has('train')?t('sufTrain'):''); ico=IC.cal;
+    corpo+=`<div class="ttot"><b>${hm(S)} – ${hm(E)}</b><span class="tpill">${dur(lav)} ${t('work')}${pausa?' · '+dur(pausa)+' '+t('pauseW'):''}${ext?' · +'+dur(ext)+' '+t('extraW'):''}</span></div>`;
     const mapC=x=>cls(x.n)==='off'?'shift':cls(x.n);
     const righe=[]; vis.forEach(x=>{const l=righe[righe.length-1]; if(l&&l.c===mapC(x)&&l.e===x.s){l.e=x.e; if(isOffice(l.n)&&!isOffice(x.n)){l.n=x.n;l.d=x.d;} else if(x.d&&!l.d)l.d=x.d;} else righe.push({s:x.s,e:x.e,n:x.n,d:x.d,c:mapC(x)});});
     const freq={}; righe.forEach(r=>{if(r.d)freq[r.d]=(freq[r.d]||0)+1;});
     corpo+='<ul class="tlist">'+righe.map(x=>{const col={pause:'pause',train:'train',meet:'meet',extra:'extra',recup:'recup',off:'shift',shift:'shift'}[cls(x.n)]||'shift';return `<li class="triga"><span class="pall ${cls(x.n)}" style="background:var(--${col})"></span><span><span class="to">${hm(x.s)} – ${hm(x.e)}</span><span class="tn"> ${esc(x.n)}${x.d&&freq[x.d]<2?'<small>'+esc(x.d)+'</small>':''}</span></span><span class="du">${dur(x.e-x.s)}</span></li>`;}).join('')+'</ul>';
-  } else if(t&&t.tipo==='vacanza'){tipo='Vacanza';ico=IC.sun;corpo+=`<div class="ttot"><b>VACANZA</b><span class="tpill">Giornata intera · nessun turno</span></div>`;}
-  else if(t&&t.tipo==='altro'){tipo=esc(t.label);ico=IC.cal;}
-  const note=t?noteUniche(t):[];
-  if(note.length) corpo+=`<div class="tnota"><b>Note</b>${note.map(n=>esc(n)).join('<br>')}</div>`;
-  if(!t) corpo+='<div class="tnota"><b>Stato</b>Nessun turno salvato: goditi il giorno libero.</div>';
-  $('tdialog').innerHTML=`<div class="thead"><div class="tico">${ico}</div><div class="ttit"><h3>${nomi[w]} ${dm(k)}</h3><div class="tsub"><span>${tipo}</span>${oggi?'<span class="badge">OGGI</span>':''}${w>4?'<span class="tag past">WEEKEND</span>':''}</div></div><button class="iconbtn" id="tchiudi" title="Chiudi">${IC.x}</button></div>${corpo}<div class="tfoot"><button id="tok">Chiudi</button></div>`;
+  } else if(turn&&turn.tipo==='vacanza'){tipo=t('vacT');ico=IC.sun;corpo+=`<div class="ttot"><b>${t('vac')}</b><span class="tpill">${t('vacSub')}</span></div>`;}
+  else if(turn&&turn.tipo==='altro'){tipo=esc(turn.label);ico=IC.cal;}
+  const note=turn?noteUniche(turn):[];
+  if(note.length) corpo+=`<div class="tnota"><b>${t('notes')}</b>${note.map(n=>esc(n)).join('<br>')}</div>`;
+  if(!turn) corpo+=`<div class="tnota"><b>${t('statoLbl')}</b>${t('noShiftTxt')}</div>`;
+  $('tdialog').innerHTML=`<div class="thead"><div class="tico">${ico}</div><div class="ttit"><h3>${NOMI[w]} ${dm(k)}</h3><div class="tsub"><span>${tipo}</span>${oggi?`<span class="badge">${t('todayBadge')}</span>`:''}${w>4?`<span class="tag past">${t('weekend')}</span>`:''}</div></div><button class="iconbtn" id="tchiudi" title="${esc(t('close'))}">${IC.x}</button></div>${corpo}<div class="tfoot"><button id="tok">${t('close')}</button></div>`;
   $('tchiudi').innerHTML=IC.x;
   $('tok').onclick=chiudiTurno; $('tchiudi').onclick=chiudiTurno;
   $('tmodal').hidden=false;
@@ -712,20 +860,20 @@ function render(){
   navUI(ks);
   if(!ks.length){
     const has=!!getLink();
-    out.innerHTML=`<div class="card empty"><div class="eico">${IC.cal}</div><h2>${has?'Nessun turno sincronizzato':'Nessun turno salvato'}</h2><p>${has?'Il calendario è collegato ma non ci sono ancora turni: prova ad aggiornare.':"Collega il calendario del tuo lavoro: i turni arrivano da soli. Incolla il link .ics o leggilo dal codice QR, oppure trascina qui il file scaricato."}</p><div class="ebtns"><button id="cta">${has?IC.sync+'Aggiorna':IC.link+'Collega il calendario'}</button></div></div>`;
+    out.innerHTML=`<div class="card empty"><div class="eico">${IC.cal}</div><h2>${has?t('emptySyncT'):t('emptySaveT')}</h2><p>${has?t('emptySyncP'):t('emptySaveP')}</p><div class="ebtns"><button id="cta">${has?IC.sync+t('updBtn'):IC.link+t('panelNo')}</button></div></div>`;
     $('cta').onclick=has?()=>sync(true):apriPanel;
     return;
   }
   const keys=giorniVista();
-  if(!keys.length){out.innerHTML='<div class="card vuoto">Nessun turno da oggi in poi. Premi <b>Aggiorna</b> oppure usa il tasto qui sopra per vedere le settimane passate.</div>';return;}
+  if(!keys.length){out.innerHTML=`<div class="card vuoto">${t('emptyFuture',{u:t('updBtn')})}</div>`;return;}
   const [a,b]=scala(keys,d);
   const sett={}; keys.forEach(k=>(sett[monday(k)]=sett[monday(k)]||[]).push(k));
   let h='',wi=0;
   for(const m in sett){
     h+=`<div class="card week" style="animation-delay:${Math.min(wi++*45,315)}ms"><div class="whead"><div></div>${scaleHTML(a,b,'scale')}</div>`;
     sett[m].forEach(k=>{
-      const t=d[k], w=dow(k);
-      h+=`<div class="row${k===oggi?' today':''}" data-k="${k}"><div class="dl${w>4?' we':''}"><b>${GIORNI[w]}</b>${dm(k)}${k===oggi?'<span class="badge">OGGI</span>':''}${haNote(t)?'<i class="info" title="Ci sono note: clicca per vederle">ⓘ</i>':''}</div>${trackHTML(t,a,b,'track')}</div>`;
+      const turn=d[k], w=dow(k);
+      h+=`<div class="row${k===oggi?' today':''}" data-k="${k}"><div class="dl${w>4?' we':''}"><b>${GIORNI[w]}</b>${dm(k)}${k===oggi?`<span class="badge">${t('todayBadge')}</span>`:''}${haNote(turn)?`<i class="info" title="${esc(t('infoTitle'))}">ⓘ</i>`:''}</div>${trackHTML(turn,a,b,'track')}</div>`;
     });
     h+='</div>';
   }
@@ -764,42 +912,71 @@ function chiudiPdf(){ $('pmodal').hidden=true; }
 function apriCanc(){ $('cmodal').hidden=false; }
 function chiudiCanc(){ $('cmodal').hidden=true; }
 function pdf(modo){
-  const d=load(), ks=Object.keys(d).sort(); if(!ks.length){msg('Nessun turno da stampare.',true);return;}
+  const d=load(), ks=Object.keys(d).sort(); if(!ks.length){msg(t('pdfEmpty'),true);return;}
   const fine=kAdd(monday(ks[ks.length-1]),6), mesi={}, keys=[];
   if(modo==='tutte'){ for(let k=monday(ks[0]);k<=fine;k=kAdd(k,1)) keys.push(k); }
-  else{ const o=oggiK(); for(let k=o;k<=fine;k=kAdd(k,1)) keys.push(k); if(!keys.length){msg('Nessun turno da oggi in poi.',true);return;} }
+  else{ const o=oggiK(); for(let k=o;k<=fine;k=kAdd(k,1)) keys.push(k); if(!keys.length){msg(t('pdfEmptyToday'),true);return;} }
   keys.forEach(k=>(mesi[k.slice(0,7)]=mesi[k.slice(0,7)]||[]).push(k));
-  const mk=Object.keys(mesi); if(!mk.length){msg('Nessun turno da stampare.',true);return;}
-  const leg='<div class="pl"><span><i style="background:#3E71C8"></i>Turno</span><span><i style="background:#7E5DB5"></i>Training</span><span><i style="background:#F0A52E"></i>Meeting</span><span><i style="background:#5F9BD1"></i>Straord.</span><span><i style="background:#D4DAE1"></i>Recupero</span><span><i style="background:#B9C0CA"></i>Pausa</span><span><i style="background:#3F8F5C"></i>Vacanza</span></div>';
+  const mk=Object.keys(mesi); if(!mk.length){msg(t('pdfEmpty'),true);return;}
+  const leg=`<div class="pl"><span><i style="background:#3E71C8"></i>${t('legTurno')}</span><span><i style="background:#7E5DB5"></i>${t('legTraining')}</span><span><i style="background:#F0A52E"></i>${t('legMeeting')}</span><span><i style="background:#5F9BD1"></i>${t('legStraord')}</span><span><i style="background:#D4DAE1"></i>${t('legRecupero')}</span><span><i style="background:#B9C0CA"></i>${t('legPausa')}</span><span><i style="background:#3F8F5C"></i>${t('legVacanza')}</span></div>`;
   let h='';
   mk.forEach(m=>{
     const keys=mesi[m], [a,b]=scala(keys,d), [y,mm]=m.split('-');
-    h+=`<div class="pg"><div class="ph"><h2>Turni ${MESI[+mm-1]} ${y}</h2>${leg}</div><div class="pgrid"><div></div>${scaleHTML(a,b,'pscale')}</div>`;
+    h+=`<div class="pg"><div class="ph"><h2>${t('pdfDoc')} ${MESI[+mm-1]} ${y}</h2>${leg}</div><div class="pgrid"><div></div>${scaleHTML(a,b,'pscale')}</div>`;
     keys.forEach((k,i)=>{h+=`<div class="pgrid prow${dow(k)===0&&i>0?' wk':''}"><div class="pd"><b>${GIORNI[dow(k)]}</b>${dm(k)}</div>${trackHTML(d[k],a,b,'ptr')}</div>`;});
     h+=`<div class="pgrid pfoot"><div>${COPY}</div></div></div>`;
   });
   $('print').innerHTML=h;
   const nomi=[...new Set(mk.map(m=>MESI[+m.slice(5)-1]))].join('-');
-  const old=document.title; document.title=`Turni_${nomi}_${mk[mk.length-1].slice(0,4)}`;
+  const old=document.title; document.title=`${t('pdfDoc')}_${nomi}_${mk[mk.length-1].slice(0,4)}`;
   setTimeout(()=>{window.print(); document.title=old;},50);
 }
 const COPY='© Copyright 2026&nbsp; | &nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2';
 
 /* ===== Avvio ===== */
+function paintButtons(){
+  document.title=t('docTitle');
+  document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=t(el.dataset.t);});
+  document.querySelectorAll('[data-th]').forEach(el=>{el.innerHTML=t(el.dataset.th);});
+  document.querySelectorAll('[data-t-ph]').forEach(el=>{el.placeholder=t(el.dataset.tPh);});
+  document.querySelectorAll('[data-t-title]').forEach(el=>{el.title=t(el.dataset.tTitle);});
+  $('aggiorna').innerHTML=IC.sync+`<span class="lbl">${t('updBtn')}</span>`;
+  $('pdfb').innerHTML=IC.pdf+`<span class="lbl">${t('pdfBtn')}</span>`;
+  $('pdfOggi').innerHTML=IC.check+`<span>${t('pdfFrom')}</span>`;
+  $('pdfTutte').innerHTML=IC.cal+`<span>${t('pdfAll')}</span>`;
+  $('canc').innerHTML=IC.trash+`<span class="lbl">${t('cancBtn')}</span>`;
+  $('cancSi').innerHTML=IC.trash+`<span>${t('cancYes')}</span>`;
+  $('cancNo').innerHTML=IC.check+`<span>${t('cancNo')}</span>`;
+  $('prev').innerHTML=IC.up+`<span>${t('prevWeek')}</span>`;
+  $('scarica').innerHTML=IC.down+t('dlAgain');
+}
+function applyLang(l){
+  curLang=LANGS.includes(l)?l:'it';
+  try{localStorage.setItem(LANG_KEY,curLang);}catch(e){}
+  GIORNI=GIORNI_L[curLang]; MESI=MESI_L[curLang]; NOMI=NOMI_L[curLang];
+  paintButtons();
+  setStato(stato,statoMsg);
+  render();
+}
+window.addEventListener('message',e=>{
+  if(e?.data?.type===LANG_KEY&&LANGS.includes(e.data.lang)) applyLang(e.data.lang);
+});
+window.addEventListener('storage',e=>{
+  if(e.key===LANG_KEY&&LANGS.includes(e.newValue)) applyLang(e.newValue);
+});
 function init(){
   setTema(readTemaGlobale(),false);
-  $('aggiorna').innerHTML=IC.sync+'<span class="lbl">Aggiorna</span>'; $('aggiorna').onclick=()=>sync(true);
-  $('pdfb').innerHTML=IC.pdf+'<span class="lbl">PDF</span>'; $('pdfb').onclick=apriPdf;
+  applyLang(curLang);
+  $('aggiorna').onclick=()=>sync(true);
+  $('pdfb').onclick=apriPdf;
   $('pico').innerHTML=IC.pdf; $('pchiudi').innerHTML=IC.x; $('pchiudi').onclick=chiudiPdf;
-  $('pdfOggi').innerHTML=IC.check+'<span>Solo da oggi in poi</span>'; $('pdfTutte').innerHTML=IC.cal+'<span>Anche le precedenti</span>';
   $('pdfOggi').onclick=()=>{chiudiPdf();pdf('oggi');}; $('pdfTutte').onclick=()=>{chiudiPdf();pdf('tutte');};
   $('pmodal').onclick=e=>{if(e.target===$('pmodal')) chiudiPdf();};
-  $('canc').innerHTML=IC.trash+'<span class="lbl">Cancella</span>'; $('canc').onclick=()=>apriCanc();
+  $('canc').onclick=()=>apriCanc();
   $('cico').innerHTML=IC.trash; $('cchiudi').innerHTML=IC.x; $('cchiudi').onclick=chiudiCanc;
-  $('cancSi').innerHTML=IC.trash+'<span>Sì, cancella tutto</span>'; $('cancSi').onclick=()=>{localStorage.removeItem(LS);vista=null;chiudiCanc();render();msg('Turni cancellati.');};
-  $('cancNo').innerHTML=IC.check+'<span>Mantieni i turni</span>'; $('cancNo').onclick=chiudiCanc;
+  $('cancSi').onclick=()=>{localStorage.removeItem(LS);vista=null;chiudiCanc();render();msg(t('cancDone'));};
+  $('cancNo').onclick=chiudiCanc;
   $('cmodal').onclick=e=>{if(e.target===$('cmodal')) chiudiCanc();};
-  $('prev').innerHTML=IC.up+'<span>Settimana precedente</span>';
   $('prev').onclick=()=>vai(); $('oggi').onclick=tornaOggi;
   $('stato').onclick=()=>$('modal').hidden?apriPanel():chiudiPanel();
   $('menu').innerHTML=IC.gear; $('menu').onclick=()=>{const t=$('tools'),a=t.classList.toggle('aperto');$('menu').setAttribute('aria-expanded',a);};
@@ -814,7 +991,7 @@ function init(){
   $('eye').innerHTML=IC.eye; $('eye').onclick=()=>{const i=$('linkIn');i.type=i.type==='password'?'text':'password';};
   $('salva').onclick=salvaLink; $('linkIn').onkeydown=e=>{if(e.key==='Enter') salvaLink();};
   $('rimuovi').onclick=rimuoviLink;
-  $('scarica').innerHTML=IC.down+'Scarica di nuovo'; $('scarica').onclick=scarica;
+  $('scarica').onclick=scarica;
   $('scegli').onclick=()=>$('file').click();
   $('file').onchange=e=>{importa(e.target.files);e.target.value='';};
   $('out').onclick=e=>{const r=e.target.closest('.row'); if(r) mostraTurno(r.dataset.k);};
