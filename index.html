@@ -27,7 +27,7 @@
       position: fixed; top: 0; left: 0; height: 100%; width: 250px;
       background: #001155; color: #fff; padding: 70px 0 20px;
       transform: translateX(-100%); transition: transform .25s ease;
-      z-index: 1000;
+      z-index: 1000; display: flex; flex-direction: column;
     }
     #sidebar.open { transform: translateX(0); }
     #sidebar h2 { font-size: 14px; opacity: .6; padding: 0 20px 10px; text-transform: uppercase; }
@@ -38,6 +38,17 @@
     }
     #sidebar a:hover { background: rgba(255,255,255,.08); }
     #sidebar a.active { background: rgba(255,255,255,.15); border-left-color: #1781e3; }
+
+    /* Selettore tema in fondo al menu */
+    #theme-box { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid rgba(255,255,255,.15); }
+    #theme-box p { font-size: 12px; opacity: .6; text-transform: uppercase; margin-bottom: 8px; }
+    .theme-btns { display: flex; gap: 8px; }
+    .theme-btns button {
+      flex: 1; padding: 8px 6px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.25); background: transparent;
+      color: #fff; cursor: pointer; font: inherit; font-size: 13px;
+    }
+    .theme-btns button.active { background: #fff; color: #001155; border-color: #fff; font-weight: 700; }
 
     /* Sfondo scuro quando il menu è aperto */
     #overlay {
@@ -74,6 +85,13 @@
       <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/></svg>
       Agenti AI
     </a>
+    <div id="theme-box">
+      <p>Tema</p>
+      <div class="theme-btns">
+        <button id="theme-light" type="button">☀️ Chiaro</button>
+        <button id="theme-dark" type="button">🌙 Scuro</button>
+      </div>
+    </div>
   </nav>
 
   <div id="overlay"></div>
@@ -105,7 +123,47 @@
     links.forEach(a => a.addEventListener('click', () => setMenu(false)));
     window.addEventListener('hashchange', () => loadPage(location.hash));
 
+    // ===== Tema globale condiviso con tutte le pagine =====
+    const THEME_KEY = 'mylollotool-theme';
+    const btnLight = document.getElementById('theme-light');
+    const btnDark = document.getElementById('theme-dark');
+    const getGlobalTheme = () => localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+
+    function paintThemeButtons(t) {
+      btnLight.classList.toggle('active', t !== 'dark');
+      btnDark.classList.toggle('active', t === 'dark');
+    }
+    // Allinea anche le chiavi storiche delle singole pagine (apertura diretta)
+    function syncLegacyKeys(t) {
+      try {
+        localStorage.setItem('sct-theme', t);
+        localStorage.setItem('turni_tema', t === 'dark' ? 'dark' : 'white');
+        localStorage.setItem('theme', t);
+      } catch (e) {}
+    }
+    function broadcastTheme(t) {
+      try { frame.contentWindow?.postMessage({ type: 'mylollotool-theme', theme: t }, '*'); } catch (e) {}
+    }
+    function setGlobalTheme(t, broadcast = true) {
+      t = t === 'dark' ? 'dark' : 'light';
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+      syncLegacyKeys(t);
+      paintThemeButtons(t);
+      if (broadcast) broadcastTheme(t);
+    }
+
+    btnLight.onclick = () => setGlobalTheme('light');
+    btnDark.onclick = () => setGlobalTheme('dark');
+    frame.addEventListener('load', () => broadcastTheme(getGlobalTheme()));
+    // Se il tema viene cambiato dentro una pagina figlia, riallinea il menu
+    window.addEventListener('message', (e) => {
+      if (e?.data?.type === 'mylollotool-theme' && (e.data.theme === 'dark' || e.data.theme === 'light')) {
+        setGlobalTheme(e.data.theme, false);
+      }
+    });
+
     // Apre la pagina indicata nell'URL (es. index.html#turni) oppure la prima
+    setGlobalTheme(getGlobalTheme(), false);
     loadPage(location.hash);
   </script>
 </body>

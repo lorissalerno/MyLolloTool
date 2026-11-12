@@ -60,6 +60,25 @@
     .empty { padding: 40px; text-align: center; color: #667; background: #fff;
              border: 2px dashed #ccd; border-radius: 10px; }
 
+    /* Tema scuro (comandato dal menu laterale di index.html) */
+    body.dark { background: #0E1116; color: #E8EBF0; }
+    body.dark h1, body.dark .category h2, body.dark .dialog h2,
+    body.dark .mode span b { color: #fff; }
+    body.dark .sub, body.dark .card p, body.dark .mode small { color: #8F99A8; }
+    body.dark #search, body.dark .field input { background: #171B22; border-color: #2A303B; color: #E8EBF0; }
+    body.dark .btn { background: #171B22; border-color: #2A303B; color: #E8EBF0; }
+    body.dark .btn:hover { background: #222a36; }
+    body.dark .btn.primary { background: #1781e3; border-color: #1781e3; color: #fff; }
+    body.dark .card, body.dark .dialog { background: #171B22; }
+    body.dark .card { box-shadow: none; }
+    body.dark .card .icon { background: #1e2a3a; color: #7dc3ff; }
+    body.dark .empty { background: #171B22; border-color: #2A303B; color: #8F99A8; }
+    body.dark .icon-opt span, body.dark .mode span { border-color: #2A303B; color: #8F99A8; }
+    body.dark .icon-opt input:checked + span, body.dark .mode input:checked + span { background: #1e2a3a; border-color: #1781e3; color: #7dc3ff; }
+    body.dark .card-actions button { background: #222a36; color: #8F99A8; }
+    body.dark .viewer-bar { background: #171B22; border-color: #2A303B; }
+    body.dark .viewer-bar strong { color: #fff; }
+
     /* Finestra modulo */
     .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
              padding: 20px; background: rgba(0,10,40,.5); }
@@ -382,6 +401,22 @@
       } catch { alert('File non valido.'); }
       e.target.value = '';
     };
+
+    // ===== Tema globale (dal menu laterale di index.html) =====
+    (function syncGlobalTheme() {
+      const G = 'mylollotool-theme';
+      function apply(t) { document.body.classList.toggle('dark', t === 'dark'); }
+      try {
+        const g = localStorage.getItem(G);
+        if (g === 'dark' || g === 'light') apply(g);
+      } catch (e) {}
+      window.addEventListener('message', (e) => {
+        if (e?.data?.type === G && (e.data.theme === 'dark' || e.data.theme === 'light')) {
+          apply(e.data.theme);
+          try { localStorage.setItem(G, e.data.theme); } catch (err) {}
+        }
+      });
+    })();
 
     render();
   </script>

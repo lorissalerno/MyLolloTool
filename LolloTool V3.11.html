@@ -561,18 +561,40 @@
       const body = document.body;
       const moonSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
       const sunSvg  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+      const GLOBAL_KEY = 'mylollotool-theme';
+      function readTheme() {
+        // Il menu laterale di index.html è la fonte unica: poi fallback storico
+        const g = localStorage.getItem(GLOBAL_KEY);
+        if (g === 'dark' || g === 'light') return g;
+        return localStorage.getItem('sct-theme') || 'light';
+      }
+      function applyTheme(t, notifyParent = false) {
+        const dark = t === 'dark';
+        body.classList.toggle('dark', dark);
+        try {
+          localStorage.setItem('sct-theme', dark ? 'dark' : 'light');
+          localStorage.setItem(GLOBAL_KEY, dark ? 'dark' : 'light');
+        } catch (e) {}
+        updateBtn();
+        if (notifyParent) {
+          try { window.parent?.postMessage({ type: GLOBAL_KEY, theme: dark ? 'dark' : 'light' }, '*'); } catch (e) {}
+        }
+      }
       // Ripristina il tema salvato (default: light)
-      const saved = localStorage.getItem('sct-theme');
-      if (saved === 'dark') {
+      if (readTheme() === 'dark') {
         body.classList.add('dark');
       }
       function updateBtn() {
         btn.innerHTML = body.classList.contains('dark') ? moonSvg : sunSvg;
       }
       btn.addEventListener('click', () => {
-        body.classList.toggle('dark');
-        localStorage.setItem('sct-theme', body.classList.contains('dark') ? 'dark' : 'light');
-        updateBtn();
+        applyTheme(body.classList.contains('dark') ? 'light' : 'dark', true);
+      });
+      // Cambio tema comandato dal menu laterale di index.html
+      window.addEventListener('message', (e) => {
+        if (e?.data?.type === GLOBAL_KEY && (e.data.theme === 'dark' || e.data.theme === 'light')) {
+          applyTheme(e.data.theme, false);
+        }
       });
       updateBtn();
     })();

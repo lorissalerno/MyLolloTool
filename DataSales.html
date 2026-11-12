@@ -1720,21 +1720,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-// Theme management - immediate execution to prevent flash of dark theme
+// Theme management - sincronizzato con il menu laterale di index.html
 (function() {
-  const savedTheme = localStorage.getItem('theme');
+  const G = 'mylollotool-theme';
+  const g = localStorage.getItem(G);
+  const savedTheme = (g === 'light' || g === 'dark') ? g : localStorage.getItem('theme');
   if (savedTheme === 'light') {
     document.documentElement.classList.add('light-theme');
   }
+  try {
+    // Normalizza la chiave globale per le aperture dirette
+    localStorage.setItem(G, savedTheme === 'light' ? 'light' : 'dark');
+  } catch (e) {}
 })();
 
-function toggleTheme() {
-  const isLight = document.documentElement.classList.toggle('light-theme');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+function applyThemeFromGlobal(theme, notifyParent = false) {
+  const isLight = theme === 'light';
+  document.documentElement.classList.toggle('light-theme', isLight);
+  try {
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    localStorage.setItem('mylollotool-theme', isLight ? 'light' : 'dark');
+  } catch (e) {}
   updateThemeIcon();
-  if (chMonthly || chTypes) {
-    renderStats();
+  if (typeof chMonthly !== 'undefined' && (typeof chMonthly !== 'undefined' && (chMonthly || chTypes))) {
+    try { renderStats(); } catch (e) {}
   }
+  if (notifyParent) {
+    try { window.parent?.postMessage({ type: 'mylollotool-theme', theme: isLight ? 'light' : 'dark' }, '*'); } catch (e) {}
+  }
+}
+window.addEventListener('message', (e) => {
+  if (e?.data?.type === 'mylollotool-theme' && (e.data.theme === 'light' || e.data.theme === 'dark')) {
+    applyThemeFromGlobal(e.data.theme, false);
+  }
+});
+
+function toggleTheme() {
+  const isLight = !document.documentElement.classList.contains('light-theme');
+  applyThemeFromGlobal(isLight ? 'light' : 'dark', true);
 }
 
 function updateThemeIcon() {

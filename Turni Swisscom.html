@@ -437,10 +437,24 @@ const IC={
   gear:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.62.06-.94 0-.32-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94 0 .32.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.44.34.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.49.42h3.8c.24 0 .44-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.18.12.47.02.61-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>'
 };
 
-/* ===== Tema ===== */
-function setTema(t){document.documentElement.dataset.theme=t;localStorage.setItem(LS_TEMA,t);
+/* ===== Tema (sincronizzato con il menu laterale di index.html) ===== */
+const LS_TEMA_GLOBALE='mylollotool-theme';
+function readTemaGlobale(){
+  const g=localStorage.getItem(LS_TEMA_GLOBALE);
+  if(g==='dark') return 'dark';
+  if(g==='light') return 'white';
+  return localStorage.getItem(LS_TEMA)==='dark'?'dark':'white';
+}
+function setTema(t, notifyParent=true){document.documentElement.dataset.theme=t;localStorage.setItem(LS_TEMA,t);
+  try{localStorage.setItem(LS_TEMA_GLOBALE,t==='dark'?'dark':'light');}catch(e){}
   $('tema').innerHTML=(t==='dark'?IC.sun:IC.moon)+'<span class="lbl">Tema</span>';
-  $('tema').title=t==='dark'?'Tema chiaro':'Tema scuro';}
+  $('tema').title=t==='dark'?'Tema chiaro':'Tema scuro';
+  if(notifyParent){try{window.parent?.postMessage({type:LS_TEMA_GLOBALE,theme:t==='dark'?'dark':'light'},'*');}catch(e){}}}
+window.addEventListener('message',e=>{
+  if(e?.data?.type===LS_TEMA_GLOBALE&&(e.data.theme==='dark'||e.data.theme==='light')){
+    setTema(e.data.theme==='dark'?'dark':'white',false);
+  }
+});
 
 /* ===== Messaggi (toast in basso a destra, 5s) ===== */
 function msg(t,err){
@@ -770,7 +784,7 @@ const COPY='© Copyright 2026&nbsp; | &nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2';
 
 /* ===== Avvio ===== */
 function init(){
-  setTema(localStorage.getItem(LS_TEMA)==='dark'?'dark':'white');
+  setTema(readTemaGlobale(),false);
   $('tema').onclick=()=>setTema(document.documentElement.dataset.theme==='dark'?'white':'dark');
   $('aggiorna').innerHTML=IC.sync+'<span class="lbl">Aggiorna</span>'; $('aggiorna').onclick=()=>sync(true);
   $('pdfb').innerHTML=IC.pdf+'<span class="lbl">PDF</span>'; $('pdfb').onclick=apriPdf;
