@@ -20,6 +20,7 @@ Fonte unica: selettore Chiaro/Scuro in fondo alla sidebar di `index.html` (`#the
 - Chiavi storiche sincronizzate da `index.html` (`syncLegacyKeys`): `sct-theme`=`light|dark`, `turni_tema`=`white|dark`, `theme`=`light|dark`.
 - Propagazione live: `index.html` → iframe via `postMessage({type:'mylollotool-theme', theme})` su click e su `iframe load` + retry 120ms.
 - Nessun reload richiesto: `paintFrameNow()` scrive direttamente nel DOM dell'iframe (stessa origine): `body.dark` (Lollo/agenti), `.light-theme` (DataSales), `dataset.theme` (Turni).
+- Sidebar `index.html`: segue il tema via `body[data-mtheme]` (`paintMenuTheme` in `setGlobalTheme` + handler `storage`): light `#E5E7EB`/testo `#1F2937`, dark `#26262E`/testo `#EEEEF0` (più chiaro del dark pagine `#0D0D10`).
 - `fixToggleOverlap()` in `index.html`: il pulsante menu (`#toggle` 40px a 14,14, centro 34px come header DataSales 68px) sposta a destra gli header toccati (`.app-header`, `.header-row`, `header`, `.brand`, `h1`) con `marginLeft` fino a 66px. Usa posizione originale per non flappare; retry su `load`+400ms e `resize`.
 - Menu personalizzabile: matita in testata sidebar → modalità modifica: trascina le voci col mouse per riordinare, occhio SVG a destra per mostra/nascondi. Stato in `localStorage['mylollotool-menu']` (ordine + hidden); nuove voci in coda; `loadPage` usa solo voci visibili.
 - Backup via `storage` event in entrambe le direzioni (stessa origine, anche altre schede).
