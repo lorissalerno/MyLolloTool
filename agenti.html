@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenti AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f4f6fa; color: #1a1a1a; padding: 70px 24px 24px; }
+
+    svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2;
+          stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    h1 { color: #001155; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+    p.sub { color: #666; margin-bottom: 20px; }
+
+    .search-box { position: relative; max-width: 400px; margin-bottom: 24px; }
+    .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+                      color: #889; font-size: 18px; }
+    #search { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid #ccd;
+              border-radius: 8px; font-size: 15px; }
+
+    .category { margin-bottom: 28px; }
+    .category h2 { font-size: 16px; color: #001155; margin-bottom: 12px; text-transform: uppercase; opacity: .8; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+
+    .card {
+      position: relative; display: flex; gap: 12px; align-items: flex-start;
+      background: #fff; border-radius: 10px; padding: 16px;
+      text-decoration: none; color: inherit;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-left: 4px solid #1781e3;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+    .card .icon {
+      display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px;
+      background: #e8f1fc; color: #1781e3; font-size: 22px; flex-shrink: 0;
+    }
+    .card h3 { font-size: 16px; margin-bottom: 4px; padding-right: 18px; }
+    .card p { font-size: 13px; color: #666; }
+    .card .ext { position: absolute; top: 14px; right: 14px; color: #aab; font-size: 14px; }
+    .card:hover .ext { color: #1781e3; }
+  </style>
+</head>
+<body>
+
+  <h1 id="title">Agenti AI</h1>
+  <p class="sub">Collegamenti rapidi agli agenti e strumenti AI</p>
+
+  <div class="search-box">
+    <span id="search-icon"></span>
+    <input id="search" type="text" placeholder="Cerca un agente...">
+  </div>
+
+  <div id="container"></div>
+
+  <script>
+    // Libreria icone SVG (stile linea, 24x24)
+    const ICONE = {
+      bot:      '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/>',
+      chat:     '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+      doc:      '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+      sparkle:  '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/><path d="M19 3v4M17 5h4"/>',
+      code:     '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+      image:    '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>',
+      mail:     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
+      search:   '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+    };
+    const svg = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONE[nome] || ICONE.bot}</svg>`;
+
+    // MODIFICA QUI: icona = una delle chiavi di ICONE (bot, chat, doc, sparkle, code, image, mail)
+    const agenti = [
+      { categoria: "Interni Swisscom", nome: "Bernard",  descrizione: "Assistente AI interno", icona: "chat",    url: "https://..." },
+      { categoria: "Interni Swisscom", nome: "Agente 2", descrizione: "Descrizione breve",     icona: "doc",     url: "https://..." },
+      { categoria: "Esterni",          nome: "Agente 3", descrizione: "Descrizione breve",     icona: "sparkle", url: "https://..." },
+    ];
+
+    document.getElementById('title').insertAdjacentHTML('afterbegin', svg('bot'));
+    document.getElementById('search-icon').outerHTML = svg('search');
+
+    const container = document.getElementById('container');
+
+    function render(filtro = "") {
+      const f = filtro.toLowerCase();
+      const filtrati = agenti.filter(a =>
+        (a.nome + a.descrizione + a.categoria).toLowerCase().includes(f));
+      const categorie = [...new Set(filtrati.map(a => a.categoria))];
+
+      container.innerHTML = categorie.map(cat => `
+        <div class="category">
+          <h2>${cat}</h2>
+          <div class="grid">
+            ${filtrati.filter(a => a.categoria === cat).map(a => `
+              <a class="card" href="${a.url}" target="_blank" rel="noopener">
+                <span class="icon">${svg(a.icona)}</span>
+                <div><h3>${a.nome}</h3><p>${a.descrizione}</p></div>
+                <span class="ext">${svg('external')}</span>
+              </a>`).join('')}
+          </div>
+        </div>`).join('') || '<p>Nessun agente trovato.</p>';
+    }
+
+    document.getElementById('search').addEventListener('input', e => render(e.target.value));
+    render();
+  </script>
+</body>
+</html>
