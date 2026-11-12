@@ -8,14 +8,17 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
     /* Palette DataSales: light #F3F4F6/#FFFFFF, dark #0D0D10/#141417 */
-    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 70px 24px 24px; }
+    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 24px; }
 
     svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-    h1 { color: #1F2937; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    /* Barra superiore allineata al pulsante menu di index.html (40px a 14,14):
+       il titolo parte a 66px e resta centrato verticalmente col pulsante */
+    h1 { color: #1F2937; display: flex; align-items: center; gap: 10px;
+         min-height: 40px; margin: 0 0 6px 42px; }
     h1 svg { width: 28px; height: 28px; }
-    .sub { color: #4B5563; margin-bottom: 20px; }
+    .sub { color: #4B5563; margin: 0 0 20px 42px; }
 
     /* Barra strumenti */
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }

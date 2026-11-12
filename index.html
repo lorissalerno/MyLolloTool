@@ -383,9 +383,14 @@
           if (r.top < 90 && origLeft < 90 && origLeft < SAFE_RIGHT && r.top < SAFE_BOTTOM) {
             if (el.dataset.mltSafe === undefined) el.dataset.mltSafe = '';
             const shift = Math.ceil(SAFE_RIGHT - origLeft);
-            if (shift > 0) el.style.marginLeft = shift + 'px';
+            if (shift > 0) {
+              el.style.marginLeft = shift + 'px';
+              // width:100% + marginLeft traboccherebbe a destra: riempi lo spazio restante
+              el.style.width = 'auto';
+            }
           } else if (el.dataset.mltSafe !== undefined && cur > 0) {
             el.style.marginLeft = el.dataset.mltSafe;
+            el.style.width = '';
           }
         });
       });

@@ -1050,8 +1050,11 @@
 
     /* Small screens — stack charts and content comfortably */
     @media (max-width: 600px) {
-      .app-header { --app-header-height: 80px; height: var(--app-header-height); align-items: center; padding: 10px 12px; gap: 8px; }
+      .app-header { --app-header-height: 56px; height: var(--app-header-height); align-items: center; padding: 10px 12px; gap: 8px; }
       .app-logo { font-size: 18px; }
+      /* Su telefono le mini-barre KPI escono dallo schermo e tagliano il selettore anno:
+         si nascondono (restano nelle card Obiettivi/Dashboard) così logo + anno ci stanno */
+      .header-goals { display: none; }
       .nav-tabs { gap: 8px; padding: 8px 12px; }
       .nav-tab { padding: 12px 10px; }
       /* keep year-wrap visible; compact select and theme button */
