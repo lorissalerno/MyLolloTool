@@ -219,10 +219,14 @@
     /* Area contenuto */
     #frame { width: 100%; height: 100%; border: none; display: block; }
     /* Alone blu che segue il mouse sulla sidebar: azzurro leggero in tema chiaro, blu scuro neon in tema scuro */
-    #mlt-glow{position:fixed;left:0;top:0;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;pointer-events:none;z-index:2000;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(147,197,253,.38) 0%,rgba(147,197,253,.14) 42%,transparent 68%);}
-    body[data-mtheme="dark"] #mlt-glow{background:radial-gradient(circle,rgba(37,99,235,.34) 0%,rgba(30,58,138,.20) 42%,transparent 70%);box-shadow:0 0 140px 30px rgba(37,99,235,.18);}
-    @media (hover:none),(pointer:coarse){#mlt-glow{display:none;}}
-    @media (prefers-reduced-motion:reduce){#mlt-glow{display:none;}}
+    #mlt-glow{position:fixed;left:0;top:0;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;pointer-events:none;z-index:2000;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(147,197,253,.45) 0%,rgba(147,197,253,.16) 42%,transparent 68%);}
+    body[data-mtheme="dark"] #mlt-glow{background:radial-gradient(circle,rgba(37,99,235,.40) 0%,rgba(30,58,138,.22) 42%,transparent 70%);box-shadow:0 0 160px 40px rgba(37,99,235,.22);}
+    @media (hover:none) and (pointer:coarse){#mlt-glow{display:none;}}
+    /* Hover neon blu sulle voci del menu */
+    @media (hover:hover){
+      .menu-item > a:hover,#changelog-link:hover{box-shadow:inset 0 0 14px rgba(59,130,246,.35);}
+      body[data-mtheme="dark"] .menu-item > a:hover,body[data-mtheme="dark"] #changelog-link:hover{box-shadow:inset 0 0 16px rgba(37,99,235,.5);}
+    }
   </style>
 </head>
 <body data-mtheme="light">
@@ -813,8 +817,8 @@
     } catch (e) {}
   </script>
   <script>
-  /* Alone blu che segue il mouse sulla sidebar (leggero, disattivato su touch/riduzione movimento) */
-  (function(){if(matchMedia('(hover:none),(pointer:coarse)').matches||matchMedia('(prefers-reduced-motion:reduce)').matches)return;var g=document.createElement('div');g.id='mlt-glow';document.body.appendChild(g);var x=innerWidth/2,y=innerHeight/2,tx=x,ty=y,raf=null,shown=false;function loop(){x+=(tx-x)*.18;y+=(ty-y)*.18;g.style.transform='translate('+x+'px,'+y+'px)';if(Math.abs(tx-x)>.4||Math.abs(ty-y)>.4){raf=requestAnimationFrame(loop);}else{raf=null;}}addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;if(!shown){shown=true;g.style.opacity='1';}if(!raf)loop();},{passive:true});document.documentElement.addEventListener('mouseleave',function(){shown=false;g.style.opacity='0';});})();
+  /* Alone blu che segue il mouse sulla sidebar (su touch niente; con "riduci movimento" alone fisso) */
+  (function(){var touchOnly=matchMedia('(hover:none)').matches&&matchMedia('(pointer:coarse)').matches;if(touchOnly)return;var g=document.createElement('div');g.id='mlt-glow';document.body.appendChild(g);function place(x,y){g.style.transform='translate('+x+'px,'+y+'px)';}var sx=Math.max(200,Math.round(innerWidth/2)),sy=200;if(matchMedia('(prefers-reduced-motion:reduce)').matches){place(sx,sy);g.style.opacity='1';return;}var x=sx,y=sy,tx=x,ty=y,raf=null,shown=false;function loop(){x+=(tx-x)*.18;y+=(ty-y)*.18;place(x,y);if(Math.abs(tx-x)>.4||Math.abs(ty-y)>.4){raf=requestAnimationFrame(loop);}else{raf=null;}}addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;if(!shown){shown=true;g.style.opacity='1';}if(!raf)loop();},{passive:true});document.documentElement.addEventListener('mouseleave',function(){shown=false;g.style.opacity='0';});})();
   </script>
 </body>
 </html>
