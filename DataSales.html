@@ -26,7 +26,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataSales V1.1</title>
+  <title>Vendite</title>
   <meta name="description" content="DataSales: gestione vendite e prodotti — Loris Salerno SCS-B2C-CUC-SCT-OP2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
@@ -132,7 +132,6 @@
     @media (min-width: 1060px) { .app-logo { margin-left: 0; } }
     .app-logo .logo-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; display: flex; align-items: center; gap: 10px; }
     .app-logo .logo-text svg { width: 20px; height: 20px; flex: none; }
-    .app-logo .logo-text span { color: var(--accent-lt); }
     .app-logo .logo-sub { font-size: 11px; color: var(--txt-sec); margin-top: 1px; display: block; }
 
     .header-goals {
@@ -1140,7 +1139,7 @@
 <div class="app-header-wrap">
 <header class="app-header">
   <div class="app-logo">
-    <div><span class="logo-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Data<span>Sales</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
+    <div><span class="logo-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg><span data-t="headerTitle">Vendite</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
   </div>
 
   <div class="header-goals header-mid">
@@ -1797,7 +1796,8 @@ const MONTHS_L = {
 const LANG_KEY = 'mylollotool-lang';
 const LANGS = ['it', 'de', 'fr', 'en'];
 const T = {
-  docTitle:{it:'DataSales V1.1',de:'DataSales V1.1',fr:'DataSales V1.1',en:'DataSales V1.1'},
+  docTitle:{it:'Vendite',de:'Verkäufe',fr:'Ventes',en:'Sales'},
+  headerTitle:{it:'Vendite',de:'Verkäufe',fr:'Ventes',en:'Sales'},
   headerSub:{it:'Gestione vendite e prodotti',de:'Verkaufs- und Produktverwaltung',fr:'Gestion des ventes et produits',en:'Sales and product management'},
   unsavedPrefix:{it:'Attenzione:',de:'Achtung:',fr:'Attention :',en:'Warning:'},
   unsavedText:{it:'ci sono modifiche non salvate in backup locale.',de:'es gibt nicht gesicherte Änderungen im lokalen Backup.',fr:'il y a des modifications non sauvegardées en backup local.',en:'there are unsaved changes in the local backup.'},
