@@ -109,8 +109,7 @@
     /* Wrapper del contenuto, gestisce min-width e overflow orizzontale */
     .page-wrap,
     .page-wrap-taasalo3 {
-      padding: 18px;
-      padding-bottom: 72px;
+      padding: 14px 18px 72px;
       min-width: 720px;
       max-width: 900px;
       margin: 0 auto;
@@ -120,14 +119,15 @@
     .page-wrap-taasalo3.expanded {
       max-width: 100vw;
     }
-    .header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; min-height: 40px; position: relative; }
+    .header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: nowrap;
+      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; height: 60px; position: relative; }
     .header-row .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
+    .header-row .brand > div { min-width: 0; }
     @media (min-width: 1060px) { .header-row .brand { margin-left: 0; } }
     .header-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
     .header-text h1 { margin: 0; font-size: 20px; line-height: 1.25; color: var(--text); display: flex; align-items: center; gap: 10px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; letter-spacing: -.4px; }
     .header-text h1 svg { width: 20px; height: 20px; flex: none; }
-    .header-text .subtle { margin: 1px 0 0; font-size: 11px; }
+    .header-text .subtle { margin: 1px 0 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 600px) { .header-row { gap: 8px; } .header-row .brand { margin-left: 54px; } }
     .page-wrap .iconbtn, .page-wrap-taasalo3 .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
       border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; flex-shrink: 0; }

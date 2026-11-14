@@ -42,7 +42,7 @@
      * ================================================================ */
 
     :root {
-      --app-header-height: 68px;
+      --app-header-height: 74px;
       --bg          : #0D0D10;
       --bg-card     : #141417;
       --bg-card2    : #1A1A1F;
@@ -103,17 +103,19 @@
       position: sticky;
       top: 0;
       z-index: 200;
+      padding-top: 14px;
     }
-    /* Header stile Turni: titolo + sottotitolo a sinistra, azioni a destra, riga blu sotto */
+    /* Header stile Turni: titolo + sottotitolo a sinistra, azioni a destra, riga blu sotto.
+       Altezza totale fissa 60px (come tutte le pagine) così la riga blu è sempre alla stessa altezza. */
     .app-header {
       color: var(--txt);
       padding: 0 36px 8px;
-      min-height: 40px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       max-width: 1600px;
       width: 100%;
       margin: 0 auto;
@@ -125,14 +127,14 @@
       align-items: center;
       gap: 12px;
       min-width: 0;
-      margin-left: 46px;
+      flex: 0 1 auto;
+      margin-left: 66px;
       margin-right: 18px;
-      transition: margin-left .25s ease;
     }
-    @media (min-width: 1060px) { .app-logo { margin-left: 0; } }
     .app-logo .logo-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; display: flex; align-items: center; gap: 10px; }
+    .app-logo > div { min-width: 0; }
     .app-logo .logo-text svg { width: 20px; height: 20px; flex: none; }
-    .app-logo .logo-sub { font-size: 11px; color: var(--txt-sec); margin-top: 1px; display: block; }
+    .app-logo .logo-sub { font-size: 11px; color: var(--txt-sec); margin-top: 1px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .header-goals {
       display: flex;
@@ -1037,7 +1039,7 @@
     /* Header / Nav fixes to avoid horizontal overflow while preventing wrap */
     .nav-tabs > div:last-child { flex: 0 0 auto; }
     @media (max-width: 900px) {
-      :root { --app-header-height: 56px; }
+      :root { --app-header-height: 74px; }
       .nav-tabs { white-space: nowrap; overflow-x: auto; }
       .nav-tabs > div:last-child { justify-content: flex-end; padding: 6px 8px; }
       .header-goals { gap: 6px; }
@@ -1057,8 +1059,8 @@
 
     /* Small screens — stack charts and content comfortably */
     @media (max-width: 600px) {
-      .app-header { align-items: center; padding: 10px 12px 8px; gap: 8px; }
-      .app-logo { margin-left: 54px; margin-right: 0; }
+      .app-header { height: 60px; align-items: center; padding: 0 12px 8px; gap: 8px; }
+      .app-logo { margin-left: 66px; margin-right: 0; }
       .app-logo .logo-text { font-size: 20px; }
       .app-logo .logo-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
       /* Su telefono le mini-barre KPI escono dallo schermo e tagliano il selettore anno:

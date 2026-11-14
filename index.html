@@ -525,6 +525,14 @@
       const SAFE_BOTTOM = 14 + 40 + 12;
       const sels = ['.app-header', '.header-row', 'header.top', 'header', '.brand', '.app-logo', 'h1'];
       const seen = new Set();
+      // Contenuti interni: se uno di questi è già fuori dal pulsante, il contenitore non va spostato
+      const INNER = ['.app-logo', '.brand', 'h1'];
+      const restore = (el, cur) => {
+        if (el.dataset.mltSafe !== undefined && cur > 0) {
+          el.style.marginLeft = el.dataset.mltSafe;
+          el.style.width = '';
+        }
+      };
       sels.forEach((sel) => {
         let list = [];
         try { list = doc.querySelectorAll(sel); } catch (e) { list = []; }
@@ -535,6 +543,21 @@
           try { r = el.getBoundingClientRect(); } catch (e) { return; }
           if (!r || r.width === 0) return;
           const cur = parseFloat(el.style.marginLeft) || 0;
+          // Se un contenuto interno è già fuori dal pulsante, non spostare il contenitore
+          // (evita di spingere header larghi fuori centro o fuori schermo)
+          let innerClear = false;
+          try {
+            for (const s of INNER) {
+              const inn = el.querySelectorAll ? el.querySelectorAll(s) : [];
+              for (const n of inn) {
+                if (seen.has(n) || !n.getBoundingClientRect) continue;
+                const rb = n.getBoundingClientRect();
+                if (rb && rb.width > 0 && rb.top < SAFE_BOTTOM && rb.left >= SAFE_RIGHT) { innerClear = true; break; }
+              }
+              if (innerClear) break;
+            }
+          } catch (e) {}
+          if (innerClear) { restore(el, cur); return; }
           const origLeft = r.left - cur;
           if (r.top < 90 && origLeft < 90 && origLeft < SAFE_RIGHT && r.top < SAFE_BOTTOM) {
             if (el.dataset.mltSafe === undefined) el.dataset.mltSafe = '';
@@ -544,9 +567,8 @@
               // width:100% + marginLeft traboccherebbe a destra: riempi lo spazio restante
               el.style.width = 'auto';
             }
-          } else if (el.dataset.mltSafe !== undefined && cur > 0) {
-            el.style.marginLeft = el.dataset.mltSafe;
-            el.style.width = '';
+          } else {
+            restore(el, cur);
           }
         });
       });
