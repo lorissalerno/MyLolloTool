@@ -97,7 +97,8 @@
 
     /* ---- HEADER ---- */
     .app-header-wrap {
-      background: var(--bg-card);
+      background: rgba(20,20,23,.78);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(0,0,0,.30);
       position: sticky;
@@ -105,6 +106,7 @@
       z-index: 200;
       padding-top: 14px;
     }
+    :root.light-theme .app-header-wrap { background: rgba(255,255,255,.78); }
     /* Header stile Turni: titolo + sottotitolo a sinistra, azioni a destra, riga blu sotto.
        Altezza totale fissa 60px (come tutte le pagine) così la riga blu è sempre alla stessa altezza. */
     /* Barra a tutta larghezza: il titolo resta fisso vicino al pulsante menu
@@ -274,12 +276,14 @@
 
     /* ---- NAV ---- */
     .nav-tabs-wrap {
-      background: var(--bg-card);
+      background: rgba(20,20,23,.78);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: var(--app-header-height);
       z-index: 190;
     }
+    :root.light-theme .nav-tabs-wrap { background: rgba(255,255,255,.78); }
     .nav-tabs {
       display: flex;
       padding: 0 36px;
@@ -1122,8 +1126,8 @@
     #unsavedBackupBanner .close-btn { background: transparent; border: none; color: #6B7280; font-size:16px; cursor:pointer; padding:6px; border-radius:6px; }
     #unsavedBackupBanner .close-btn:hover { background: rgba(0,0,0,0.04); color:#374151; }
     /* Alone blu che segue il mouse: blu scuro neon in tema scuro, azzurro leggero in tema chiaro */
-    #mlt-glow{position:fixed;left:0;top:0;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;pointer-events:none;z-index:30;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(96,165,250,.34) 0%,rgba(59,130,246,.15) 38%,rgba(37,99,235,.06) 55%,transparent 73%);}
-    :root.light-theme #mlt-glow{background:radial-gradient(circle,rgba(147,197,253,.45) 0%,rgba(147,197,253,.16) 42%,transparent 68%);box-shadow:none;}
+    #mlt-glow{position:fixed;left:0;top:0;width:480px;height:480px;margin:-240px 0 0 -240px;border-radius:50%;pointer-events:none;z-index:30;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(96,165,250,.15) 0%,rgba(59,130,246,.06) 40%,rgba(37,99,235,.02) 55%,transparent 72%);}
+    :root.light-theme #mlt-glow{background:radial-gradient(circle,rgba(147,197,253,.20) 0%,rgba(147,197,253,.07) 40%,transparent 70%);box-shadow:none;}
     @media (hover:none) and (pointer:coarse){#mlt-glow{display:none;}}
     /* Hover neon blu su schede e pulsanti */
     @media (hover:hover){
