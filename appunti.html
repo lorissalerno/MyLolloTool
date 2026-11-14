@@ -414,8 +414,27 @@
 
     // ===== Dati =====
     const KEY = 'mylollotool-appunti';
+    function defaultNotes() {
+      const now = Date.now();
+      const every = (s, e) => ({ 1: [[s, e]], 2: [[s, e]], 3: [[s, e]], 4: [[s, e]], 5: [[s, e]], 6: [[s, e]], 7: [[s, e]] });
+      const workdays = (s, e) => ({ 1: [[s, e]], 2: [[s, e]], 3: [[s, e]], 4: [[s, e]], 5: [[s, e]] });
+      return [
+        { id: uid(), type: 'tel', title: 'Swisscom', numero: '0800 800 800', orario: '', hours: every('00:00', '23:59'), html: '', updated: now },
+        { id: uid(), type: 'tel', title: 'Cablex', numero: '0800 222 444', orario: '', hours: workdays('08:00', '17:00'), html: '', updated: now },
+        { id: uid(), type: 'tel', title: 'My Service', numero: '0800 822 830', orario: '', hours: Object.assign(workdays('08:00', '20:00'), { 6: [['08:00', '17:00']] }), html: '', updated: now },
+      ];
+    }
     function load() {
-      try { const d = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(d) ? d : []; }
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw === null) {
+          const seed = defaultNotes();
+          try { localStorage.setItem(KEY, JSON.stringify(seed)); } catch (e) {}
+          return seed;
+        }
+        const d = JSON.parse(raw);
+        return Array.isArray(d) ? d : [];
+      }
       catch { return []; }
     }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(appunti)); } catch (e) {} }
