@@ -120,11 +120,7 @@
       max-width: 100vw;
     }
     .header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: nowrap;
-      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; height: 60px; position: sticky; top: 0; z-index: 60;
-      background: var(--bg); margin-top: -14px; padding-top: 14px;
-      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
-    :root .header-row { background: rgba(243,244,246,.78); }
-    body.dark .header-row { background: rgba(13,13,16,.78); }
+      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; height: 60px; position: relative; }
     .header-row .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
     .header-row .brand > div { min-width: 0; }
     @media (min-width: 1060px) { .header-row .brand { margin-left: 0; } }
@@ -449,15 +445,6 @@
     }
     .settings-popup label:hover {
       background: var(--panel-2);
-    }
-    /* Alone blu che segue il mouse: azzurro leggero in tema chiaro, blu scuro neon in tema scuro */
-    #mlt-glow{position:fixed;left:0;top:0;width:480px;height:480px;margin:-240px 0 0 -240px;border-radius:50%;pointer-events:none;z-index:30;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(147,197,253,.20) 0%,rgba(147,197,253,.07) 40%,transparent 70%);}
-    body.dark #mlt-glow{background:radial-gradient(circle,rgba(96,165,250,.15) 0%,rgba(59,130,246,.06) 40%,rgba(37,99,235,.02) 55%,transparent 72%);}
-    @media (hover:none) and (pointer:coarse){#mlt-glow{display:none;}}
-    /* Hover neon blu sui pannelli */
-    @media (hover:hover){
-      .card:hover{border-color:rgba(59,130,246,.55);box-shadow:0 0 0 1px rgba(147,197,253,.8),0 6px 22px rgba(59,130,246,.28);}
-      body.dark .card:hover{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 1px rgba(37,99,235,.55),0 0 26px rgba(37,99,235,.45);}
     }
   </style>
 </head>
@@ -2670,9 +2657,5 @@
   </footer>
   </div><!-- /.page-wrap -->
   <!-- Fine file — Creato da Loris Salerno, Giugno 2026. Tutti i diritti riservati. -->
-  <script>
-  /* Alone blu che segue il mouse (su touch niente; con "riduci movimento" segue senza animazione) */
-  (function(){var touchOnly=matchMedia('(hover:none)').matches&&matchMedia('(pointer:coarse)').matches;if(touchOnly)return;var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;var g=document.createElement('div');g.id='mlt-glow';document.body.appendChild(g);function place(x,y){g.style.transform='translate('+x+'px,'+y+'px)';}var x=Math.max(200,Math.round(innerWidth/2)),y=200,tx=x,ty=y,raf=null,shown=false;place(x,y);function loop(){x+=(tx-x)*.18;y+=(ty-y)*.18;place(x,y);if(Math.abs(tx-x)>.4||Math.abs(ty-y)>.4){raf=requestAnimationFrame(loop);}else{raf=null;}}addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;if(!shown){shown=true;g.style.opacity='1';}if(reduce){x=tx;y=ty;place(x,y);if(raf){cancelAnimationFrame(raf);raf=null;}return;}if(!raf)loop();},{passive:true});document.documentElement.addEventListener('mouseleave',function(){shown=false;g.style.opacity='0';});})();
-  </script>
 </body>
 </html>

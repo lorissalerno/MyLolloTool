@@ -218,15 +218,6 @@
 
     /* Area contenuto */
     #frame { width: 100%; height: 100%; border: none; display: block; }
-    /* Alone blu che segue il mouse sulla sidebar: azzurro leggero in tema chiaro, blu scuro neon in tema scuro */
-    #mlt-glow{position:fixed;left:0;top:0;width:480px;height:480px;margin:-240px 0 0 -240px;border-radius:50%;pointer-events:none;z-index:2000;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(147,197,253,.20) 0%,rgba(147,197,253,.07) 40%,transparent 70%);}
-    body[data-mtheme="dark"] #mlt-glow{background:radial-gradient(circle,rgba(96,165,250,.15) 0%,rgba(59,130,246,.06) 40%,rgba(37,99,235,.02) 55%,transparent 72%);}
-    @media (hover:none) and (pointer:coarse){#mlt-glow{display:none;}}
-    /* Hover neon blu sulle voci del menu */
-    @media (hover:hover){
-      .menu-item > a:hover,#changelog-link:hover{box-shadow:inset 0 0 14px rgba(59,130,246,.35);}
-      body[data-mtheme="dark"] .menu-item > a:hover,body[data-mtheme="dark"] #changelog-link:hover{box-shadow:inset 0 0 16px rgba(37,99,235,.5);}
-    }
   </style>
 </head>
 <body data-mtheme="light">
@@ -815,10 +806,6 @@
       const d = backupDate();
       if (!d || Date.now() - d.getTime() > 864e5) setTimeout(exportUnifiedBackup, 1500);
     } catch (e) {}
-  </script>
-  <script>
-  /* Alone blu che segue il mouse sulla sidebar (su touch niente; con "riduci movimento" segue senza animazione) */
-  (function(){var touchOnly=matchMedia('(hover:none)').matches&&matchMedia('(pointer:coarse)').matches;if(touchOnly)return;var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;var g=document.createElement('div');g.id='mlt-glow';document.body.appendChild(g);function place(x,y){g.style.transform='translate('+x+'px,'+y+'px)';}var x=Math.max(200,Math.round(innerWidth/2)),y=200,tx=x,ty=y,raf=null,shown=false;place(x,y);function loop(){x+=(tx-x)*.18;y+=(ty-y)*.18;place(x,y);if(Math.abs(tx-x)>.4||Math.abs(ty-y)>.4){raf=requestAnimationFrame(loop);}else{raf=null;}}addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;if(!shown){shown=true;g.style.opacity='1';}if(reduce){x=tx;y=ty;place(x,y);if(raf){cancelAnimationFrame(raf);raf=null;}return;}if(!raf)loop();},{passive:true});document.documentElement.addEventListener('mouseleave',function(){shown=false;g.style.opacity='0';});})();
   </script>
 </body>
 </html>
