@@ -75,6 +75,27 @@
     .menu-ctl button.off { color: #DC2626; }
     body[data-mtheme="dark"] .menu-ctl button.off { color: #f87171; }
 
+    /* Link discreto Novità + versione sopra le preferenze */
+    #changelog-box { padding: 10px 16px 0; }
+    #changelog-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 9px;
+      color: inherit; text-decoration: none;
+      font-size: 12px; opacity: .72;
+    }
+    #changelog-link:hover { opacity: 1; background: rgba(0,0,0,.06); }
+    body[data-mtheme="dark"] #changelog-link:hover { background: rgba(255,255,255,.08); }
+    #changelog-link.active { opacity: 1; background: rgba(0,0,0,.1); }
+    body[data-mtheme="dark"] #changelog-link.active { background: rgba(255,255,255,.14); }
+    #changelog-link svg { width: 14px; height: 14px; }
+    #changelog-txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #site-version {
+      font-size: 11px; font-weight: 700; letter-spacing: .03em;
+      padding: 1px 8px; border-radius: 999px;
+      background: rgba(0,0,0,.1); color: inherit;
+    }
+    body[data-mtheme="dark"] #site-version { background: rgba(255,255,255,.15); }
+
     /* Scelte rapide in fondo al menu: tema + lingua (metodo SCT: un click cambia) */
     #theme-box { margin-top: auto; padding: 14px 16px 4px; }
     .pref-row { display: flex; gap: 8px; }
@@ -130,6 +151,9 @@
       </button>
     </div>
     <div id="menu-links"></div>
+    <div id="changelog-box">
+      <a id="changelog-link" href="#novita" data-src="novita.html"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="changelog-txt">Novità</span><span id="site-version">v1.01</span></a>
+    </div>
     <div id="theme-box">
       <div class="pref-row" role="group" id="pref-group">
         <button id="theme-toggle" type="button">
@@ -198,12 +222,20 @@
     let links = [];
     const menuLinks = document.getElementById('menu-links');
     const menuEditBtn = document.getElementById('menu-edit');
+    // Versione sito: +0.01 solo una volta al giorno con modifica funzionale (vedi AGENTS.md + novita.html).
+    const SITE_VERSION = '1.01';
+    const changelogLink = document.getElementById('changelog-link');
+    const changelogTxt = document.getElementById('changelog-txt');
+    const siteVersionEl = document.getElementById('site-version');
+    siteVersionEl.textContent = 'v' + SITE_VERSION;
 
     // ===== Lingua globale condivisa con tutte le pagine (metodo SCT: click per cambiare) =====
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const LANG_LABELS = { it: 'IT', de: 'DE', fr: 'FR', en: 'EN' };
     const MENU_T = {
+      news:     { it: 'Novità', de: 'Neuigkeiten', fr: 'Nouveautés', en: "What's new" },
+      newsTitle:{ it: 'Storico modifiche funzionali', de: 'Verlauf funktionaler Änderungen', fr: 'Historique des changements', en: 'Functional changelog' },
       tools:    { it: 'Strumenti', de: 'Werkzeuge', fr: 'Outils', en: 'Tools' },
       editMenu: { it: 'Modifica menu: sposta o nascondi le voci', de: 'Menü bearbeiten: Einträge verschieben oder ein-/ausblenden', fr: 'Modifier le menu : déplacer ou afficher/masquer les entrées', en: 'Edit menu: reorder or show/hide entries' },
       editDone: { it: 'Fine modifica menu', de: 'Bearbeitung beenden', fr: 'Terminer la modification', en: 'Done editing' },
@@ -243,6 +275,8 @@
       frame.title = mt('frame');
       document.getElementById('pref-group').setAttribute('aria-label', mt('group'));
       sidebar.querySelector('.menu-head h2').textContent = mt('tools');
+      changelogTxt.textContent = mt('news');
+      changelogLink.title = mt('newsTitle');
       paintMenuEdit();
       themeToggle.title = mt('theme');
       renderMenu();
@@ -312,6 +346,7 @@
       }
       if (e.target.closest('a')) setMenu(false);
     });
+    changelogLink.addEventListener('click', () => setMenu(false));
 
     // Riordino con trascinamento del mouse (solo in modalità modifica)
     let dragId = null;
@@ -375,11 +410,19 @@
     });
 
     function loadPage(hash) {
+      if (hash === '#novita') {
+        if (frame.getAttribute('src') !== changelogLink.dataset.src) frame.src = changelogLink.dataset.src;
+        links.forEach(a => a.classList.remove('active'));
+        changelogLink.classList.add('active');
+        document.title = 'MyLolloTool – ' + changelogTxt.textContent.trim();
+        return;
+      }
       const vis = visibleLinks();
       const link = vis.find(a => a.getAttribute('href') === hash) || vis[0];
       if (!link) return;
       if (frame.getAttribute('src') !== link.dataset.src) frame.src = link.dataset.src;
       links.forEach(a => a.classList.toggle('active', a === link));
+      changelogLink.classList.remove('active');
       document.title = 'MyLolloTool – ' + link.textContent.trim();
     }
 

@@ -10,6 +10,7 @@ Nessuna build, nessun bundler. UI in italiano.
 - `Turni Swisscom.html` — turni con `html[data-theme]`. Storage: `turni_v7`, `turni_tema`, `turni_link`, `turni_meta7`.
 - `DataSales.html` — DB SQLite via sql.js + Chart.js/jspdf da CDN. Default scuro. Banner modifiche non salvate: default CSS `display:none`, mostrato solo via JS (`updateUnsavedBackupBanner`). Su telefono (`≤600px`) le mini-barre KPI header sono nascoste (restano nelle card) così logo + anno ci stanno; altezza header 56px.
 - `agenti.html` — card link agenti, storage `mylollotool-agenti`. Toggle larghezza card (280px/360px) in toolbar, stato in `mylollotool-agenti-width`. Nessuna dipendenza esterna.
+- `novita.html` — pagina "Novità": storico modifiche funzionali (solo uso essenziale, niente grafica). Stessa palette agenti, `body.dark`, i18n it/de/fr/en, nessun bottone tema/lingua. Costante `SITE_VERSION` nel `<script>`.
 - `DataSales.html`, `Turni Swisscom.html` — hanno dipendenze CDN: i test offline devono tollerare errori rete.
 
 ## Tema + lingua globali (2026-11-12)
@@ -34,6 +35,15 @@ Dettagli per file (palette unica DataSales — dark `#0D0D10/#141417/#1A1A1F`, l
 - Turni: `documentElement.dataset.theme` (`white`|`dark`). Helper `readTemaGlobale()` / `setTema(t, notifyParent)`. `white` = light globale. Pulsante `#tema` rimosso (2026-11-12): `setTema` con guard su elemento mancante. i18n it/de/fr/en: dizionario `T` + `GIORNI_L`/`MESI_L`/`NOMI_L`, `applyLang()` (testi statici via `data-t`/`data-th`/`data-t-ph`/`data-t-title` + `paintButtons()` + re-render), listener `message`/`storage`.
 - DataSales: `:root.light-theme` (assenza classe = dark). Helper `applyThemeFromGlobal()`. Non chiamare `renderStats()` prima del boot (`chMonthly/chTypes` in TDZ): usare try/catch esistente. Pulsante `#themeToggleBtn` rimosso (2026-11-12): `updateThemeIcon()` no-op, sync solo da `index.html`. i18n it/de/fr/en: dizionario `T` + `MONTHS_L`, `applyLang()` (attributi `data-t*` + re-render parziale). ATTENZIONE: `applyLang` NON deve chiamare `refresh()` (migrate/sync scrivono su DB e settano flag modifiche) ma solo `renderSales/renderProducts/loadGoals/renderStats/renderArchive`. Header CSV tradotto: l'import accetta header in tutte le lingue (`HDR` map).
 - agenti: `body.dark` (CSS aggiunto in questo repo). Solo ricezione + lettura iniziale, nessun bottone tema nella pagina. i18n it/de/fr/en: dizionario `T` + `ICONL`, `applyLang()` (attributi `data-t*` + `renderIconPicker()` + re-render), listener `message`/`storage`.
+- novita: `body.dark`, solo ricezione + lettura iniziale. i18n it/de/fr/en via `T` + attributi `data-t`, listener `message`/`storage` unificati (tema + lingua). Badge `#ver-badge` = `'v' + SITE_VERSION`.
+
+## Novità + versione sito
+
+- Link discreto `#changelog-link` in `#changelog-box`, sopra `#theme-box` (sotto `#menu-links`): icona campana + `<span id="changelog-txt">` + badge `<span id="site-version">`. Stile discreto: `font-size 12px`, `opacity .72`, hover/active come voci menu. Non fa parte di `DEFAULT_MENU` (non riordinabile/nascondibile).
+- `index.html`: costante `SITE_VERSION = '1.01'`, testo badge `siteVersionEl.textContent = 'v' + SITE_VERSION`. `MENU_T.news`/`newsTitle` per i18n. `loadPage('#novita')` carica `novita.html` via `changelogLink.dataset.src`, attiva solo `#changelog-link`, aggiorna `document.title`. Click chiude il menu.
+- `novita.html`: costante `SITE_VERSION` propria (stesso valore), badge `#ver-badge`. Voci `.entry` con `<strong>vX.XX</strong><time>gg/mm/aaaa</time>` + `<li>` con `<span class="tag">Pagina</span>`.
+- REGOLA OBBLIGATORIA: ogni modifica funzionale importante (uso reale: lingua, tema, menu, import/export, DB, turni, calcoli LolloTool — mai grafica pura) va annotata in `novita.html` in italiano + traduzioni `T` (de/fr/en), con tag pagina e data. Solo modifiche funzionali, niente restyling.
+- Versione: `+0.01` al massimo UNA volta al giorno, solo se c'è almeno una modifica funzionale importante quel giorno. Anche con più modifiche nello stesso giorno, un solo bump. Aggiornare ENTRAMBE le costanti `SITE_VERSION` (`index.html` + `novita.html`) e aggiungere la voce in `novita.html`. Data formato `gg/mm/aaaa`.
 
 ## Test locale
 
