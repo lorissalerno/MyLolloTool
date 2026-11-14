@@ -305,7 +305,7 @@
     /* ---- LAYOUT ---- */
     .main {
       flex: 1;
-      padding: 32px 36px;
+      padding: 32px 36px 60px;
       max-width: 1600px;
       width: 100%;
       margin: 0 auto;
@@ -792,18 +792,21 @@
     .archive-year { font-size: 20px; font-weight: 800; color: var(--txt); }
     .archive-stats { font-size: 12.5px; color: var(--txt-sec); margin-top: 4px; }
 
-    /* ---- FOOTER ---- */
+    /* ---- FOOTER (fisso stile SCT Tool) ---- */
     .app-footer {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 50;
       background: var(--bg-card);
       border-top: 1px solid var(--border);
-      color: var(--txt-muted);
+      color: var(--txt-sec);
       text-align: center;
-      padding: 16px 28px;
-      font-size: 11.5px;
-      letter-spacing: .2px;
+      padding: 5px 18px;
+      font-size: 0.7rem;
+      letter-spacing: 0;
       flex-shrink: 0;
     }
-    .app-footer a { color: var(--accent-lt); text-decoration: none; }
+    .app-footer a { color: inherit; text-decoration: none; font-weight: bold; }
     .app-footer a:hover { text-decoration: underline; }
 
     /* ---- TOAST ---- */
@@ -980,7 +983,7 @@
       .form-row { grid-template-columns: 1fr; }
       .app-header { padding: 0 18px; }
       .nav-tabs { padding: 0 18px; }
-      .main { padding: 20px 18px; }
+      .main { padding: 20px 18px 60px; }
       .header-mid { display: none; }
     }
     @media (max-width: 1600px) {
@@ -1014,7 +1017,7 @@
     @media (max-width: 1200px) {
       .chart-grid { grid-template-columns: 1fr 1fr; }
       .chart-card { padding: 18px; }
-      .main { padding: 24px 20px; }
+      .main { padding: 24px 20px 60px; }
       .app-header { padding: 0 20px; }
     }
 
@@ -1074,7 +1077,7 @@
       .year-wrap { display: flex; align-items: center; gap: 8px; }
       .year-wrap select { display: inline-block; width: 86px; padding: 6px 8px; font-size: 13px; }
       .theme-toggle-btn { margin-left: 6px; }
-      .main { padding: 16px 12px; }
+      .main { padding: 16px 12px 60px; }
       .chart-grid { grid-template-columns: 1fr; }
     }
 
@@ -1118,6 +1121,11 @@
     #unsavedBackupBanner .btn-primary:active { transform: translateY(0); }
     #unsavedBackupBanner .close-btn { background: transparent; border: none; color: #6B7280; font-size:16px; cursor:pointer; padding:6px; border-radius:6px; }
     #unsavedBackupBanner .close-btn:hover { background: rgba(0,0,0,0.04); color:#374151; }
+    /* Alone blu che segue il mouse: azzurro leggero in tema chiaro, blu scuro neon in tema scuro */
+    #mlt-glow{position:fixed;left:0;top:0;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;pointer-events:none;z-index:30;opacity:0;transition:opacity .3s ease;background:radial-gradient(circle,rgba(37,99,235,.34) 0%,rgba(30,58,138,.20) 42%,transparent 70%);box-shadow:0 0 140px 30px rgba(37,99,235,.18);}
+    :root.light-theme #mlt-glow{background:radial-gradient(circle,rgba(147,197,253,.38) 0%,rgba(147,197,253,.14) 42%,transparent 68%);box-shadow:none;}
+    @media (hover:none),(pointer:coarse){#mlt-glow{display:none;}}
+    @media (prefers-reduced-motion:reduce){#mlt-glow{display:none;}}
   </style>
 </head>
 <body>
@@ -1537,7 +1545,7 @@
 
 <!-- ===== FOOTER ===== -->
 <footer class="app-footer">
-  &copy; Copyright 2026 &nbsp;|&nbsp; Loris Salerno &nbsp;SCS-B2C-CUC-SCT-OP2 &nbsp;|&nbsp;
+  &copy; Copyright 2026 &nbsp;&nbsp;|&nbsp;&nbsp; Loris Salerno &nbsp;SCS-B2C-CUC-SCT-OP2 &nbsp;&nbsp;|&nbsp;&nbsp;
   <a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20SCT%20Tool">Feedback</a>
 </footer>
 
