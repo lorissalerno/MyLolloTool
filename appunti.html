@@ -110,11 +110,10 @@
     .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
     #schedSimple { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
     .ssrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .ssrow select, .ssrow input[type="time"] { padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
-    .ssrow input[type="time"] { width: 96px; }
-    body.dark .ssrow select, body.dark .ssrow input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    .ssrow select, .ssrow input.tin, .slot input.tin { padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
+    .ssrow input.tin, .slot input.tin { width: 96px; }
+    body.dark .ssrow select, body.dark .ssrow input.tin, body.dark .slot input.tin { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
     .ssadd { display: flex; justify-content: flex-end; }
-    .slot input { width: 96px; }
     .sbtn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none;
             border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; color: #4B5563; cursor: pointer; font-size: 15px; line-height: 1; }
     .sbtn:hover { background: #E5E7EB; }
@@ -480,7 +479,20 @@
     };
 
     // ===== Orari strutturati: giorni + più fasce =====
-    const normSlot = (s, e) => (s && e && s < e) ? [s, e] : null;
+    // Orari flessibili: "8" -> 08:00, accetta : . , o cifre unite ("830" -> 08:30)
+    const parseTime = v => {
+      const m = String(v || '').trim().replace(',', '.').match(/^(\d{1,2})(?:[:.](\d{1,2}))?$/);
+      if (!m && !/^\d{3,4}$/.test(String(v || '').trim())) return null;
+      let h, min;
+      if (m) { h = +m[1]; min = m[2] === undefined ? 0 : +m[2]; }
+      else { const d = String(v).trim(); h = +d.slice(0, -2); min = +d.slice(-2); }
+      if (h > 23 || min > 59) return null;
+      return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+    };
+    const normSlot = (s, e) => {
+      const ps = parseTime(s), pe = parseTime(e);
+      return (ps && pe && ps < pe) ? [ps, pe] : null;
+    };
     function buildSchedRows(hours) {
       schedRows.innerHTML = '';
       for (let d = 1; d <= 7; d++) {
@@ -497,7 +509,7 @@
     function slotEl(s, e) {
       const sp = document.createElement('span');
       sp.className = 'slot';
-      sp.innerHTML = `<input type="time" value="${esc(s || '')}">–<input type="time" value="${esc(e || '')}"><button type="button" class="sbtn sdel" title="${esc(t('delSlot'))}">×</button>`;
+      sp.innerHTML = `<input type="text" class="tin" inputmode="decimal" placeholder="08:00" maxlength="5" value="${esc(s || '')}">–<input type="text" class="tin" inputmode="decimal" placeholder="20:00" maxlength="5" value="${esc(e || '')}"><button type="button" class="sbtn sdel" title="${esc(t('delSlot'))}">×</button>`;
       return sp;
     }
     schedRows.addEventListener('click', e => {
@@ -532,7 +544,7 @@
     function ssRowEl(g) {
       const row = document.createElement('div');
       row.className = 'ssrow';
-      row.innerHTML = `<span data-t="schedFrom">Da</span><select class="ss-f"></select><span data-t="schedTo">a</span><select class="ss-t"></select><span aria-hidden="true">·</span><input type="time" class="ss-s">–<input type="time" class="ss-e"><button type="button" class="sbtn ss-del" data-t-title="delSlot" title="×">×</button>`;
+      row.innerHTML = `<span data-t="schedFrom">Da</span><select class="ss-f"></select><span data-t="schedTo">a</span><select class="ss-t"></select><span aria-hidden="true">·</span><input type="text" class="tin ss-s" inputmode="decimal" placeholder="08:00" maxlength="5">–<input type="text" class="tin ss-e" inputmode="decimal" placeholder="20:00" maxlength="5"><button type="button" class="sbtn ss-del" data-t-title="delSlot" title="×">×</button>`;
       dayOptions(row.querySelector('.ss-f'), g ? g.from : 1);
       dayOptions(row.querySelector('.ss-t'), g ? g.to : 5);
       if (g && g.slot) {
