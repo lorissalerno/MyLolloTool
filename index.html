@@ -12,15 +12,66 @@
     svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-    /* Pulsante hamburger: 40px, centrato a 34px come le barre header (DataSales 68px) */
+    /* Design tokens pulsante menu (glass strumentale blu Swisscom) */
+    :root {
+      --tgl-accent: #7dc3ff;
+      --tgl-ease: cubic-bezier(.2,.8,.2,1);
+      --tgl-shadow: 0 1px 0 0 rgba(255,255,255,.18) inset,
+        0 10px 24px -12px rgba(37,99,235,.65),
+        0 4px 12px -4px rgba(0,0,0,.45);
+    }
+
+    /* Pulsante menu: 40px fisso a 14,14, centro a 34px come barre header (DataSales 68px).
+       Restyling glass: stesso ingombro per non rompere fixToggleOverlap() (safe 66px). */
     #toggle {
       position: fixed; top: 14px; left: 14px; z-index: 1001;
-      width: 40px; height: 40px; border: none; border-radius: 10px;
-      background: #001155; color: #fff; cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,.3);
+      width: 40px; height: 40px; border-radius: 13px; cursor: pointer;
       display: grid; place-items: center;
+      color: #fff;
+      background:
+        radial-gradient(at 30% 20%, rgba(125,195,255,.38) 0, transparent 55%),
+        linear-gradient(145deg, #1a2f7a 0%, #001155 62%, #000b38 100%);
+      border: 1px solid color-mix(in oklab, var(--tgl-accent) 38%, transparent);
+      box-shadow: var(--tgl-shadow);
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      transition: transform .22s var(--tgl-ease), box-shadow .22s var(--tgl-ease),
+        background .22s var(--tgl-ease), border-color .22s var(--tgl-ease);
     }
-    #toggle svg { width: 22px; height: 22px; }
+    body[data-mtheme="light"] #toggle {
+      background:
+        radial-gradient(at 30% 20%, rgba(255,255,255,.5) 0, transparent 55%),
+        linear-gradient(145deg, #27439e 0%, #001155 70%, #000b38 100%);
+    }
+    body[data-mtheme="dark"] #toggle {
+      background:
+        radial-gradient(at 30% 20%, rgba(125,195,255,.28) 0, transparent 55%),
+        linear-gradient(145deg, #2b3f8f 0%, #17171e 68%, #0d0d10 100%);
+      border-color: color-mix(in oklab, var(--tgl-accent) 30%, rgba(255,255,255,.14));
+    }
+    #toggle:hover {
+      transform: translateY(-1px);
+      border-color: var(--tgl-accent);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,.22) inset,
+        0 0 0 1px color-mix(in oklab, var(--tgl-accent) 55%, transparent),
+        0 14px 30px -12px color-mix(in oklab, var(--tgl-accent) 60%, black);
+    }
+    #toggle:active { transform: translateY(1px) scale(.97); }
+    #toggle:focus-visible { outline: 2px solid var(--tgl-accent); outline-offset: 3px; }
+    /* Linee hamburger animate (morph in X quando il menu è aperto) */
+    #toggle .tgl-lines { display: grid; gap: 5px; justify-items: center; }
+    #toggle .tgl-lines span {
+      display: block; width: 20px; height: 2px; border-radius: 2px;
+      background: currentColor;
+      box-shadow: 0 0 8px color-mix(in oklab, var(--tgl-accent) 70%, transparent);
+      transition: transform .28s var(--tgl-ease), opacity .2s var(--tgl-ease), width .28s var(--tgl-ease);
+    }
+    #toggle.is-open .tgl-lines span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    #toggle.is-open .tgl-lines span:nth-child(2) { opacity: 0; transform: scaleX(.2); }
+    #toggle.is-open .tgl-lines span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    @media (prefers-reduced-motion: reduce) {
+      #toggle, #toggle .tgl-lines span { transition-duration: .01ms !important; }
+    }
 
     /* Menu laterale: grigio chiaro in tema chiaro, grigio (più chiaro del dark) in tema scuro */
     #sidebar {
@@ -148,8 +199,8 @@
 </head>
 <body data-mtheme="light">
 
-  <button id="toggle" aria-label="Menu">
-    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+  <button id="toggle" aria-label="Menu" aria-expanded="false" aria-controls="sidebar">
+    <span class="tgl-lines" aria-hidden="true"><span></span><span></span><span></span></span>
   </button>
 
   <nav id="sidebar">
@@ -187,12 +238,15 @@
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
     const frame   = document.getElementById('frame');
+    const toggleBtn = document.getElementById('toggle');
     function setMenu(open) {
       sidebar.classList.toggle('open', open);
       overlay.classList.toggle('show', open);
+      toggleBtn.classList.toggle('is-open', open);
+      toggleBtn.setAttribute('aria-expanded', String(open));
     }
 
-    document.getElementById('toggle').onclick = () =>
+    toggleBtn.onclick = () =>
       setMenu(!sidebar.classList.contains('open'));
     overlay.onclick = () => setMenu(false);
 
