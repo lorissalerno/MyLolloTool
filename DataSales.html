@@ -130,14 +130,8 @@
       transition: margin-left .25s ease;
     }
     @media (min-width: 1060px) { .app-logo { margin-left: 0; } }
-    .app-logo img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-    .app-logo .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; display: block; }
+    .app-logo .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; display: flex; align-items: center; gap: 10px; }
+    .app-logo .logo-text svg { width: 20px; height: 20px; flex: none; }
     .app-logo .logo-text span { color: var(--accent-lt); }
     .app-logo .logo-sub { font-size: 11px; color: var(--txt-sec); margin-top: 1px; display: block; }
 
@@ -1047,7 +1041,6 @@
       :root { --app-header-height: 56px; }
       .nav-tabs { white-space: nowrap; overflow-x: auto; }
       .nav-tabs > div:last-child { justify-content: flex-end; padding: 6px 8px; }
-      .app-logo img { width: 30px; height: 30px; }
       .header-goals { gap: 6px; }
       .header-goal-track.aoit, .header-goal-track.ret, .header-goal-track.narrow { width: auto; max-width: 140px; }
     }
@@ -1147,8 +1140,7 @@
 <div class="app-header-wrap">
 <header class="app-header">
   <div class="app-logo">
-    <img src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="DataSales Logo">
-    <div><span class="logo-text">Data<span>Sales</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
+    <div><span class="logo-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Data<span>Sales</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
   </div>
 
   <div class="header-goals header-mid">
