@@ -608,9 +608,19 @@
     function schedLines(a) {
       const out = [];
       if (!a.hours) return out;
-      for (let d = 1; d <= 7; d++) {
-        const sl = a.hours[d];
-        if (Array.isArray(sl) && sl.length) out.push(dayName(d) + ' ' + sl.map(([s, e]) => s + '–' + e).join(' · '));
+      // Raggruppa giorni consecutivi con gli stessi orari: "Lun–Sab 08:00–20:00"
+      let start = -1, prev = -2, prevSlots = '';
+      const flush = (end) => {
+        if (start < 0) return;
+        const lbl = start === end ? dayName(start) : dayName(start) + '–' + dayName(end);
+        out.push(lbl + ' ' + prevSlots);
+      };
+      for (let d = 1; d <= 8; d++) {
+        const sl = (d <= 7 && Array.isArray(a.hours[d]) && a.hours[d].length) ? a.hours[d].map(([s, e]) => s + '–' + e).join(' · ') : '';
+        if (sl && d === prev + 1 && sl === prevSlots) { prev = d; continue; }
+        flush(prev);
+        if (sl) { start = d; prev = d; prevSlots = sl; }
+        else { start = -1; prev = d; prevSlots = ''; }
       }
       return out;
     }
