@@ -189,11 +189,12 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 .tnota{margin:10px 20px 0;background:var(--todaybg);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--text);font-style:italic}
 .tnota b{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .tfoot{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px 18px}
-.footbar{margin:18px 0 0;border-top:1px solid var(--line);background:var(--card)}
-.footin{max-width:960px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:11.5px;font-weight:300;color:var(--muted);letter-spacing:.2px;line-height:1.3}
-.footin .sep{opacity:.5}
-.footin a{color:inherit;text-decoration:none;font-weight:400}
+.footbar{position:fixed;left:0;right:0;bottom:0;z-index:50;border-top:1px solid var(--line);background:var(--card);padding:5px 18px;text-align:center;font-size:.7rem;color:var(--muted)}
+.footin{max-width:none;margin:0 auto;padding:0;display:inline;text-align:center;font-size:inherit;font-weight:400;color:inherit;letter-spacing:0;line-height:inherit}
+.footin .sep{opacity:1;margin:0}
+.footin a{color:inherit;text-decoration:none;font-weight:700}
 .footin a:hover{text-decoration:underline}
+body{padding-bottom:32px}
 .overlay{position:fixed;inset:0;background:rgba(11,92,255,.12);border:3px dashed var(--accent);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);z-index:99;pointer-events:none}
 .overlay.on{display:flex}
 #print{display:none}
@@ -295,7 +296,7 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 <input type="file" id="file" accept=".ics,.txt,.csv,text/calendar,text/plain" multiple hidden>
 <input type="file" id="qrFile" accept="image/*" hidden>
 </div>
-<footer class="footbar screen"><div class="footin"><span id="copy"></span><span class="sep">|</span><a href="mailto:loris.salerno@swisscom.com?subject=feedback%20Turni%20swisscom">Feedback</a></div></footer>
+<footer class="footbar screen"><div class="footin"><span id="copy"></span>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=feedback%20Turni%20swisscom">Feedback</a></div></footer>
 <div id="print"></div>
 
 <script>
@@ -936,7 +937,7 @@ function pdf(modo){
   const old=document.title; document.title=`${t('pdfDoc')}_${nomi}_${mk[mk.length-1].slice(0,4)}`;
   setTimeout(()=>{window.print(); document.title=old;},50);
 }
-const COPY='© Copyright 2026&nbsp; | &nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2';
+const COPY='© Copyright '+new Date().getFullYear()+'&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2';
 
 /* ===== Avvio ===== */
 function paintButtons(){

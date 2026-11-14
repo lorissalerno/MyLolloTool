@@ -10,7 +10,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
     /* Palette DataSales: light #F3F4F6/#FFFFFF, dark #0D0D10/#141417 */
-    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 24px; }
+    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 48px; }
+    /* Footer fisso stile SCT Tool (uguale su tutte le pagine) */
+    .mlt-footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+      border-top: 1px solid #E5E7EB; background: #FFFFFF; padding: 5px 18px;
+      text-align: center; font-size: 0.7rem; color: #4B5563; }
+    .mlt-footer a { color: inherit; text-decoration: none; font-weight: bold; }
+    body.dark .mlt-footer { background: #141417; border-color: #2A2A35; color: #9898A8; }
     .wrap { max-width: 960px; margin: 0 auto; }
 
     svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
@@ -1077,5 +1083,7 @@
 
     applyLang(curLang);
   </script>
+  <footer class="mlt-footer">© Copyright <span class="mlt-year">2026</span>&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20Appunti">Feedback</a></footer>
+  <script>try{document.querySelectorAll('.mlt-year').forEach(function(el){el.textContent=new Date().getFullYear();});}catch(e){}</script>
 </body>
 </html>

@@ -792,19 +792,23 @@
     .archive-year { font-size: 20px; font-weight: 800; color: var(--txt); }
     .archive-stats { font-size: 12.5px; color: var(--txt-sec); margin-top: 4px; }
 
-    /* ---- FOOTER ---- */
+    /* ---- FOOTER (stile SCT Tool, fisso e uguale su tutte le pagine) ---- */
     .app-footer {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 50;
       background: var(--bg-card);
       border-top: 1px solid var(--border);
       color: var(--txt-muted);
       text-align: center;
-      padding: 16px 28px;
-      font-size: 11.5px;
+      padding: 5px 18px;
+      font-size: 0.7rem;
       letter-spacing: .2px;
       flex-shrink: 0;
     }
-    .app-footer a { color: var(--accent-lt); text-decoration: none; }
+    .app-footer a { color: inherit; text-decoration: none; font-weight: bold; }
     .app-footer a:hover { text-decoration: underline; }
+    body { padding-bottom: 30px; }
 
     /* ---- TOAST ---- */
     .toast {
@@ -1537,9 +1541,10 @@
 
 <!-- ===== FOOTER ===== -->
 <footer class="app-footer">
-  &copy; Copyright 2026 &nbsp;|&nbsp; Loris Salerno &nbsp;SCS-B2C-CUC-SCT-OP2 &nbsp;|&nbsp;
+  &copy; Copyright <span class="mlt-year">2026</span> &nbsp;&nbsp;|&nbsp;&nbsp; Loris Salerno SCS-B2C-CUC-SCT-OP2 &nbsp;&nbsp;|&nbsp;&nbsp;
   <a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20SCT%20Tool">Feedback</a>
 </footer>
+<script>try{document.querySelectorAll('.mlt-year').forEach(function(el){el.textContent=new Date().getFullYear();});}catch(e){}</script>
 
 <!-- ===== TOAST ===== -->
 <div class="toast" id="toast"></div>
