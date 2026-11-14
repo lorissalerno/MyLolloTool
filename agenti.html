@@ -11,6 +11,7 @@
     [hidden] { display: none !important; }
     /* Palette DataSales: light #F3F4F6/#FFFFFF, dark #0D0D10/#141417 */
     body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 24px; }
+    .wrap { max-width: 960px; margin: 0 auto; }
 
     svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
@@ -145,6 +146,8 @@
 </head>
 <body>
 
+<div class="wrap">
+
   <header class="page-head">
     <div class="brand"><div><h1><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/></svg><span data-t="title">Agenti AI</span></h1><p class="sub" data-t="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p></div></div>
     <div class="right"><span class="pill" id="countPill"></span></div>
@@ -163,6 +166,8 @@
   </div>
 
   <div id="container"></div>
+
+</div>
 
   <!-- Modulo aggiungi / modifica -->
   <div id="modal" class="modal" hidden>
