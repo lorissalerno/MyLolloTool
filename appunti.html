@@ -201,6 +201,14 @@
     #f-body a { color: #2563EB; }
     #f-body .todo { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
     #f-body .todo input { width: 16px; height: 16px; margin-top: 3px; flex: none; accent-color: #2563EB; cursor: pointer; }
+    /* Visualizzatore */
+    #v-body { font-size: 14px; line-height: 1.6; word-break: break-word; }
+    #v-body ul, #v-body ol { padding-left: 22px; margin: 6px 0; }
+    #v-body a { color: #2563EB; }
+    #v-tel .note-num { font-size: 18px; margin: 4px 0 8px; }
+    #v-tel .note-num a { color: inherit; text-decoration: none; }
+    #v-tel .note-num a:hover { text-decoration: underline; color: #2563EB; }
+    #v-tel .sched { font-size: 13px; margin-top: 8px; }
     .actions { display: flex; align-items: center; gap: 8px; }
     .actions .status { flex: 1; font-size: 12px; color: #9CA3AF; }
   </style>
@@ -292,6 +300,24 @@
   </div>
   <input type="file" id="file-import" accept=".json,application/json" hidden>
 
+  <!-- Visualizzatore -->
+  <div id="viewer" class="modal" hidden>
+    <div class="dialog" role="dialog" aria-modal="true">
+      <h2 id="v-title"></h2>
+      <div id="v-tel" hidden>
+        <div class="note-num" id="v-num"></div>
+        <div class="note-meta" id="v-open" hidden></div>
+        <div class="sched" id="v-sched"></div>
+      </div>
+      <div id="v-body"></div>
+      <div class="actions">
+        <span class="status" id="v-date"></span>
+        <button type="button" class="btn primary" id="btn-edit" data-t="modify">Modifica</button>
+        <button type="button" class="btn" id="btn-vclose" data-t="close">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
 </div>
   <script>
     // ===== Icone interfaccia =====
@@ -361,6 +387,7 @@
       linkOk:   { it: 'Inserisci', de: 'Einfügen', fr: 'Insérer', en: 'Insert' },
       bodyPh:   { it: 'Scrivi qui...', de: 'Hier schreiben...', fr: 'Écris ici...', en: 'Write here...' },
       delete:   { it: 'Elimina', de: 'Löschen', fr: 'Supprimer', en: 'Delete' },
+      modify:   { it: 'Modifica', de: 'Bearbeiten', fr: 'Modifier', en: 'Edit' },
       close:    { it: 'Chiudi', de: 'Schliessen', fr: 'Fermer', en: 'Close' },
       saved:    { it: 'Salvato ✓', de: 'Gespeichert ✓', fr: 'Enregistré ✓', en: 'Saved ✓' },
       confirmDelete:{ it: 'Eliminare questo appunto?', de: 'Diese Notiz löschen?', fr: 'Supprimer cette note ?', en: 'Delete this note?' },
@@ -696,7 +723,8 @@
         if (confirm(t('confirmDelete'))) { appunti = appunti.filter(x => x.id !== a.id); save(); render(); }
         return;
       }
-      openEditor(a.type, a.id);
+      if (actBtn && actBtn.dataset.action === 'edit') { openEditor(a.type, a.id); return; }
+      openViewer(a.id);
     });
     search.addEventListener('input', render);
     $('chips').addEventListener('click', e => {
@@ -889,6 +917,45 @@
       }
     });
 
+    // ===== Visualizzatore (sola lettura, poi Modifica) =====
+    const viewer = $('viewer');
+    let viewId = null;
+    function openViewer(id) {
+      const a = appunti.find(x => x.id === id);
+      if (!a) return;
+      viewId = id;
+      const isTel = a.type === 'tel';
+      $('v-title').textContent = a.title || t(isTel ? 'tagTel' : 'tagNote');
+      const vTel = $('v-tel');
+      vTel.hidden = !isTel;
+      if (isTel) {
+        const telHref = 'tel:' + String(a.numero || '').replace(/[^\d+]/g, '');
+        $('v-num').innerHTML = a.numero ? `<a href="${esc(telHref)}">${esc(a.numero)}</a>` : '';
+        const st = openState(a);
+        const vOpen = $('v-open');
+        if (st) {
+          vOpen.hidden = false;
+          vOpen.innerHTML = `<span class="openline"><span class="odot${st === 'closed' ? ' closed' : ''}"></span>${esc(t(st === 'open' ? 'openNow' : 'closedNow'))}</span>`;
+        } else vOpen.hidden = true;
+        const lines = schedLines(a);
+        $('v-sched').innerHTML = lines.map(l => `<div>${esc(l)}</div>`).join('') || (a.orario ? esc(a.orario) : '');
+      }
+      const vb = $('v-body');
+      vb.innerHTML = sanitizePreview(a.html);
+      // link esterni in nuova scheda
+      vb.querySelectorAll('a[href^="http"]').forEach(l => { l.target = '_blank'; l.rel = 'noopener'; });
+      $('v-date').textContent = fmtDate(a.updated);
+      viewer.hidden = false;
+    }
+    function closeViewer() { viewId = null; viewer.hidden = true; }
+    $('btn-vclose').onclick = closeViewer;
+    viewer.addEventListener('mousedown', e => { if (e.target === viewer) closeViewer(); });
+    $('btn-edit').onclick = () => {
+      const a = appunti.find(x => x.id === viewId);
+      viewer.hidden = true;
+      viewId = null;
+      if (a) openEditor(a.type, a.id);
+    };
     // ===== Menu ingranaggio =====
     const tools = $('tools');
     $('menuBtn').onclick = (e) => { e.stopPropagation(); tools.classList.toggle('open'); };
@@ -929,6 +996,7 @@
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       if (tools.classList.contains('open')) { tools.classList.remove('open'); return; }
+      if (!viewer.hidden) { closeViewer(); return; }
       if (!modal.hidden) closeEditor();
     });
 
