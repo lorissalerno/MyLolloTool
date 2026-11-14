@@ -104,9 +104,15 @@
     .srow.off .sname { opacity: .45; }
     .srow .sslots { display: none; gap: 6px; flex-wrap: wrap; flex: 1; }
     .srow:not(.off) .sslots { display: flex; }
+    /* Modalità orari semplice/dettagliata */
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
     .slot { display: inline-flex; align-items: center; gap: 4px; }
-    .slot input { width: 96px; padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
-    body.dark .slot input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    #schedSimple { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
+    #schedSimple select, #schedSimple input[type="time"], .slot input { padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
+    #schedSimple input[type="time"], .slot input { width: 96px; }
+    body.dark #schedSimple select, body.dark #schedSimple input, body.dark .slot input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    .slot input { width: 96px; }
     .sbtn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none;
             border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; color: #4B5563; cursor: pointer; font-size: 15px; line-height: 1; }
     .sbtn:hover { background: #E5E7EB; }
@@ -233,6 +239,15 @@
           <input id="f-numero" type="tel" inputmode="tel" data-t-ph="numeroPh" placeholder="+41 ...">
         </label>
         <div class="field"><span data-t="sched">Orari di apertura</span>
+          <div class="seg" id="modeSeg">
+            <button type="button" class="chip" data-m="simple"><span data-t="schedSimple">Semplice</span></button>
+            <button type="button" class="chip" data-m="detail"><span data-t="schedDetail">Dettagliata</span></button>
+          </div>
+          <div id="schedSimple">
+            <span data-t="schedFrom">Da</span><select id="ss-from"></select>
+            <span data-t="schedTo">a</span><select id="ss-to"></select>
+            <span aria-hidden="true">·</span><input type="time" id="ss-start">–<input type="time" id="ss-end">
+          </div>
           <div id="schedRows"></div>
         </div>
       </div>
@@ -325,6 +340,10 @@
       orario:   { it: 'Orario', de: 'Zeiten', fr: 'Horaires', en: 'Hours' },
       orarioPh: { it: 'Lun–Ven 8–18', de: 'Mo–Fr 8–18', fr: 'Lun–Ven 8–18', en: 'Mon–Fri 8–18' },
       sched:    { it: 'Orari di apertura', de: 'Öffnungszeiten', fr: 'Horaires d’ouverture', en: 'Opening hours' },
+      schedSimple:{ it: 'Semplice', de: 'Einfach', fr: 'Simple', en: 'Simple' },
+      schedDetail:{ it: 'Dettagliata', de: 'Detailliert', fr: 'Détaillée', en: 'Detailed' },
+      schedFrom: { it: 'Da', de: 'Von', fr: 'De', en: 'From' },
+      schedTo:   { it: 'a', de: 'bis', fr: 'à', en: 'to' },
       addSlot:  { it: 'Aggiungi fascia oraria', de: 'Zeitfenster hinzufügen', fr: 'Ajouter une plage horaire', en: 'Add time slot' },
       delSlot:  { it: 'Rimuovi fascia', de: 'Zeitfenster entfernen', fr: 'Supprimer la plage', en: 'Remove slot' },
       openNow:  { it: 'Aperto ora', de: 'Jetzt geöffnet', fr: 'Ouvert actuellement', en: 'Open now' },
@@ -473,7 +492,35 @@
       const row = e.target.closest('.srow');
       if (row && e.target.classList.contains('sday')) row.classList.toggle('off', !e.target.checked);
     });
-    function collectSched() {
+    let schedMode = 'simple';
+    const modeSeg = $('modeSeg'), schedSimple = $('schedSimple');
+    const ssFrom = $('ss-from'), ssTo = $('ss-to'), ssStart = $('ss-start'), ssEnd = $('ss-end');
+    function fillDaySelects() {
+      [ssFrom, ssTo].forEach(sel => {
+        sel.innerHTML = '';
+        for (let d = 1; d <= 7; d++) {
+          const o = document.createElement('option');
+          o.value = d;
+          o.textContent = dayName(d);
+          sel.appendChild(o);
+        }
+      });
+    }
+    function setMode(m) {
+      schedMode = m;
+      const detail = m === 'detail';
+      schedSimple.hidden = detail;
+      schedRows.hidden = !detail;
+      modeSeg.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.m === m));
+    }
+    function rowsHaveData() {
+      let found = false;
+      schedRows.querySelectorAll('.srow').forEach(row => {
+        if (row.querySelector('.sday').checked) found = true;
+      });
+      return found;
+    }
+    function rowsAsHours() {
       const hours = {};
       schedRows.querySelectorAll('.srow').forEach(row => {
         if (!row.querySelector('.sday').checked) return;
@@ -486,6 +533,77 @@
         if (slots.length) hours[row.dataset.d] = slots;
       });
       return hours;
+    }
+    function fillSimple(hours) {
+      const det = detectMode(hours);
+      if (det.mode === 'simple' && det.hasData) {
+        ssFrom.value = det.from;
+        ssTo.value = det.to;
+        ssStart.value = det.slot[0] || '';
+        ssEnd.value = det.slot[1] || '';
+      } else {
+        ssFrom.value = 1;
+        ssTo.value = 5;
+        ssStart.value = '';
+        ssEnd.value = '';
+      }
+    }
+    function simpleAsHours() {
+      let f = Number(ssFrom.value), tt = Number(ssTo.value);
+      if (f > tt) [f, tt] = [tt, f];
+      const ok = normSlot(ssStart.value, ssEnd.value);
+      if (!ok) return {};
+      const hours = {};
+      for (let d = f; d <= tt; d++) hours[d] = [ok];
+      return hours;
+    }
+    modeSeg.addEventListener('click', e => {
+      const c = e.target.closest('.chip');
+      if (!c) return;
+      if (c.dataset.m === 'detail') {
+        // semplice -> dettagliata: se le righe sono vuote, converti la fascia semplice
+        if (!rowsHaveData()) {
+          const h = simpleAsHours();
+          if (Object.keys(h).length) buildSchedRows(h);
+        }
+        setMode('detail');
+      } else {
+        // dettagliata -> semplice: converti solo se rappresentabile, altrimenti svuota (conserva i dati)
+        const h = rowsAsHours();
+        const det = detectMode(h);
+        if (Object.keys(h).length && det.mode === 'simple' && det.hasData) {
+          ssFrom.value = det.from;
+          ssTo.value = det.to;
+          ssStart.value = det.slot[0] || '';
+          ssEnd.value = det.slot[1] || '';
+        } else if (Object.keys(h).length) {
+          ssStart.value = '';
+          ssEnd.value = '';
+        }
+        setMode('simple');
+      }
+    });
+    function detectMode(hours) {
+      const ds = Object.keys(hours || {}).map(Number).filter(d => d >= 1 && d <= 7 && Array.isArray(hours[d]) && hours[d].length).sort((a, b) => a - b);
+      if (!ds.length) return { mode: 'simple', from: 1, to: 5, slot: ['', ''], hasData: false };
+      const contig = ds.every((d, i) => i === 0 || d === ds[i - 1] + 1);
+      const first = JSON.stringify(hours[ds[0]]);
+      const same = hours[ds[0]].length === 1 && ds.every(d => JSON.stringify(hours[d]) === first);
+      if (contig && same) return { mode: 'simple', from: ds[0], to: ds[ds.length - 1], slot: hours[ds[0]][0], hasData: true };
+      return { mode: 'detail', hasData: true };
+    }
+    function buildSched(hours) {
+      fillDaySelects();
+      buildSchedRows(hours);
+      fillSimple(hours);
+      const det = detectMode(hours);
+      setMode(det.mode === 'simple' ? 'simple' : 'detail');
+    }
+    function collectSched() {
+      const s = simpleAsHours();
+      const d = rowsAsHours();
+      if (schedMode === 'simple') return Object.keys(s).length ? s : d;
+      return Object.keys(d).length ? d : s;
     }
     function schedLines(a) {
       const out = [];
@@ -625,7 +743,7 @@
       telWrap.hidden = type !== 'tel';
       fTitle.value = a.title || '';
       fNumero.value = a.numero || '';
-      if (type === 'tel') buildSchedRows(a.hours || {});
+      if (type === 'tel') buildSched(a.hours || {});
       fBody.innerHTML = a.html || '';
       fStatus.textContent = '';
       $('btn-del').style.display = id ? '' : 'none';
@@ -653,6 +771,8 @@
     fBody.addEventListener('input', scheduleSave);
     schedRows.addEventListener('input', scheduleSave);
     schedRows.addEventListener('change', scheduleSave);
+    schedSimple.addEventListener('input', scheduleSave);
+    schedSimple.addEventListener('change', scheduleSave);
     $('btn-del').onclick = () => {
       if (!editId) return;
       if (confirm(t('confirmDelete'))) {
