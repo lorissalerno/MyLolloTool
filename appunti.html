@@ -93,6 +93,29 @@
     .note-preview ul, .note-preview ol { padding-left: 20px; margin: 4px 0; }
     .note-preview a { color: #2563EB; }
     .note-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #F3F4F6; }
+    /* Orari strutturati */
+    #schedRows { display: flex; flex-direction: column; border: 1px solid #E5E7EB; border-radius: 8px; padding: 4px 10px; background: #F9FAFB; }
+    body.dark #schedRows { background: #1A1A1F; border-color: #2A2A35; }
+    .srow { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #E5E7EB; }
+    .srow:last-child { border-bottom: none; }
+    body.dark .srow { border-color: #2A2A35; }
+    .srow input[type="checkbox"] { width: 16px; height: 16px; flex: none; accent-color: #2563EB; cursor: pointer; }
+    .srow .sname { width: 34px; flex: none; font-size: 13px; font-weight: 700; }
+    .srow.off .sname { opacity: .45; }
+    .srow .sslots { display: none; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .srow:not(.off) .sslots { display: flex; }
+    .slot { display: inline-flex; align-items: center; gap: 4px; }
+    .slot input { width: 96px; padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
+    body.dark .slot input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    .sbtn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none;
+            border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; color: #4B5563; cursor: pointer; font-size: 15px; line-height: 1; }
+    .sbtn:hover { background: #E5E7EB; }
+    body.dark .sbtn { background: #141417; border-color: #2A2A35; color: #9898A8; }
+    .sched { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; font-size: 12.5px; color: #4B5563; }
+    body.dark .sched { color: #9898A8; }
+    .openline { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+    .odot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex: none; }
+    .odot.closed { background: #EF4444; }
     .note-date { font-size: 10px; color: #9CA3AF; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
     .note-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #DBEAFE; color: #1D4ED8; }
     .note.tel .note-tag { background: #DBEAFE; }
@@ -205,13 +228,13 @@
   <div id="modal" class="modal" hidden>
     <div class="dialog" role="dialog" aria-modal="true">
       <h2><span data-i="edit"></span><span id="form-title">Nuova nota</span></h2>
-      <div class="telrow" id="telWrap" hidden>
+      <div id="telWrap" hidden style="display:flex;flex-direction:column;gap:12px">
         <label class="field"><span data-t="numero">Numero</span>
           <input id="f-numero" type="tel" inputmode="tel" data-t-ph="numeroPh" placeholder="+41 ...">
         </label>
-        <label class="field"><span data-t="orario">Orario</span>
-          <input id="f-orario" type="text" data-t-ph="orarioPh" placeholder="Lun–Ven 8–18">
-        </label>
+        <div class="field"><span data-t="sched">Orari di apertura</span>
+          <div id="schedRows"></div>
+        </div>
       </div>
       <label class="field"><span data-t="titolo">Titolo</span>
         <input id="f-title" type="text" maxlength="120" data-t-ph="titoloPh" placeholder="Titolo (facoltativo)">
@@ -301,6 +324,11 @@
       numeroPh: { it: '+41 ...', de: '+41 ...', fr: '+41 ...', en: '+41 ...' },
       orario:   { it: 'Orario', de: 'Zeiten', fr: 'Horaires', en: 'Hours' },
       orarioPh: { it: 'Lun–Ven 8–18', de: 'Mo–Fr 8–18', fr: 'Lun–Ven 8–18', en: 'Mon–Fri 8–18' },
+      sched:    { it: 'Orari di apertura', de: 'Öffnungszeiten', fr: 'Horaires d’ouverture', en: 'Opening hours' },
+      addSlot:  { it: 'Aggiungi fascia oraria', de: 'Zeitfenster hinzufügen', fr: 'Ajouter une plage horaire', en: 'Add time slot' },
+      delSlot:  { it: 'Rimuovi fascia', de: 'Zeitfenster entfernen', fr: 'Supprimer la plage', en: 'Remove slot' },
+      openNow:  { it: 'Aperto ora', de: 'Jetzt geöffnet', fr: 'Ouvert actuellement', en: 'Open now' },
+      closedNow:{ it: 'Chiuso ora', de: 'Geschlossen', fr: 'Fermé', en: 'Closed now' },
       bold:     { it: 'Grassetto', de: 'Fett', fr: 'Gras', en: 'Bold' },
       italic:   { it: 'Corsivo', de: 'Kursiv', fr: 'Italique', en: 'Italic' },
       underline:{ it: 'Sottolineato', de: 'Unterstrichen', fr: 'Souligné', en: 'Underline' },
@@ -326,6 +354,13 @@
       try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) return g; } catch (e) {}
       return 'it';
     })();
+    const DAYS = {
+      it: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+      de: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+      fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+      en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    };
+    const dayName = d => (DAYS[curLang] || DAYS.it)[d - 1];
     function t(key, vars) {
       const e = T[key];
       let s = (!e ? key : (e[curLang] || e.it || key));
@@ -345,7 +380,8 @@
 
     const $ = id => document.getElementById(id);
     const grid = $('grid'), search = $('search'), emptyBox = $('empty');
-    const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero'), fOrario = $('f-orario');
+    const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero');
+    const schedRows = $('schedRows');
     const telWrap = $('telWrap'), fBody = $('f-body'), fStatus = $('f-status');
     let editId = null, editType = 'note', saveT = null;
 
@@ -399,17 +435,93 @@
       catch { return ''; }
     };
 
+    // ===== Orari strutturati: giorni + più fasce =====
+    const normSlot = (s, e) => (s && e && s < e) ? [s, e] : null;
+    function buildSchedRows(hours) {
+      schedRows.innerHTML = '';
+      for (let d = 1; d <= 7; d++) {
+        const slots = (hours && Array.isArray(hours[d])) ? hours[d].filter(x => Array.isArray(x) && x[0] && x[1]) : [];
+        const row = document.createElement('div');
+        row.className = 'srow' + (slots.length ? '' : ' off');
+        row.dataset.d = d;
+        row.innerHTML = `<input type="checkbox" class="sday"${slots.length ? ' checked' : ''} aria-label="${esc(dayName(d))}"><span class="sname">${esc(dayName(d))}</span><span class="sslots"></span><button type="button" class="sbtn sadd" title="${esc(t('addSlot'))}">+</button>`;
+        const box = row.querySelector('.sslots');
+        (slots.length ? slots : [['', '']]).forEach(([s, e]) => box.appendChild(slotEl(s, e)));
+        schedRows.appendChild(row);
+      }
+    }
+    function slotEl(s, e) {
+      const sp = document.createElement('span');
+      sp.className = 'slot';
+      sp.innerHTML = `<input type="time" value="${esc(s || '')}">–<input type="time" value="${esc(e || '')}"><button type="button" class="sbtn sdel" title="${esc(t('delSlot'))}">×</button>`;
+      return sp;
+    }
+    schedRows.addEventListener('click', e => {
+      const row = e.target.closest('.srow');
+      if (!row) return;
+      if (e.target.closest('.sadd')) {
+        row.querySelector('.sday').checked = true;
+        row.classList.remove('off');
+        row.querySelector('.sslots').appendChild(slotEl('', ''));
+        const ins = row.querySelectorAll('.slot input');
+        ins[ins.length - 2].focus();
+      } else if (e.target.closest('.sdel')) {
+        e.target.closest('.slot').remove();
+      }
+    });
+    schedRows.addEventListener('change', e => {
+      const row = e.target.closest('.srow');
+      if (row && e.target.classList.contains('sday')) row.classList.toggle('off', !e.target.checked);
+    });
+    function collectSched() {
+      const hours = {};
+      schedRows.querySelectorAll('.srow').forEach(row => {
+        if (!row.querySelector('.sday').checked) return;
+        const slots = [];
+        row.querySelectorAll('.slot').forEach(sp => {
+          const ins = sp.querySelectorAll('input');
+          const ok = normSlot(ins[0].value, ins[1].value);
+          if (ok) slots.push(ok);
+        });
+        if (slots.length) hours[row.dataset.d] = slots;
+      });
+      return hours;
+    }
+    function schedLines(a) {
+      const out = [];
+      if (!a.hours) return out;
+      for (let d = 1; d <= 7; d++) {
+        const sl = a.hours[d];
+        if (Array.isArray(sl) && sl.length) out.push(dayName(d) + ' ' + sl.map(([s, e]) => s + '–' + e).join(' · '));
+      }
+      return out;
+    }
+    function openState(a) {
+      if (!a.hours) return null;
+      const now = new Date();
+      const mm = now.getHours() * 60 + now.getMinutes();
+      const toMin = x => { const [h, m] = x.split(':').map(Number); return h * 60 + (m || 0); };
+      const dow = (now.getDay() + 6) % 7 + 1; // Lun=1..Dom=7
+      const sl = a.hours[dow];
+      if (!Array.isArray(sl) || !sl.length) return 'closed';
+      return sl.some(([s, e]) => { const a1 = toMin(s), b1 = toMin(e); return a1 < b1 && mm >= a1 && mm < b1; }) ? 'open' : 'closed';
+    }
     // ===== Griglia =====
     function card(a) {
       const isTel = a.type === 'tel';
       const safeNum = esc(a.numero || '');
       const telHref = 'tel:' + String(a.numero || '').replace(/[^\d+]/g, '');
+      const lines = schedLines(a);
+      const st = isTel ? openState(a) : null;
+      const legacy = isTel && !lines.length && a.orario ? `<div class="note-meta">${svg('clock')}<span>${esc(a.orario)}</span></div>` : '';
       return `
       <article class="note${isTel ? ' tel' : ''}" data-id="${esc(a.id)}">
         <div class="note-body">
           ${a.title ? `<div class="note-title">${esc(a.title)}</div>` : ''}
           ${isTel && a.numero ? `<div class="note-num"><a href="${esc(telHref)}" data-open="tel">${safeNum}</a></div>` : ''}
-          ${isTel && a.orario ? `<div class="note-meta">${svg('clock')}<span>${esc(a.orario)}</span></div>` : ''}
+          ${st ? `<div class="note-meta"><span class="openline"><span class="odot${st === 'closed' ? ' closed' : ''}"></span>${esc(t(st === 'open' ? 'openNow' : 'closedNow'))}</span></div>` : ''}
+          ${legacy}
+          ${lines.length ? `<div class="sched">${lines.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : ''}
           ${a.html ? `<div class="note-preview">${sanitizePreview(a.html)}</div>` : ''}
           <div class="note-foot">
             <span class="note-date">${esc(fmtDate(a.updated))}</span>
@@ -427,7 +539,7 @@
       const q = search.value.trim().toLowerCase();
       let list = [...appunti].sort((a, b) => (b.updated || 0) - (a.updated || 0));
       if (filter !== 'all') list = list.filter(a => a.type === filter);
-      if (q) list = list.filter(a => [a.title, a.numero, a.orario, plainText(a.html)].join(' ').toLowerCase().includes(q));
+      if (q) list = list.filter(a => [a.title, a.numero, a.orario, schedLines(a).join(' '), plainText(a.html)].join(' ').toLowerCase().includes(q));
       document.querySelectorAll('#chips .chip').forEach(c => c.classList.toggle('active', c.dataset.f === filter));
       if (!appunti.length) {
         grid.innerHTML = '';
@@ -473,15 +585,23 @@
     }
     function collect() {
       syncTodoAttrs();
-      return {
+      const d = {
         title: fTitle.value.trim(),
         numero: fNumero.value.trim(),
-        orario: fOrario.value.trim(),
         html: fBody.innerHTML.trim(),
       };
+      if (editType === 'tel') {
+        const hours = collectSched();
+        d.hours = hours;
+        // se non c'è più nessun orario nuovo, conserva l'eventuale vecchio testo
+        const cur = appunti.find(x => x.id === editId);
+        d.orario = Object.keys(hours).length ? '' : (cur && cur.orario ? cur.orario : '');
+      }
+      return d;
     }
     function isEmpty(d) {
-      return !d.title && !d.numero && !d.orario && !plainText(d.html).trim();
+      const noSched = !d.hours || !Object.keys(d.hours).length;
+      return !d.title && !d.numero && !d.orario && noSched && !plainText(d.html).trim();
     }
     function scheduleSave() {
       fStatus.textContent = '';
@@ -499,13 +619,13 @@
     function openEditor(type, id) {
       editType = type;
       editId = id || uid();
-      if (!id) appunti.unshift({ id: editId, type, title: '', numero: '', orario: '', html: '', updated: Date.now() });
+      if (!id) appunti.unshift({ id: editId, type, title: '', numero: '', orario: '', hours: {}, html: '', updated: Date.now() });
       const a = appunti.find(x => x.id === editId);
       $('form-title').textContent = t((id ? 'edit' : 'new') + (type === 'tel' ? 'Tel' : 'Note'));
       telWrap.hidden = type !== 'tel';
       fTitle.value = a.title || '';
       fNumero.value = a.numero || '';
-      fOrario.value = a.orario || '';
+      if (type === 'tel') buildSchedRows(a.hours || {});
       fBody.innerHTML = a.html || '';
       fStatus.textContent = '';
       $('btn-del').style.display = id ? '' : 'none';
@@ -529,8 +649,10 @@
     $('btn-add-tel').onclick = () => openEditor('tel');
     $('btn-close').onclick = closeEditor;
     modal.addEventListener('mousedown', e => { if (e.target === modal) closeEditor(); });
-    [fTitle, fNumero, fOrario].forEach(el => el.addEventListener('input', scheduleSave));
+    [fTitle, fNumero].forEach(el => el.addEventListener('input', scheduleSave));
     fBody.addEventListener('input', scheduleSave);
+    schedRows.addEventListener('input', scheduleSave);
+    schedRows.addEventListener('change', scheduleSave);
     $('btn-del').onclick = () => {
       if (!editId) return;
       if (confirm(t('confirmDelete'))) {
@@ -657,12 +779,13 @@
       try {
         const d = JSON.parse(await file.text());
         if (!Array.isArray(d)) throw new Error();
-        const valid = d.filter(x => x && (x.title || x.numero || x.orario || x.html)).map(x => ({
+        const valid = d.filter(x => x && (x.title || x.numero || x.orario || x.hours || x.html)).map(x => ({
           id: String(x.id || uid()),
           type: x.type === 'tel' ? 'tel' : 'note',
           title: String(x.title || ''),
           numero: String(x.numero || ''),
           orario: String(x.orario || ''),
+          hours: (x.hours && typeof x.hours === 'object') ? x.hours : {},
           html: String(x.html || ''),
           updated: Number(x.updated) || Date.now(),
         }));
