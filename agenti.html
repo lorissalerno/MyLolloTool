@@ -329,8 +329,8 @@
       invalidUrl: { it: 'Il link deve iniziare con http:// o https://', de: 'Der Link muss mit http:// oder https:// beginnen', fr: 'Le lien doit commencer par http:// ou https://', en: 'The link must start with http:// or https://' },
       confirmImport: { it: 'Importare {n} agenti? La lista attuale verrà sostituita.', de: '{n} Agenten importieren? Die aktuelle Liste wird ersetzt.', fr: 'Importer {n} agents ? La liste actuelle sera remplacée.', en: 'Import {n} agents? The current list will be replaced.' },
       invalidFile: { it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
-      defaultName: { it: 'Il mio agente Bernard', de: 'Mein Bernard-Agent', fr: 'Mon agent Bernard', en: 'My Bernard agent' },
-      defaultDesc: { it: 'Agente personalizzato su Bernard', de: 'Benutzerdefinierter Agent auf Bernard', fr: 'Agent personnalisé sur Bernard', en: 'Custom agent on Bernard' },
+      defaultDirittiDesc: { it: 'Ti aiuta con i diritti e doveri sul posto di lavoro Swisscom', de: 'Hilft bei Rechten und Pflichten am Swisscom-Arbeitsplatz', fr: 'Aide avec les droits et devoirs sur le lieu de travail Swisscom', en: 'Helps with rights and duties at the Swisscom workplace' },
+      defaultSctDesc: { it: 'Supporto SCT e MyService', de: 'SCT- und MyService-Support', fr: 'Assistance SCT et MyService', en: 'SCT and MyService support' },
       count:      { it: '{n} agenti', de: '{n} Agenten', fr: '{n} agents', en: '{n} agents' },
     };
     const ICONL = {
@@ -376,9 +376,18 @@
     // ===== Dati (salvati nel browser) =====
     const KEY = 'mylollotool-agenti';
     const DEFAULT = [
-      { id: 'default-1', nome: t('defaultName'), descrizione: t('defaultDesc'),
-        categoria: 'Swisscom', icona: 'bot', modo: 'tab',
+      { id: 'default-diritti', nome: 'Diritti e Doveri in Chiaro', descrizione: t('defaultDirittiDesc'),
+        categoria: 'Swisscom', icona: 'briefcase', modo: 'tab',
         url: 'https://bernard.swisscom.com/agents/3c048982-6a12-4118-9e5d-7a2a545d388e' },
+      { id: 'default-sct', nome: 'SCT Assistant', descrizione: t('defaultSctDesc'),
+        categoria: 'Swisscom', icona: 'doc', modo: 'tab',
+        url: 'https://plato-knowledge.aws-prod.plato3.icp.swisscom.com/agent/9754e8b7-60f2-4da0-b384-00cac0cc9f88?tenant=uniqai&project=60ad796314704f32afd89ba3bef55e53&env=PROD' },
+      { id: 'default-tr-fr', nome: 'Translate IT -> FR', descrizione: '',
+        categoria: 'Translate', icona: 'chat', modo: 'tab',
+        url: 'https://bernard.swisscom.com/agents/00f3c83f-d1d5-452a-ac50-0ccd94a1c1a0' },
+      { id: 'default-tr-de', nome: 'Translate IT -> DE', descrizione: '',
+        categoria: 'Translate', icona: 'chat', modo: 'tab',
+        url: 'https://bernard.swisscom.com/agents/81354370-4fd7-48a9-97d3-fd1768419d38' },
     ];
 
     function load() {
