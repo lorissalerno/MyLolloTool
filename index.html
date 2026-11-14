@@ -124,25 +124,29 @@
     .menu-grip svg { width: 12px; height: 22px; }
     .menu-grip:active { cursor: grabbing; }
 
-    /* Backup unificato: discreto come Novità, sopra Novità */
-    #backup-box { padding: 6px 16px 8px; border-top: 1px solid rgba(0,0,0,.08); }
-    body[data-mtheme="dark"] #backup-box { border-top-color: rgba(255,255,255,.1); }
-    .backup-row { display: flex; gap: 8px; }
-    .backup-row button {
-      flex: 1; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px;
-      border-radius: 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700;
-      background: rgba(0,0,0,.07); border: 1px solid rgba(0,0,0,.09); color: inherit;
+    /* Backup unificato: discreto come la matita, centrato sotto Modifica menu */
+    #backup-box { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 20px 8px; }
+    #backup-export {
+      display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,.12); border-radius: 50%; background: rgba(255,255,255,.6);
+      color: #4B5563; cursor: pointer; opacity: .75;
+      box-shadow: 0 1px 2px rgba(0,0,0,.08);
+      transition: opacity .15s ease, background .15s ease, transform .15s ease;
     }
-    body[data-mtheme="dark"] .backup-row button {
-      background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.12);
+    body[data-mtheme="dark"] #backup-export {
+      color: #cbd5e1; background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.14);
     }
-    .backup-row button:hover { background: rgba(0,0,0,.12); }
-    body[data-mtheme="dark"] .backup-row button:hover { background: rgba(255,255,255,.16); }
-    .backup-row button svg { width: 14px; height: 14px; }
-    .backup-row button.attn { outline: 2px solid #DC2626; outline-offset: 1px; }
-    #backup-status { font-size: 11px; opacity: .65; padding: 6px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #backup-auto-row { display: flex; align-items: center; gap: 6px; font-size: 11px; opacity: .8; padding: 4px 2px 0; cursor: pointer; }
-    #backup-auto-row input { accent-color: #2563EB; }
+    #backup-export svg { width: 15px; height: 15px; }
+    #backup-export:hover { opacity: 1; background: #fff; color: #111827; transform: translateY(-1px); }
+    body[data-mtheme="dark"] #backup-export:hover { background: rgba(255,255,255,.16); color: #fff; }
+    #backup-export:focus-visible { outline: 2px solid #7dc3ff; outline-offset: 2px; }
+    #backup-status { font-size: 10px; opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    #backup-import {
+      background: none; border: none; cursor: pointer; font: inherit; font-size: 10px;
+      opacity: .55; text-decoration: underline; color: inherit; padding: 0;
+    }
+    #backup-import:hover { opacity: 1; }
 
     /* Link Novità ancorato al fondo, giusto sopra lingua/tema */
     #sidebar-foot { margin-top: auto; }
@@ -232,16 +236,13 @@
         <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
       </button>
     </div>
-    <div id="sidebar-foot">
     <div id="backup-box">
-      <div class="backup-row" role="group" id="backup-group">
-        <button id="backup-export" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="backup-export-txt">Backup</span></button>
-        <button id="backup-import" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span id="backup-import-txt">Ripristina</span></button>
-      </div>
+      <button id="backup-export" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
       <div id="backup-status"></div>
-      <label id="backup-auto-row" title=""><input type="checkbox" id="backup-auto"><span id="backup-auto-txt">Auto ogni 7 giorni</span></label>
+      <button id="backup-import" type="button">Ripristina</button>
       <input type="file" id="backup-file" accept=".json,application/json" hidden>
     </div>
+    <div id="sidebar-foot">
     <div id="changelog-box">
       <a id="changelog-link" href="#novita" data-src="novita.html"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="changelog-txt">Novità</span><span id="site-version">v1.01</span></a>
     </div>
@@ -349,10 +350,9 @@
       restoreTitle:{ it: 'Ripristina da file backup .json', de: 'Aus Backup-Datei wiederherstellen (.json)', fr: 'Restaurer depuis le fichier (.json)', en: 'Restore from backup file (.json)' },
       lastNever:{ it: 'Ultimo backup: mai', de: 'Letztes Backup: nie', fr: 'Dernière sauvegarde : jamais', en: 'Last backup: never' },
       lastPrefix:{ it: 'Ultimo backup: ', de: 'Letztes Backup: ', fr: 'Dernière sauvegarde : ', en: 'Last backup: ' },
-      autoChk:  { it: 'Auto ogni 7 giorni', de: 'Auto alle 7 Tage', fr: 'Auto tous les 7 jours', en: 'Auto every 7 days' },
-      autoTitle:{ it: 'Se attivo e il backup è vecchio di 7 giorni, lo scarica da solo all\u2019apertura', de: 'Wenn aktiv und das Backup älter als 7 Tage ist, wird es beim Öffnen automatisch geladen', fr: 'Si actif et sauvegarde vieille de 7 jours, téléchargée seule à l\u2019ouverture', en: 'If on and backup is older than 7 days, it downloads automatically on open' },
       cfmRestore:{ it: 'Ripristinare il backup? I dati attuali verranno sostituiti.', de: 'Backup wiederherstellen? Die aktuellen Daten werden ersetzt.', fr: 'Restaurer la sauvegarde ? Les données actuelles seront remplacées.', en: 'Restore the backup? Current data will be replaced.' },
       backupOk: { it: 'Backup scaricato: conservalo fuori dal browser', de: 'Backup geladen: ausserhalb des Browsers aufbewahren', fr: 'Sauvegarde téléchargée : garde-la hors du navigateur', en: 'Backup downloaded: keep it outside the browser' },
+      importErr:{ it: 'File backup non valido.', de: 'Ungültige Backup-Datei.', fr: 'Fichier de sauvegarde invalide.', en: 'Invalid backup file.' },
       backupOld:{ it: 'Backup vecchio: premi Backup', de: 'Backup alt: Backup drücken', fr: 'Sauvegarde ancienne : appuie sur Sauvegarde', en: 'Old backup: press Backup' },
       frame:    { it: 'Contenuto', de: 'Inhalt', fr: 'Contenu', en: 'Content' },
       theme:    { it: 'Cambia tema', de: 'Thema wechseln', fr: 'Changer de thème', en: 'Toggle theme' },
@@ -711,20 +711,18 @@
     });
 
     // ===== Backup unificato: un solo file .json per tutte le pagine =====
-    // Nota onesta: il browser blocca i download senza gesto dell'utente, quindi
-    // l'automatico vero non esiste. "Auto" = scarica da solo all'apertura se il
-    // backup ha più di 7 giorni, altrimenti evidenzia il pulsante.
+    // Pulsante discreto sotto Modifica menu. Auto giornaliero: all'apertura,
+    // se l'ultimo backup è più vecchio di 24h prova a scaricarlo da solo
+    // (il browser a volte lo blocca senza un gesto: in quel caso resta il click).
     const BACKUP_LAST = 'mylollotool-last-backup';
-    const BACKUP_AUTO = 'mylollotool-backup-auto';
     const backupExportBtn = document.getElementById('backup-export');
     const backupImportBtn = document.getElementById('backup-import');
     const backupStatus = document.getElementById('backup-status');
-    const backupAuto = document.getElementById('backup-auto');
     function backupKeys() {
       const out = {};
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k || k === BACKUP_LAST || k === BACKUP_AUTO) continue;
+        if (!k || k === BACKUP_LAST) continue;
         if (k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
             k.startsWith('mylollotool-') || k.startsWith('turni_') ||
             k.startsWith('sct-') || k === 'theme' || k === 'activeTab' ||
@@ -733,22 +731,23 @@
       return out;
     }
     function paintBackup() {
-      document.getElementById('backup-export-txt').textContent = mt('backup');
-      document.getElementById('backup-import-txt').textContent = mt('restore');
       backupExportBtn.title = mt('backupTitle');
       backupImportBtn.title = mt('restoreTitle');
-      document.getElementById('backup-auto-txt').textContent = mt('autoChk');
-      document.getElementById('backup-auto-row').title = mt('autoTitle');
+      backupImportBtn.textContent = mt('restore');
       updateBackupStatus();
+    }
+    function backupDate() {
+      try {
+        const last = localStorage.getItem(BACKUP_LAST);
+        if (!last) return null;
+        const d = new Date(last.replace(/(\d+)\/(\d+)\/(\d+),?/, '$3-$2-$1'));
+        return isNaN(d) ? null : d;
+      } catch (e) { return null; }
     }
     function updateBackupStatus() {
       let last = null;
       try { last = localStorage.getItem(BACKUP_LAST); } catch (e) {}
-      const old = last ? (Date.now() - new Date(last).getTime() > 7 * 864e5) : true;
       backupStatus.textContent = last ? (mt('lastPrefix') + last) : mt('lastNever');
-      if (!last) backupStatus.textContent += ' — ' + mt('backupOld');
-      backupExportBtn.classList.toggle('attn', old);
-      backupStatus.style.color = old ? '#DC2626' : '';
     }
     function exportUnifiedBackup() {
       const data = backupKeys();
@@ -783,19 +782,15 @@
           syncLegacyKeys(getGlobalTheme());
           paintLang(curLang);
           try { frame.contentWindow.location.reload(); } catch (e) {}
-        } catch (e) { alert(mt('backupOld')); }
+        } catch (e) { alert(mt('importErr')); }
       };
       rd.readAsText(file);
     }
-    backupExportBtn.onclick = () => { exportUnifiedBackup(); setMenu(false); };
+    backupExportBtn.onclick = () => { exportUnifiedBackup(); };
     backupImportBtn.onclick = () => document.getElementById('backup-file').click();
     document.getElementById('backup-file').onchange = e => {
       if (e.target.files[0]) importUnifiedBackup(e.target.files[0]);
       e.target.value = '';
-    };
-    try { backupAuto.checked = localStorage.getItem(BACKUP_AUTO) === '1'; } catch (e) {}
-    backupAuto.onchange = () => {
-      try { localStorage.setItem(BACKUP_AUTO, backupAuto.checked ? '1' : '0'); } catch (e) {}
     };
 
     // Apre la pagina indicata nell'URL (es. index.html#turni) oppure la prima
@@ -803,14 +798,10 @@
     setGlobalTheme(getGlobalTheme(), false);
     paintBackup();
     loadPage(location.hash);
-    // Auto: se attivo e backup più vecchio di 7 giorni, prova il download da solo
+    // Auto giornaliero: se l'ultimo backup è più vecchio di 24h, scaricalo da solo
     try {
-      if (localStorage.getItem(BACKUP_AUTO) === '1') {
-        const last = localStorage.getItem(BACKUP_LAST);
-        if (!last || Date.now() - new Date(last.replace(/(\d+)\/(\d+)\/(\d+),?/, '$3-$2-$1')).getTime() > 7 * 864e5) {
-          setTimeout(exportUnifiedBackup, 1500);
-        }
-      }
+      const d = backupDate();
+      if (!d || Date.now() - d.getTime() > 864e5) setTimeout(exportUnifiedBackup, 1500);
     } catch (e) {}
   </script>
 </body>
