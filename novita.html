@@ -53,6 +53,14 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.02</strong><time>14/11/2026</time></div>
+      <ul>
+        <li><span class="tag">Menu</span><span data-t="e102a">Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.</span></li>
+        <li><span class="tag">Menu</span><span data-t="e102b">Promemoria automatico se il backup è vecchio di 7 giorni, opzione Auto per scaricarlo da solo all'apertura.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.01</strong><time>14/11/2026</time></div>
       <ul>
         <li><span class="tag">Menu</span><span data-t="e101a">Nuova pagina Novità con storico delle modifiche funzionali, link discreto sopra la lingua.</span></li>
@@ -81,12 +89,19 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.01';
+    const SITE_VERSION = '1.02';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const T = {
-      title: { it: 'Novità', de: 'Neuigkeiten', fr: 'Nouveautés', en: "What's new" },
+      e102a: { it: 'Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.',
+               de: 'Gesamt-Backup im Menü: eine .json-Datei mit Daten aller Seiten, plus Wiederherstellen.',
+               fr: 'Sauvegarde unique dans le menu : un seul fichier .json avec les données de toutes les pages, plus Restaurer.',
+               en: 'Unified backup in the menu: a single .json file with data from all pages, plus Restore.' },
+      e102b: { it: 'Promemoria automatico se il backup è vecchio di 7 giorni, opzione Auto per scaricarlo da solo all\u2019apertura.',
+               de: 'Automatische Erinnerung bei Backup älter als 7 Tage, Auto-Option für Download beim Öffnen.',
+               fr: 'Rappel automatique si la sauvegarde a plus de 7 jours, option Auto pour la télécharger seule à l\u2019ouverture.',
+               en: 'Automatic reminder if the backup is older than 7 days, Auto option to download it on open.' },      title: { it: 'Novità', de: 'Neuigkeiten', fr: 'Nouveautés', en: "What's new" },
       sub:   { it: 'Storico delle modifiche funzionali del sito. Solo cambiamenti essenziali d\u2019uso, niente grafica.',
                de: 'Verlauf der funktionalen Änderungen. Nur wichtige Nutzung, kein Design.',
                fr: 'Historique des changements fonctionnels. Usage essentiel uniquement, pas de design.',

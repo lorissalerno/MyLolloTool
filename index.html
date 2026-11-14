@@ -124,6 +124,26 @@
     .menu-grip svg { width: 12px; height: 22px; }
     .menu-grip:active { cursor: grabbing; }
 
+    /* Backup unificato: discreto come Novità, sopra Novità */
+    #backup-box { padding: 6px 16px 8px; border-top: 1px solid rgba(0,0,0,.08); }
+    body[data-mtheme="dark"] #backup-box { border-top-color: rgba(255,255,255,.1); }
+    .backup-row { display: flex; gap: 8px; }
+    .backup-row button {
+      flex: 1; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px;
+      border-radius: 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700;
+      background: rgba(0,0,0,.07); border: 1px solid rgba(0,0,0,.09); color: inherit;
+    }
+    body[data-mtheme="dark"] .backup-row button {
+      background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.12);
+    }
+    .backup-row button:hover { background: rgba(0,0,0,.12); }
+    body[data-mtheme="dark"] .backup-row button:hover { background: rgba(255,255,255,.16); }
+    .backup-row button svg { width: 14px; height: 14px; }
+    .backup-row button.attn { outline: 2px solid #DC2626; outline-offset: 1px; }
+    #backup-status { font-size: 11px; opacity: .65; padding: 6px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #backup-auto-row { display: flex; align-items: center; gap: 6px; font-size: 11px; opacity: .8; padding: 4px 2px 0; cursor: pointer; }
+    #backup-auto-row input { accent-color: #2563EB; }
+
     /* Link Novità ancorato al fondo, giusto sopra lingua/tema */
     #sidebar-foot { margin-top: auto; }
     #changelog-box { padding: 6px 16px 8px; border-top: 1px solid rgba(0,0,0,.08); }
@@ -213,6 +233,15 @@
       </button>
     </div>
     <div id="sidebar-foot">
+    <div id="backup-box">
+      <div class="backup-row" role="group" id="backup-group">
+        <button id="backup-export" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="backup-export-txt">Backup</span></button>
+        <button id="backup-import" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span id="backup-import-txt">Ripristina</span></button>
+      </div>
+      <div id="backup-status"></div>
+      <label id="backup-auto-row" title=""><input type="checkbox" id="backup-auto"><span id="backup-auto-txt">Auto ogni 7 giorni</span></label>
+      <input type="file" id="backup-file" accept=".json,application/json" hidden>
+    </div>
     <div id="changelog-box">
       <a id="changelog-link" href="#novita" data-src="novita.html"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="changelog-txt">Novità</span><span id="site-version">v1.01</span></a>
     </div>
@@ -294,7 +323,7 @@
     const menuLinks = document.getElementById('menu-links');
     const menuEditBtn = document.getElementById('menu-edit');
     // Versione sito: +0.01 solo una volta al giorno con modifica funzionale (vedi AGENTS.md + novita.html).
-    const SITE_VERSION = '1.01';
+    const SITE_VERSION = '1.02';
     const changelogLink = document.getElementById('changelog-link');
     const changelogTxt = document.getElementById('changelog-txt');
     const siteVersionEl = document.getElementById('site-version');
@@ -314,6 +343,17 @@
       hide:     { it: 'Nascondi', de: 'Ausblenden', fr: 'Masquer', en: 'Hide' },
       drag:     { it: 'Trascina per spostare', de: 'Zum Verschieben ziehen', fr: 'Glisser pour déplacer', en: 'Drag to reorder' },
       group:    { it: 'Tema e lingua', de: 'Design und Sprache', fr: 'Thème et langue', en: 'Theme and language' },
+      backup:   { it: 'Backup', de: 'Backup', fr: 'Sauvegarde', en: 'Backup' },
+      restore:  { it: 'Ripristina', de: 'Wiederherstellen', fr: 'Restaurer', en: 'Restore' },
+      backupTitle: { it: 'Scarica backup unico di tutte le pagine (.json)', de: 'Gesamt-Backup aller Seiten laden (.json)', fr: 'Télécharger la sauvegarde unique (.json)', en: 'Download full backup of all pages (.json)' },
+      restoreTitle:{ it: 'Ripristina da file backup .json', de: 'Aus Backup-Datei wiederherstellen (.json)', fr: 'Restaurer depuis le fichier (.json)', en: 'Restore from backup file (.json)' },
+      lastNever:{ it: 'Ultimo backup: mai', de: 'Letztes Backup: nie', fr: 'Dernière sauvegarde : jamais', en: 'Last backup: never' },
+      lastPrefix:{ it: 'Ultimo backup: ', de: 'Letztes Backup: ', fr: 'Dernière sauvegarde : ', en: 'Last backup: ' },
+      autoChk:  { it: 'Auto ogni 7 giorni', de: 'Auto alle 7 Tage', fr: 'Auto tous les 7 jours', en: 'Auto every 7 days' },
+      autoTitle:{ it: 'Se attivo e il backup è vecchio di 7 giorni, lo scarica da solo all\u2019apertura', de: 'Wenn aktiv und das Backup älter als 7 Tage ist, wird es beim Öffnen automatisch geladen', fr: 'Si actif et sauvegarde vieille de 7 jours, téléchargée seule à l\u2019ouverture', en: 'If on and backup is older than 7 days, it downloads automatically on open' },
+      cfmRestore:{ it: 'Ripristinare il backup? I dati attuali verranno sostituiti.', de: 'Backup wiederherstellen? Die aktuellen Daten werden ersetzt.', fr: 'Restaurer la sauvegarde ? Les données actuelles seront remplacées.', en: 'Restore the backup? Current data will be replaced.' },
+      backupOk: { it: 'Backup scaricato: conservalo fuori dal browser', de: 'Backup geladen: ausserhalb des Browsers aufbewahren', fr: 'Sauvegarde téléchargée : garde-la hors du navigateur', en: 'Backup downloaded: keep it outside the browser' },
+      backupOld:{ it: 'Backup vecchio: premi Backup', de: 'Backup alt: Backup drücken', fr: 'Sauvegarde ancienne : appuie sur Sauvegarde', en: 'Old backup: press Backup' },
       frame:    { it: 'Contenuto', de: 'Inhalt', fr: 'Contenu', en: 'Content' },
       theme:    { it: 'Cambia tema', de: 'Thema wechseln', fr: 'Changer de thème', en: 'Toggle theme' },
       lang:     { it: 'Cambia lingua', de: 'Sprache wechseln', fr: 'Changer de langue', en: 'Change language' },
@@ -350,6 +390,7 @@
       changelogLink.title = mt('newsTitle');
       paintMenuEdit();
       themeToggle.title = mt('theme');
+      paintBackup();
       renderMenu();
       loadPage(location.hash); // aggiorna titolo documento con etichetta tradotta
     }
@@ -669,10 +710,108 @@
       }
     });
 
+    // ===== Backup unificato: un solo file .json per tutte le pagine =====
+    // Nota onesta: il browser blocca i download senza gesto dell'utente, quindi
+    // l'automatico vero non esiste. "Auto" = scarica da solo all'apertura se il
+    // backup ha più di 7 giorni, altrimenti evidenzia il pulsante.
+    const BACKUP_LAST = 'mylollotool-last-backup';
+    const BACKUP_AUTO = 'mylollotool-backup-auto';
+    const backupExportBtn = document.getElementById('backup-export');
+    const backupImportBtn = document.getElementById('backup-import');
+    const backupStatus = document.getElementById('backup-status');
+    const backupAuto = document.getElementById('backup-auto');
+    function backupKeys() {
+      const out = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || k === BACKUP_LAST || k === BACKUP_AUTO) continue;
+        if (k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
+            k.startsWith('mylollotool-') || k.startsWith('turni_') ||
+            k.startsWith('sct-') || k === 'theme' || k === 'activeTab' ||
+            k === 'sct-expanded' || k === 'sct-tools-visibility') out[k] = localStorage.getItem(k);
+      }
+      return out;
+    }
+    function paintBackup() {
+      document.getElementById('backup-export-txt').textContent = mt('backup');
+      document.getElementById('backup-import-txt').textContent = mt('restore');
+      backupExportBtn.title = mt('backupTitle');
+      backupImportBtn.title = mt('restoreTitle');
+      document.getElementById('backup-auto-txt').textContent = mt('autoChk');
+      document.getElementById('backup-auto-row').title = mt('autoTitle');
+      updateBackupStatus();
+    }
+    function updateBackupStatus() {
+      let last = null;
+      try { last = localStorage.getItem(BACKUP_LAST); } catch (e) {}
+      const old = last ? (Date.now() - new Date(last).getTime() > 7 * 864e5) : true;
+      backupStatus.textContent = last ? (mt('lastPrefix') + last) : mt('lastNever');
+      if (!last) backupStatus.textContent += ' — ' + mt('backupOld');
+      backupExportBtn.classList.toggle('attn', old);
+      backupStatus.style.color = old ? '#DC2626' : '';
+    }
+    function exportUnifiedBackup() {
+      const data = backupKeys();
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const stamp = now.toISOString().slice(0, 10);
+      const label = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear() + ', ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      const blob = new Blob([JSON.stringify({ app: 'MyLolloTool', date: now.toISOString(), data }, null, 1)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mylollotool_backup_' + stamp + '.json';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      try { localStorage.setItem(BACKUP_LAST, label); } catch (e) {}
+      updateBackupStatus();
+    }
+    function importUnifiedBackup(file) {
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const obj = JSON.parse(rd.result);
+          const data = obj && obj.data ? obj.data : obj;
+          const keys = Object.keys(data || {}).filter(k =>
+            k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
+            k.startsWith('mylollotool-') || k.startsWith('turni_') ||
+            k.startsWith('sct-') || k === 'theme' || k === 'activeTab');
+          if (!keys.length) throw new Error('empty');
+          if (!confirm(mt('cfmRestore'))) return;
+          // Rilegge la pagina figlia dopo il ripristino così applica subito i dati
+          keys.forEach(k => { try { localStorage.setItem(k, data[k]); } catch (e) {} });
+          syncLegacyKeys(getGlobalTheme());
+          paintLang(curLang);
+          try { frame.contentWindow.location.reload(); } catch (e) {}
+        } catch (e) { alert(mt('backupOld')); }
+      };
+      rd.readAsText(file);
+    }
+    backupExportBtn.onclick = () => { exportUnifiedBackup(); setMenu(false); };
+    backupImportBtn.onclick = () => document.getElementById('backup-file').click();
+    document.getElementById('backup-file').onchange = e => {
+      if (e.target.files[0]) importUnifiedBackup(e.target.files[0]);
+      e.target.value = '';
+    };
+    try { backupAuto.checked = localStorage.getItem(BACKUP_AUTO) === '1'; } catch (e) {}
+    backupAuto.onchange = () => {
+      try { localStorage.setItem(BACKUP_AUTO, backupAuto.checked ? '1' : '0'); } catch (e) {}
+    };
+
     // Apre la pagina indicata nell'URL (es. index.html#turni) oppure la prima
     setGlobalLang(getGlobalLang(), false);
     setGlobalTheme(getGlobalTheme(), false);
+    paintBackup();
     loadPage(location.hash);
+    // Auto: se attivo e backup più vecchio di 7 giorni, prova il download da solo
+    try {
+      if (localStorage.getItem(BACKUP_AUTO) === '1') {
+        const last = localStorage.getItem(BACKUP_LAST);
+        if (!last || Date.now() - new Date(last.replace(/(\d+)\/(\d+)\/(\d+),?/, '$3-$2-$1')).getTime() > 7 * 864e5) {
+          setTimeout(exportUnifiedBackup, 1500);
+        }
+      }
+    } catch (e) {}
   </script>
 </body>
 </html>
