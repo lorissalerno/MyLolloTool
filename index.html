@@ -75,8 +75,10 @@
     .menu-ctl button.off { color: #DC2626; }
     body[data-mtheme="dark"] .menu-ctl button.off { color: #f87171; }
 
-    /* Link discreto Novità + versione sopra le preferenze */
-    #changelog-box { padding: 10px 16px 0; }
+    /* Link Novità ancorato al fondo, giusto sopra lingua/tema */
+    #sidebar-foot { margin-top: auto; }
+    #changelog-box { padding: 6px 16px 8px; border-top: 1px solid rgba(0,0,0,.08); }
+    body[data-mtheme="dark"] #changelog-box { border-top-color: rgba(255,255,255,.1); }
     #changelog-link {
       display: flex; align-items: center; gap: 8px;
       padding: 7px 10px; border-radius: 9px;
@@ -97,7 +99,7 @@
     body[data-mtheme="dark"] #site-version { background: rgba(255,255,255,.15); }
 
     /* Scelte rapide in fondo al menu: tema + lingua (metodo SCT: un click cambia) */
-    #theme-box { margin-top: auto; padding: 14px 16px 4px; }
+    #theme-box { padding: 8px 16px 4px; }
     .pref-row { display: flex; gap: 8px; }
     .pref-row button {
       border-radius: 12px; cursor: pointer; font: inherit;
@@ -126,6 +128,13 @@
     #lang-btn:hover { background: rgba(0,0,0,.12); }
     body[data-mtheme="dark"] #lang-btn:hover { background: rgba(255,255,255,.16); }
 
+    /* Logo Swisscom in alto a destra della sidebar, stessa altezza del pulsante menu (40px a 14px) */
+    #sidebar-logo {
+      position: absolute; top: 14px; right: 14px;
+      width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+      box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    }
+
     /* Sfondo scuro quando il menu è aperto */
     #overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.4);
@@ -144,6 +153,7 @@
   </button>
 
   <nav id="sidebar">
+    <img id="sidebar-logo" src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="Swisscom">
     <div class="menu-head">
       <h2>Strumenti</h2>
       <button id="menu-edit" type="button" aria-pressed="false" title="Modifica menu: sposta o nascondi le voci">
@@ -151,6 +161,7 @@
       </button>
     </div>
     <div id="menu-links"></div>
+    <div id="sidebar-foot">
     <div id="changelog-box">
       <a id="changelog-link" href="#novita" data-src="novita.html"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="changelog-txt">Novità</span><span id="site-version">v1.01</span></a>
     </div>
@@ -164,6 +175,7 @@
           <span id="lang-txt">IT</span>
         </button>
       </div>
+    </div>
     </div>
   </nav>
 
