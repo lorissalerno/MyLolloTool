@@ -108,10 +108,12 @@
     .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
     .slot { display: inline-flex; align-items: center; gap: 4px; }
     .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    #schedSimple { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
-    #schedSimple select, #schedSimple input[type="time"], .slot input { padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
-    #schedSimple input[type="time"], .slot input { width: 96px; }
-    body.dark #schedSimple select, body.dark #schedSimple input, body.dark .slot input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    #schedSimple { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+    .ssrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .ssrow select, .ssrow input[type="time"] { padding: 5px 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; background: #FFFFFF; color: #1F2937; }
+    .ssrow input[type="time"] { width: 96px; }
+    body.dark .ssrow select, body.dark .ssrow input { background: #141417; border-color: #2A2A35; color: #EEEEF0; color-scheme: dark; }
+    .ssadd { display: flex; justify-content: flex-end; }
     .slot input { width: 96px; }
     .sbtn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none;
             border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; color: #4B5563; cursor: pointer; font-size: 15px; line-height: 1; }
@@ -252,9 +254,8 @@
             <button type="button" class="chip" data-m="detail"><span data-t="schedDetail">Dettagliata</span></button>
           </div>
           <div id="schedSimple">
-            <span data-t="schedFrom">Da</span><select id="ss-from"></select>
-            <span data-t="schedTo">a</span><select id="ss-to"></select>
-            <span aria-hidden="true">·</span><input type="time" id="ss-start">–<input type="time" id="ss-end">
+            <div id="simpleRows"></div>
+            <div class="ssadd"><button type="button" class="sbtn" id="ss-add" title="+">+</button></div>
           </div>
           <div id="schedRows"></div>
         </div>
@@ -520,18 +521,62 @@
       if (row && e.target.classList.contains('sday')) row.classList.toggle('off', !e.target.checked);
     });
     let schedMode = 'simple';
-    const modeSeg = $('modeSeg'), schedSimple = $('schedSimple');
-    const ssFrom = $('ss-from'), ssTo = $('ss-to'), ssStart = $('ss-start'), ssEnd = $('ss-end');
-    function fillDaySelects() {
-      [ssFrom, ssTo].forEach(sel => {
-        sel.innerHTML = '';
-        for (let d = 1; d <= 7; d++) {
-          const o = document.createElement('option');
-          o.value = d;
-          o.textContent = dayName(d);
-          sel.appendChild(o);
-        }
+    const modeSeg = $('modeSeg'), schedSimple = $('schedSimple'), simpleRows = $('simpleRows');
+    function dayOptions(sel, val) {
+      sel.innerHTML = '';
+      for (let d = 1; d <= 7; d++) {
+        const o = document.createElement('option');
+        o.value = d;
+        o.textContent = dayName(d);
+        sel.appendChild(o);
+      }
+      if (val) sel.value = val;
+    }
+    function ssRowEl(g) {
+      const row = document.createElement('div');
+      row.className = 'ssrow';
+      row.innerHTML = `<span data-t="schedFrom">Da</span><select class="ss-f"></select><span data-t="schedTo">a</span><select class="ss-t"></select><span aria-hidden="true">·</span><input type="time" class="ss-s">–<input type="time" class="ss-e"><button type="button" class="sbtn ss-del" data-t-title="delSlot" title="×">×</button>`;
+      dayOptions(row.querySelector('.ss-f'), g ? g.from : 1);
+      dayOptions(row.querySelector('.ss-t'), g ? g.to : 5);
+      if (g && g.slot) {
+        row.querySelector('.ss-s').value = g.slot[0] || '';
+        row.querySelector('.ss-e').value = g.slot[1] || '';
+      }
+      return row;
+    }
+    function fillSimpleRows(groups) {
+      simpleRows.innerHTML = '';
+      if (groups && groups.length) groups.forEach(g => simpleRows.appendChild(ssRowEl(g)));
+      else simpleRows.appendChild(ssRowEl(null));
+    }
+    // Raggruppa giorni consecutivi con gli stessi orari (usato anche per la card)
+    function hourGroups(hours) {
+      const groups = [];
+      let start = -1, prev = -2, prevKey = '';
+      const flush = end => {
+        if (start < 0) return;
+        groups.push({ from: start, to: end, slot: JSON.parse(prevKey) });
+      };
+      for (let d = 1; d <= 8; d++) {
+        const sl = (d <= 7 && hours && Array.isArray(hours[d]) && hours[d].length) ? hours[d] : null;
+        const key = sl ? JSON.stringify(sl) : '';
+        if (key && d === prev + 1 && key === prevKey) { prev = d; continue; }
+        flush(prev);
+        if (key) { start = d; prev = d; prevKey = key; }
+        else { start = -1; prev = d; prevKey = ''; }
+      }
+      return groups;
+    }
+    function simpleAsHours() {
+      const hours = {};
+      simpleRows.querySelectorAll('.ssrow').forEach(row => {
+        let f = Number(row.querySelector('.ss-f').value), tt = Number(row.querySelector('.ss-t').value);
+        if (f > tt) [f, tt] = [tt, f];
+        const ok = normSlot(row.querySelector('.ss-s').value, row.querySelector('.ss-e').value);
+        if (!ok) return;
+        for (let d = f; d <= tt; d++) hours[d] = [ok];
       });
+      return hours;
     }
     function setMode(m) {
       schedMode = m;
@@ -561,70 +606,49 @@
       });
       return hours;
     }
-    function fillSimple(hours) {
-      const det = detectMode(hours);
-      if (det.mode === 'simple' && det.hasData) {
-        ssFrom.value = det.from;
-        ssTo.value = det.to;
-        ssStart.value = det.slot[0] || '';
-        ssEnd.value = det.slot[1] || '';
-      } else {
-        ssFrom.value = 1;
-        ssTo.value = 5;
-        ssStart.value = '';
-        ssEnd.value = '';
+    $('ss-add').addEventListener('click', () => {
+      if (simpleRows.querySelectorAll('.ssrow').length >= 7) return;
+      simpleRows.appendChild(ssRowEl(null));
+      scheduleSave();
+    });
+    schedSimple.addEventListener('click', e => {
+      const del = e.target.closest('.ss-del');
+      if (del && simpleRows.querySelectorAll('.ssrow').length > 1) {
+        del.closest('.ssrow').remove();
+        scheduleSave();
       }
-    }
-    function simpleAsHours() {
-      let f = Number(ssFrom.value), tt = Number(ssTo.value);
-      if (f > tt) [f, tt] = [tt, f];
-      const ok = normSlot(ssStart.value, ssEnd.value);
-      if (!ok) return {};
-      const hours = {};
-      for (let d = f; d <= tt; d++) hours[d] = [ok];
-      return hours;
-    }
+    });
     modeSeg.addEventListener('click', e => {
       const c = e.target.closest('.chip');
       if (!c) return;
       if (c.dataset.m === 'detail') {
-        // semplice -> dettagliata: se le righe sono vuote, converti la fascia semplice
+        // semplice -> dettagliata: se le righe sono vuote, converti le fasce semplici
         if (!rowsHaveData()) {
           const h = simpleAsHours();
           if (Object.keys(h).length) buildSchedRows(h);
         }
         setMode('detail');
       } else {
-        // dettagliata -> semplice: converti solo se rappresentabile, altrimenti svuota (conserva i dati)
+        // dettagliata -> semplice: converti solo se tutto ha una fascia sola, altrimenti svuota (conserva i dati)
         const h = rowsAsHours();
-        const det = detectMode(h);
-        if (Object.keys(h).length && det.mode === 'simple' && det.hasData) {
-          ssFrom.value = det.from;
-          ssTo.value = det.to;
-          ssStart.value = det.slot[0] || '';
-          ssEnd.value = det.slot[1] || '';
-        } else if (Object.keys(h).length) {
-          ssStart.value = '';
-          ssEnd.value = '';
+        if (Object.keys(h).length) {
+          const gs = hourGroups(h);
+          if (gs.every(g => g.slot.length === 1)) fillSimpleRows(gs.map(g => ({ from: g.from, to: g.to, slot: g.slot[0] })));
+          else fillSimpleRows(null);
         }
         setMode('simple');
       }
     });
     function detectMode(hours) {
-      const ds = Object.keys(hours || {}).map(Number).filter(d => d >= 1 && d <= 7 && Array.isArray(hours[d]) && hours[d].length).sort((a, b) => a - b);
-      if (!ds.length) return { mode: 'simple', from: 1, to: 5, slot: ['', ''], hasData: false };
-      const contig = ds.every((d, i) => i === 0 || d === ds[i - 1] + 1);
-      const first = JSON.stringify(hours[ds[0]]);
-      const same = hours[ds[0]].length === 1 && ds.every(d => JSON.stringify(hours[d]) === first);
-      if (contig && same) return { mode: 'simple', from: ds[0], to: ds[ds.length - 1], slot: hours[ds[0]][0], hasData: true };
-      return { mode: 'detail', hasData: true };
+      const ds = Object.keys(hours || {}).map(Number).filter(d => d >= 1 && d <= 7 && Array.isArray(hours[d]) && hours[d].length);
+      if (!ds.length) return 'simple';
+      return ds.every(d => hours[d].length <= 1) ? 'simple' : 'detail';
     }
     function buildSched(hours) {
-      fillDaySelects();
       buildSchedRows(hours);
-      fillSimple(hours);
-      const det = detectMode(hours);
-      setMode(det.mode === 'simple' ? 'simple' : 'detail');
+      const gs = hourGroups(hours || {});
+      fillSimpleRows(gs.length && gs.every(g => g.slot.length === 1) ? gs.map(g => ({ from: g.from, to: g.to, slot: g.slot[0] })) : null);
+      setMode(detectMode(hours));
     }
     function collectSched() {
       const s = simpleAsHours();
@@ -633,23 +657,10 @@
       return Object.keys(d).length ? d : s;
     }
     function schedLines(a) {
-      const out = [];
-      if (!a.hours) return out;
-      // Raggruppa giorni consecutivi con gli stessi orari: "Lun–Sab 08:00–20:00"
-      let start = -1, prev = -2, prevSlots = '';
-      const flush = (end) => {
-        if (start < 0) return;
-        const lbl = start === end ? dayName(start) : dayName(start) + '–' + dayName(end);
-        out.push(lbl + ' ' + prevSlots);
-      };
-      for (let d = 1; d <= 8; d++) {
-        const sl = (d <= 7 && Array.isArray(a.hours[d]) && a.hours[d].length) ? a.hours[d].map(([s, e]) => s + '–' + e).join(' · ') : '';
-        if (sl && d === prev + 1 && sl === prevSlots) { prev = d; continue; }
-        flush(prev);
-        if (sl) { start = d; prev = d; prevSlots = sl; }
-        else { start = -1; prev = d; prevSlots = ''; }
-      }
-      return out;
+      return hourGroups(a.hours || {}).map(g => {
+        const lbl = g.from === g.to ? dayName(g.from) : dayName(g.from) + '–' + dayName(g.to);
+        return lbl + ' ' + g.slot.map(([s, e]) => s + '–' + e).join(' · ');
+      });
     }
     function openState(a) {
       if (!a.hours) return null;
