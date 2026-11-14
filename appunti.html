@@ -120,6 +120,11 @@
     .sbtn:hover { background: #E5E7EB; }
     body.dark .sbtn { background: #141417; border-color: #2A2A35; color: #9898A8; }
     .sched { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; font-size: 12.5px; color: #4B5563; }
+    /* Orari a destra nella card */
+    .note-mid { display: flex; gap: 12px; align-items: flex-start; }
+    .note-left { flex: 1; min-width: 0; }
+    .note-right { flex: none; max-width: 60%; margin-left: auto; text-align: right; }
+    .note-right.sched { margin: 0; }
     body.dark .sched { color: #9898A8; }
     .openline { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
     .odot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex: none; }
@@ -127,14 +132,6 @@
     .note-date { font-size: 10px; color: #9CA3AF; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
     .note-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #DBEAFE; color: #1D4ED8; }
     .note.tel .note-tag { background: #DBEAFE; }
-    .note-actions { position: absolute; top: 8px; right: 8px; display: none; gap: 4px; }
-    .note:hover .note-actions { display: flex; }
-    @media (hover: none) { .note-actions { display: flex; } }
-    .note-actions button { display: grid; place-items: center; width: 28px; height: 28px; border: none;
-                           border-radius: 6px; background: #F9FAFB; color: #4B5563; cursor: pointer; }
-    .note-actions button:hover { background: #DBEAFE; color: #2563EB; }
-    .note-actions button[data-action="delete"]:hover { background: #FDE8E8; color: #9B1C1C; }
-    .note-actions svg { width: 15px; height: 15px; }
 
     .empty { padding: 40px; text-align: center; color: #4B5563; background: #FFFFFF;
              border: 2px dashed #E5E7EB; border-radius: 10px; }
@@ -154,7 +151,6 @@
     body.dark .note-foot { border-color: #2A2A35; }
     body.dark .note-date { color: #5A5A70; }
     body.dark .note-tag { background: #1A1A1F; color: #60A5FA; }
-    body.dark .note-actions button { background: #1F1F26; color: #9898A8; }
     body.dark .empty { background: #141417; border-color: #2A2A35; color: #9898A8; }
 
     /* Editor */
@@ -313,6 +309,7 @@
       <div id="v-body"></div>
       <div class="actions">
         <span class="status" id="v-date"></span>
+        <button type="button" class="iconbtn" id="btn-vdel" data-t-title="delete" title="Elimina"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         <button type="button" class="btn primary" id="btn-edit" data-t="modify">Modifica</button>
         <button type="button" class="btn" id="btn-vclose" data-t="close">Chiudi</button>
       </div>
@@ -684,19 +681,16 @@
       <article class="note${isTel ? ' tel' : ''}" data-id="${esc(a.id)}">
         <div class="note-body">
           ${a.title ? `<div class="note-title">${esc(a.title)}</div>` : ''}
-          ${isTel && a.numero ? `<div class="note-num"><a href="${esc(telHref)}" data-open="tel">${safeNum}</a></div>` : ''}
-          ${st ? `<div class="note-meta"><span class="openline"><span class="odot${st === 'closed' ? ' closed' : ''}"></span>${esc(t(st === 'open' ? 'openNow' : 'closedNow'))}</span></div>` : ''}
-          ${legacy}
-          ${lines.length ? `<div class="sched">${lines.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : ''}
+          ${isTel ? `<div class="note-mid"><div class="note-left">
+            ${a.numero ? `<div class="note-num"><a href="${esc(telHref)}" data-open="tel">${safeNum}</a></div>` : ''}
+            ${st ? `<div class="note-meta"><span class="openline"><span class="odot${st === 'closed' ? ' closed' : ''}"></span>${esc(t(st === 'open' ? 'openNow' : 'closedNow'))}</span></div>` : ''}
+            ${legacy}
+          </div>${lines.length ? `<div class="note-right sched">${lines.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : ''}</div>` : ''}
           ${a.html ? `<div class="note-preview">${sanitizePreview(a.html)}</div>` : ''}
           <div class="note-foot">
             <span class="note-date">${esc(fmtDate(a.updated))}</span>
             <span class="note-tag">${esc(t(isTel ? 'tagTel' : 'tagNote'))}</span>
           </div>
-        </div>
-        <div class="note-actions">
-          <button data-action="edit" title="${esc(t(isTel ? 'editTel' : 'editNote'))}">${svg('edit')}</button>
-          <button data-action="delete" title="${esc(t('delete'))}">${svg('trash')}</button>
         </div>
       </article>`;
     }
@@ -723,18 +717,12 @@
       grid.innerHTML = list.map(card).join('');
     }
     grid.addEventListener('click', e => {
-      const actBtn = e.target.closest('[data-action]');
       const link = e.target.closest('a[data-open="tel"]');
       if (link) return; // lascia aprire tel:
       const art = e.target.closest('.note');
       if (!art) return;
       const a = appunti.find(x => x.id === art.dataset.id);
       if (!a) return;
-      if (actBtn && actBtn.dataset.action === 'delete') {
-        if (confirm(t('confirmDelete'))) { appunti = appunti.filter(x => x.id !== a.id); save(); render(); }
-        return;
-      }
-      if (actBtn && actBtn.dataset.action === 'edit') { openEditor(a.type, a.id); return; }
       openViewer(a.id);
     });
     search.addEventListener('input', render);
@@ -960,6 +948,15 @@
     }
     function closeViewer() { viewId = null; viewer.hidden = true; }
     $('btn-vclose').onclick = closeViewer;
+    $('btn-vdel').onclick = () => {
+      if (!viewId) return;
+      if (confirm(t('confirmDelete'))) {
+        appunti = appunti.filter(x => x.id !== viewId);
+        save(); render();
+        viewId = null;
+        viewer.hidden = true;
+      }
+    };
     viewer.addEventListener('mousedown', e => { if (e.target === viewer) closeViewer(); });
     $('btn-edit').onclick = () => {
       const a = appunti.find(x => x.id === viewId);
