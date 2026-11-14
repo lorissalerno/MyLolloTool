@@ -104,34 +104,42 @@
       top: 0;
       z-index: 200;
     }
+    /* Header stile Turni: titolo + sottotitolo a sinistra, azioni a destra, riga blu sotto */
     .app-header {
       color: var(--txt);
-      padding: 0 36px;
-      height: var(--app-header-height);
+      padding: 0 36px 8px;
+      min-height: 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
       max-width: 1600px;
       width: 100%;
       margin: 0 auto;
+      border-bottom: 2px solid var(--accent);
     }
 
     .app-logo {
-      font-size: clamp(16px, 2vw, 22px);
-      font-weight: 800;
-      letter-spacing: -0.8px;
       display: flex;
       align-items: center;
-      gap: clamp(8px, 1.5vw, 12px);
-      margin-right: 18px; /* spazio prima delle barre header */
+      gap: 12px;
+      min-width: 0;
+      margin-left: 46px;
+      margin-right: 18px;
+      transition: margin-left .25s ease;
     }
+    @media (min-width: 1060px) { .app-logo { margin-left: 0; } }
     .app-logo img {
-      width: clamp(28px, 3.2vw, 40px);
-      height: clamp(28px, 3.2vw, 40px);
-      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       object-fit: cover;
+      flex-shrink: 0;
     }
+    .app-logo .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; display: block; }
     .app-logo .logo-text span { color: var(--accent-lt); }
+    .app-logo .logo-sub { font-size: 11px; color: var(--txt-sec); margin-top: 1px; display: block; }
 
     .header-goals {
       display: flex;
@@ -188,14 +196,21 @@
       display: flex;
       align-items: center;
       gap: 9px;
-      font-size: 12.5px;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--txt-sec);
+      height: 40px;
+      padding: 0 8px 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      white-space: nowrap;
     }
     .year-wrap select {
-      background: rgba(255,255,255,.08);
-      border: 1px solid var(--border-lt);
+      background: transparent;
+      border: none;
       color: var(--txt);
-      padding: 6px 13px;
+      padding: 6px 4px;
       border-radius: var(--r-sm);
       font-family: inherit;
       font-size: 13px;
@@ -1050,8 +1065,10 @@
 
     /* Small screens — stack charts and content comfortably */
     @media (max-width: 600px) {
-      .app-header { --app-header-height: 56px; height: var(--app-header-height); align-items: center; padding: 10px 12px; gap: 8px; }
-      .app-logo { font-size: 18px; }
+      .app-header { align-items: center; padding: 10px 12px 8px; gap: 8px; }
+      .app-logo { margin-left: 54px; margin-right: 0; }
+      .app-logo .logo-text { font-size: 20px; }
+      .app-logo .logo-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
       /* Su telefono le mini-barre KPI escono dallo schermo e tagliano il selettore anno:
          si nascondono (restano nelle card Obiettivi/Dashboard) così logo + anno ci stanno */
       .header-goals { display: none; }
@@ -1131,7 +1148,7 @@
 <header class="app-header">
   <div class="app-logo">
     <img src="https://avatars.githubusercontent.com/u/5754111?s=280&v=4" alt="DataSales Logo">
-    <span class="logo-text">Data<span>Sales</span> <span style="font-size:14px;font-weight:700;color:var(--txt-muted);margin-left:8px">V1.1</span></span>
+    <div><span class="logo-text">Data<span>Sales</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
   </div>
 
   <div class="header-goals header-mid">
@@ -1789,6 +1806,7 @@ const LANG_KEY = 'mylollotool-lang';
 const LANGS = ['it', 'de', 'fr', 'en'];
 const T = {
   docTitle:{it:'DataSales V1.1',de:'DataSales V1.1',fr:'DataSales V1.1',en:'DataSales V1.1'},
+  headerSub:{it:'Gestione vendite e prodotti',de:'Verkaufs- und Produktverwaltung',fr:'Gestion des ventes et produits',en:'Sales and product management'},
   unsavedPrefix:{it:'Attenzione:',de:'Achtung:',fr:'Attention :',en:'Warning:'},
   unsavedText:{it:'ci sono modifiche non salvate in backup locale.',de:'es gibt nicht gesicherte Änderungen im lokalen Backup.',fr:'il y a des modifications non sauvegardées en backup local.',en:'there are unsaved changes in the local backup.'},
   exportBackup:{it:'Esporta backup',de:'Backup exportieren',fr:'Exporter le backup',en:'Export backup'},

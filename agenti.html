@@ -13,12 +13,26 @@
     svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-    /* Barra superiore allineata al pulsante menu di index.html (40px a 14,14):
-       il titolo parte a 66px e resta centrato verticalmente col pulsante */
-    h1 { color: #1F2937; display: flex; align-items: center; gap: 10px;
-         min-height: 40px; margin: 0 0 6px 42px; }
-    h1 svg { width: 28px; height: 28px; }
-    .sub { color: #4B5563; margin: 0 0 20px 42px; }
+    /* Header stile Turni: titolo + sottotitolo a sinistra, pill a destra, riga blu sotto */
+    header.page-head { display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      flex-wrap: wrap; border-bottom: 2px solid #3B82F6; padding-bottom: 8px; margin-bottom: 12px; min-height: 40px; }
+    .page-head .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
+    @media (min-width: 1060px) { .page-head .brand { margin-left: 0; } }
+    .page-head h1 { color: #1F2937; font-size: 20px; line-height: 1.25; margin: 0; }
+    .page-head .sub { color: #4B5563; font-size: 11px; margin: 1px 0 0; }
+    .page-head .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px;
+      border: 1px solid #E5E7EB; border-radius: 999px; background: transparent; color: #4B5563;
+      font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .pill svg { width: 14px; height: 14px; }
+    body.dark .page-head h1 { color: #EEEEF0; }
+    body.dark .page-head .sub { color: #9898A8; }
+    body.dark .pill { border-color: #2A2A35; color: #9898A8; background: transparent; }
+    @media (max-width: 600px) {
+      .page-head { gap: 8px; }
+      .page-head .brand { margin-left: 54px; }
+      .page-head .right { gap: 8px; }
+    }
 
     /* Barra strumenti */
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }
@@ -128,8 +142,10 @@
 </head>
 <body>
 
-  <h1><span data-i="bot"></span><span data-t="title">Agenti AI</span></h1>
-  <p class="sub" data-t="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p>
+  <header class="page-head">
+    <div class="brand"><div><h1 data-t="title">Agenti AI</h1><p class="sub" data-t="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p></div></div>
+    <div class="right"><span class="pill" id="countPill"></span></div>
+  </header>
 
   <div class="toolbar">
     <div class="search-box">
@@ -294,6 +310,7 @@
       invalidFile: { it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
       defaultName: { it: 'Il mio agente Bernard', de: 'Mein Bernard-Agent', fr: 'Mon agent Bernard', en: 'My Bernard agent' },
       defaultDesc: { it: 'Agente personalizzato su Bernard', de: 'Benutzerdefinierter Agent auf Bernard', fr: 'Agent personnalisé sur Bernard', en: 'Custom agent on Bernard' },
+      count:      { it: '{n} agenti', de: '{n} Agenten', fr: '{n} agents', en: '{n} agents' },
     };
     const ICONL = {
       bot:       { it: 'Robot', de: 'Roboter', fr: 'Robot', en: 'Robot' },
@@ -389,6 +406,8 @@
     }
 
     function render() {
+      const pill = $('countPill');
+      if (pill) pill.textContent = t('count', { n: agenti.length });
       $('cat-list').innerHTML = [...new Set(agenti.map(a => a.categoria).filter(Boolean))]
         .map(c => `<option value="${esc(c)}">`).join('');
 
