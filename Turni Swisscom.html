@@ -1025,5 +1025,9 @@ function init(){
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
+<script>
+/* Alone blu che segue il mouse (leggero, disattivato su touch/riduzione movimento) */
+(function(){if(matchMedia('(hover:none),(pointer:coarse)').matches||matchMedia('(prefers-reduced-motion:reduce)').matches)return;var g=document.createElement('div');g.id='mlt-glow';document.body.appendChild(g);var x=innerWidth/2,y=innerHeight/2,tx=x,ty=y,raf=null,shown=false;function loop(){x+=(tx-x)*.18;y+=(ty-y)*.18;g.style.transform='translate('+x+'px,'+y+'px)';if(Math.abs(tx-x)>.4||Math.abs(ty-y)>.4){raf=requestAnimationFrame(loop);}else{raf=null;}}addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;if(!shown){shown=true;g.style.opacity='1';}if(!raf)loop();},{passive:true});document.documentElement.addEventListener('mouseleave',function(){shown=false;g.style.opacity='0';});})();
+</script>
 </body>
 </html>
