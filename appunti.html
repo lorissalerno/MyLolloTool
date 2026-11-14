@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appunti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    /* Palette DataSales: light #F3F4F6/#FFFFFF, dark #0D0D10/#141417 */
+    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 24px; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+
+    svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
+          stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* Header stile Turni: titolo + sottotitolo a sinistra, pill a destra, riga blu sotto */
+    header.page-head { display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      flex-wrap: nowrap; border-bottom: 2px solid #3B82F6; padding-bottom: 8px; margin-bottom: 12px; height: 60px; }
+    .page-head .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
+    .page-head .brand > div { min-width: 0; }
+    @media (min-width: 1060px) { .page-head .brand { margin-left: 0; } }
+    .page-head h1 { color: #1F2937; font-size: 20px; line-height: 1.25; margin: 0; display: flex; align-items: center; gap: 10px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; letter-spacing: -.4px; }
+    .page-head h1 svg { width: 20px; height: 20px; flex: none; }
+    .page-head .sub { color: #4B5563; font-size: 11px; margin: 1px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .page-head .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; position: relative; }
+    .pill { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px;
+      border: 1px solid #E5E7EB; border-radius: 999px; background: transparent; color: #4B5563;
+      font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .pill svg { width: 14px; height: 14px; }
+    .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 999px; border: 1px solid #E5E7EB; background: #fff; color: #1F2937; cursor: pointer; flex: none; }
+    .iconbtn:hover { background: #E5E7EB; }
+    .iconbtn svg { width: 16px; height: 16px; }
+    body.dark .page-head h1 { color: #EEEEF0; }
+    body.dark .page-head .sub { color: #9898A8; }
+    body.dark .pill { border-color: #2A2A35; color: #9898A8; }
+    body.dark .iconbtn { background: #141417; border-color: #2A2A35; color: #EEEEF0; }
+    body.dark .iconbtn:hover { background: #1F1F26; }
+    /* Menu ingranaggio stile Turni */
+    #drop { display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 70;
+      flex-direction: column; gap: 4px; min-width: 210px; background: #fff; border: 1px solid #E5E7EB;
+      border-radius: 12px; padding: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.10); }
+    .right.open #drop { display: flex; }
+    #drop .btn { width: 100%; justify-content: flex-start; }
+    body.dark #drop { background: #141417; border-color: #2A2A35; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+    @media (max-width: 600px) {
+      .page-head { gap: 8px; }
+      .page-head .brand { margin-left: 54px; }
+      .page-head .right { gap: 8px; }
+    }
+
+    /* Barra strumenti */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .search-box { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+    .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9CA3AF; }
+    #search { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 15px; background: #FFFFFF; color: #1F2937; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border: 1px solid #E5E7EB;
+           border-radius: 8px; background: #fff; color: #1F2937; font: inherit; font-size: 14px;
+           cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .btn:hover { background: #E5E7EB; }
+    .btn.primary { background: #2563EB; border-color: #2563EB; color: #fff; }
+    .btn.primary:hover { background: #3B82F6; border-color: #3B82F6; }
+    .btn.danger { color: #9B1C1C; }
+    .btn.danger:hover { background: #FDE8E8; }
+    /* Filtri tipo */
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .chip { padding: 7px 14px; border: 1px solid #E5E7EB; border-radius: 999px; background: #fff;
+            color: #4B5563; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .chip.active { border-color: #2563EB; background: #DBEAFE; color: #1D4ED8; }
+
+    /* Griglia masonry stile My JW */
+    .grid { column-count: 2; column-gap: 14px; }
+    @media (max-width: 640px) { .grid { column-count: 1; } }
+    .note { position: relative; background: #fff; border: 1.5px solid #E5E7EB; border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.04); break-inside: avoid; margin-bottom: 14px;
+            cursor: pointer; overflow: hidden; transition: transform .15s, box-shadow .15s; animation: cardIn .25s ease; }
+    @keyframes cardIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    .note:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.10); }
+    .note:active { transform: scale(.97); }
+    .note.tel { border-left: 4px solid #3B82F6; }
+    .note-body { padding: 12px 14px 8px; }
+    .note-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin-bottom: 6px; word-break: break-word; }
+    .note-num { font-size: 16px; font-weight: 800; margin-bottom: 2px; word-break: break-word; }
+    .note-num a { color: inherit; text-decoration: none; }
+    .note-num a:hover { text-decoration: underline; color: #2563EB; }
+    .note-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #4B5563; margin-bottom: 6px; }
+    .note-meta svg { width: 14px; height: 14px; }
+    .note-preview { font-size: 13px; color: #4B5563; line-height: 1.5; word-break: break-word; }
+    .note-preview ul, .note-preview ol { padding-left: 20px; margin: 4px 0; }
+    .note-preview a { color: #2563EB; }
+    .note-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #F3F4F6; }
+    .note-date { font-size: 10px; color: #9CA3AF; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+    .note-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #DBEAFE; color: #1D4ED8; }
+    .note.tel .note-tag { background: #DBEAFE; }
+    .note-actions { position: absolute; top: 8px; right: 8px; display: none; gap: 4px; }
+    .note:hover .note-actions { display: flex; }
+    @media (hover: none) { .note-actions { display: flex; } }
+    .note-actions button { display: grid; place-items: center; width: 28px; height: 28px; border: none;
+                           border-radius: 6px; background: #F9FAFB; color: #4B5563; cursor: pointer; }
+    .note-actions button:hover { background: #DBEAFE; color: #2563EB; }
+    .note-actions button[data-action="delete"]:hover { background: #FDE8E8; color: #9B1C1C; }
+    .note-actions svg { width: 15px; height: 15px; }
+
+    .empty { padding: 40px; text-align: center; color: #4B5563; background: #FFFFFF;
+             border: 2px dashed #E5E7EB; border-radius: 10px; }
+
+    /* Tema scuro */
+    body.dark { background: #0D0D10; color: #EEEEF0; }
+    body.dark #search { background: #141417; border-color: #2A2A35; color: #EEEEF0; }
+    body.dark .btn { background: #141417; border-color: #2A2A35; color: #EEEEF0; }
+    body.dark .btn:hover { background: #1F1F26; }
+    body.dark .btn.primary { background: #3B82F6; border-color: #3B82F6; color: #fff; }
+    body.dark .btn.danger { color: #FCA5A5; }
+    body.dark .chip { background: #141417; border-color: #2A2A35; color: #9898A8; }
+    body.dark .chip.active { background: #1A1A1F; border-color: #3B82F6; color: #60A5FA; }
+    body.dark .note { background: #141417; border-color: #2A2A35; box-shadow: none; }
+    body.dark .note-meta, body.dark .note-preview { color: #9898A8; }
+    body.dark .note-num a:hover { color: #60A5FA; }
+    body.dark .note-foot { border-color: #2A2A35; }
+    body.dark .note-date { color: #5A5A70; }
+    body.dark .note-tag { background: #1A1A1F; color: #60A5FA; }
+    body.dark .note-actions button { background: #1F1F26; color: #9898A8; }
+    body.dark .empty { background: #141417; border-color: #2A2A35; color: #9898A8; }
+
+    /* Editor */
+    .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+             padding: 20px; background: rgba(0,10,40,.5); }
+    .dialog { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 640px; max-height: 100%;
+              overflow: auto; padding: 20px; background: #fff; border-radius: 12px; }
+    body.dark .dialog { background: #141417; }
+    .dialog h2 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .dialog h2 svg { width: 20px; height: 20px; }
+    .field { display: flex; flex-direction: column; gap: 5px; font-size: 14px; font-weight: 600; }
+    .field input { padding: 9px 12px; border: 1px solid #E5E7EB; border-radius: 8px; font: inherit; font-weight: 400; font-size: 15px; background: #FFFFFF; color: #1F2937; }
+    body.dark .field input { background: #1A1A1F; border-color: #2A2A35; color: #EEEEF0; }
+    .telrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .telrow { grid-template-columns: 1fr; } }
+    /* Toolbar formattazione stile My JW */
+    .toolbar-ed { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 6px;
+                  border: 1px solid #E5E7EB; border-radius: 8px; background: #F9FAFB; }
+    body.dark .toolbar-ed { background: #1A1A1F; border-color: #2A2A35; }
+    .toolbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 34px;
+               padding: 0 7px; border: none; border-radius: 6px; background: transparent; color: #4B5563;
+               cursor: pointer; font-size: 15px; font-weight: 800; }
+    .toolbtn:hover { background: #E5E7EB; color: #1F2937; }
+    body.dark .toolbtn { color: #9898A8; }
+    body.dark .toolbtn:hover { background: #2A2A35; color: #EEEEF0; }
+    .toolbtn svg { width: 17px; height: 17px; }
+    .toolbtn.on { background: #DBEAFE; color: #1D4ED8; }
+    body.dark .toolbtn.on { background: #1A1A1F; color: #60A5FA; }
+    .toolsep { width: 1px; height: 22px; background: #E5E7EB; margin: 0 2px; }
+    body.dark .toolsep { background: #2A2A35; }
+    .palette { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #E5E7EB;
+               border-radius: 8px; background: #fff; }
+    body.dark .palette { background: #1A1A1F; border-color: #2A2A35; }
+    .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+    .swatch:hover { transform: scale(1.12); }
+    .linkrow { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px; border: 1px solid #E5E7EB; border-radius: 8px; background: #fff; }
+    body.dark .linkrow { background: #1A1A1F; border-color: #2A2A35; }
+    .linkrow input { flex: 1; min-width: 140px; padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 14px; background: #FFFFFF; color: #1F2937; }
+    body.dark .linkrow input { background: #141417; border-color: #2A2A35; color: #EEEEF0; }
+    #f-body { min-height: 180px; max-height: 40vh; overflow: auto; padding: 10px 12px; border: 1px solid #E5E7EB;
+              border-radius: 8px; font-size: 15px; line-height: 1.55; background: #FFFFFF; color: #1F2937; outline: none; }
+    #f-body:focus { border-color: #3B82F6; }
+    body.dark #f-body { background: #1A1A1F; border-color: #2A2A35; color: #EEEEF0; }
+    #f-body:empty:before { content: attr(data-ph); color: #9CA3AF; font-style: italic; }
+    #f-body ul, #f-body ol { padding-left: 22px; margin: 6px 0; }
+    #f-body a { color: #2563EB; }
+    #f-body .todo { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
+    #f-body .todo input { width: 16px; height: 16px; margin-top: 3px; flex: none; accent-color: #2563EB; cursor: pointer; }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .actions .status { flex: 1; font-size: 12px; color: #9CA3AF; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="brand"><div><h1><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span data-t="title">Appunti</span></h1><p class="sub" data-t="sub">Numeri utili e note con formattazione</p></div></div>
+    <div class="right" id="tools"><span class="pill" id="countPill"></span><button class="iconbtn" id="menuBtn" data-t-title="menuTitle" title="Menu"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button><span id="drop"><button class="btn" id="btn-export" data-t-title="exportTitle" title="Scarica gli appunti come file .json"><span data-i="download"></span><span data-t="export">Esporta</span></button><button class="btn" id="btn-import" data-t-title="importTitle" title="Carica appunti da file .json"><span data-i="upload"></span><span data-t="import">Importa</span></button></span></div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span data-i="search"></span>
+      <input id="search" type="text" data-t-ph="searchPh" placeholder="Cerca negli appunti...">
+    </div>
+    <button class="btn primary" id="btn-add-note"><span data-i="plus"></span><span data-t="addNote">Nuova nota</span></button>
+    <button class="btn" id="btn-add-tel"><span data-i="phone"></span><span data-t="addTel">Telefono</span></button>
+  </div>
+  <div class="chips" id="chips">
+    <button class="chip active" data-f="all"><span data-t="fAll">Tutti</span></button>
+    <button class="chip" data-f="note"><span data-t="fNote">Note</span></button>
+    <button class="chip" data-f="tel"><span data-t="fTel">Telefoni</span></button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden><span data-t="empty">Nessun appunto. Crea una nota o un riquadro telefono.</span></div>
+
+  <!-- Editor -->
+  <div id="modal" class="modal" hidden>
+    <div class="dialog" role="dialog" aria-modal="true">
+      <h2><span data-i="edit"></span><span id="form-title">Nuova nota</span></h2>
+      <div class="telrow" id="telWrap" hidden>
+        <label class="field"><span data-t="numero">Numero</span>
+          <input id="f-numero" type="tel" inputmode="tel" data-t-ph="numeroPh" placeholder="+41 ...">
+        </label>
+        <label class="field"><span data-t="orario">Orario</span>
+          <input id="f-orario" type="text" data-t-ph="orarioPh" placeholder="Lun–Ven 8–18">
+        </label>
+      </div>
+      <label class="field"><span data-t="titolo">Titolo</span>
+        <input id="f-title" type="text" maxlength="120" data-t-ph="titoloPh" placeholder="Titolo (facoltativo)">
+      </label>
+      <div class="toolbar-ed" id="toolbar" role="toolbar">
+        <button type="button" class="toolbtn" data-cmd="bold" data-t-title="bold" title="Grassetto"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
+        <button type="button" class="toolbtn" data-cmd="italic" data-t-title="italic" title="Corsivo"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+        <button type="button" class="toolbtn" data-cmd="underline" data-t-title="underline" title="Sottolineato"><svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg></button>
+        <span class="toolsep"></span>
+        <button type="button" class="toolbtn" data-cmd="insertUnorderedList" data-t-title="list" title="Elenco puntato"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+        <button type="button" class="toolbtn" id="tool-todo" data-t-title="todo" title="Checkbox"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+        <span class="toolsep"></span>
+        <button type="button" class="toolbtn" id="tool-color" data-t-title="color" title="Colore testo"><span style="font-size:17px;line-height:1;border-bottom:3px solid #e03e3e;">A</span></button>
+        <button type="button" class="toolbtn" id="tool-link" data-t-title="link" title="Link"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <span class="toolsep"></span>
+        <button type="button" class="toolbtn" data-cmd="undo" data-t-title="undo" title="Annulla"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+        <button type="button" class="toolbtn" data-cmd="redo" data-t-title="redo" title="Ripristina"><svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg></button>
+      </div>
+      <div class="palette" id="palette" hidden>
+        <button type="button" class="swatch" data-c="#e03e3e" style="background:#e03e3e" title="Rosso"></button>
+        <button type="button" class="swatch" data-c="#d9730d" style="background:#d9730d" title="Arancione"></button>
+        <button type="button" class="swatch" data-c="#0f7b6c" style="background:#0f7b6c" title="Verde"></button>
+        <button type="button" class="swatch" data-c="#0b6e99" style="background:#0b6e99" title="Blu"></button>
+        <button type="button" class="swatch" data-c="#6940a5" style="background:#6940a5" title="Viola"></button>
+        <button type="button" class="swatch" data-c="#c14c8a" style="background:#c14c8a" title="Rosa"></button>
+        <button type="button" class="swatch" id="sw-reset" data-c="" title="Reset" style="background:transparent;border:2px dashed #9CA3AF;color:#9CA3AF;font-weight:800;">✕</button>
+      </div>
+      <div class="linkrow" id="linkrow" hidden>
+        <input id="link-url" type="url" placeholder="https://..." autocomplete="off">
+        <input id="link-title" type="text" data-t-ph="linkTitlePh" placeholder="Titolo (facoltativo)" autocomplete="off">
+        <button type="button" class="btn primary" id="link-ok" data-t="linkOk">Inserisci</button>
+      </div>
+      <div id="f-body" contenteditable="true" spellcheck="true" data-ph="Scrivi qui..."></div>
+      <div class="actions">
+        <span class="status" id="f-status"></span>
+        <button type="button" class="btn danger" id="btn-del" data-t="delete">Elimina</button>
+        <button type="button" class="btn primary" id="btn-close" data-t="close">Chiudi</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="file-import" accept=".json,application/json" hidden>
+
+</div>
+  <script>
+    // ===== Icone interfaccia =====
+    const UI = {
+      plus:     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      edit:     '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+      trash:    '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+      upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+      search:   '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      phone:    '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+      clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    };
+    const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${UI[n] || ''}</svg>`;
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    // ===== Lingua globale =====
+    const LANG_KEY = 'mylollotool-lang';
+    const LANGS = ['it', 'de', 'fr', 'en'];
+    const T = {
+      title:    { it: 'Appunti', de: 'Notizen', fr: 'Notes', en: 'Notes' },
+      sub:      { it: 'Numeri utili e note con formattazione', de: 'Nützliche Nummern und formatierte Notizen', fr: 'Numéros utiles et notes formatées', en: 'Useful numbers and formatted notes' },
+      menuTitle:{ it: 'Menu', de: 'Menü', fr: 'Menu', en: 'Menu' },
+      exportTitle:{ it: 'Scarica gli appunti come file .json', de: 'Notizen als .json-Datei herunterladen', fr: 'Télécharger les notes en .json', en: 'Download notes as .json file' },
+      export:   { it: 'Esporta', de: 'Exportieren', fr: 'Exporter', en: 'Export' },
+      importTitle:{ it: 'Carica appunti da file .json', de: 'Notizen aus .json-Datei laden', fr: 'Charger les notes depuis un fichier .json', en: 'Load notes from .json file' },
+      import:   { it: 'Importa', de: 'Importieren', fr: 'Importer', en: 'Import' },
+      searchPh: { it: 'Cerca negli appunti...', de: 'In Notizen suchen...', fr: 'Rechercher dans les notes...', en: 'Search notes...' },
+      addNote:  { it: 'Nuova nota', de: 'Neue Notiz', fr: 'Nouvelle note', en: 'New note' },
+      addTel:   { it: 'Telefono', de: 'Telefon', fr: 'Téléphone', en: 'Phone' },
+      fAll:     { it: 'Tutti', de: 'Alle', fr: 'Tous', en: 'All' },
+      fNote:    { it: 'Note', de: 'Notizen', fr: 'Notes', en: 'Notes' },
+      fTel:     { it: 'Telefoni', de: 'Telefone', fr: 'Téléphones', en: 'Phones' },
+      count:    { it: '{n} appunti', de: '{n} Notizen', fr: '{n} notes', en: '{n} notes' },
+      empty:    { it: 'Nessun appunto. Crea una nota o un riquadro telefono.', de: 'Keine Notizen. Erstelle eine Notiz oder eine Telefonbox.', fr: 'Aucune note. Crée une note ou une fiche téléphone.', en: 'No notes. Create a note or a phone box.' },
+      emptyFound:{ it: 'Nessun appunto trovato.', de: 'Keine Notizen gefunden.', fr: 'Aucune note trouvée.', en: 'No notes found.' },
+      newNote:  { it: 'Nuova nota', de: 'Neue Notiz', fr: 'Nouvelle note', en: 'New note' },
+      editNote: { it: 'Modifica nota', de: 'Notiz bearbeiten', fr: 'Modifier la note', en: 'Edit note' },
+      newTel:   { it: 'Nuovo telefono', de: 'Neues Telefon', fr: 'Nouveau téléphone', en: 'New phone' },
+      editTel:  { it: 'Modifica telefono', de: 'Telefon bearbeiten', fr: 'Modifier le téléphone', en: 'Edit phone' },
+      titolo:   { it: 'Titolo', de: 'Titel', fr: 'Titre', en: 'Title' },
+      titoloPh: { it: 'Titolo (facoltativo)', de: 'Titel (optional)', fr: 'Titre (facultatif)', en: 'Title (optional)' },
+      numero:   { it: 'Numero', de: 'Nummer', fr: 'Numéro', en: 'Number' },
+      numeroPh: { it: '+41 ...', de: '+41 ...', fr: '+41 ...', en: '+41 ...' },
+      orario:   { it: 'Orario', de: 'Zeiten', fr: 'Horaires', en: 'Hours' },
+      orarioPh: { it: 'Lun–Ven 8–18', de: 'Mo–Fr 8–18', fr: 'Lun–Ven 8–18', en: 'Mon–Fri 8–18' },
+      bold:     { it: 'Grassetto', de: 'Fett', fr: 'Gras', en: 'Bold' },
+      italic:   { it: 'Corsivo', de: 'Kursiv', fr: 'Italique', en: 'Italic' },
+      underline:{ it: 'Sottolineato', de: 'Unterstrichen', fr: 'Souligné', en: 'Underline' },
+      list:     { it: 'Elenco puntato', de: 'Aufzählung', fr: 'Liste à puces', en: 'Bullet list' },
+      todo:     { it: 'Checkbox', de: 'Checkbox', fr: 'Case à cocher', en: 'Checkbox' },
+      color:    { it: 'Colore testo', de: 'Textfarbe', fr: 'Couleur du texte', en: 'Text color' },
+      link:     { it: 'Link', de: 'Link', fr: 'Lien', en: 'Link' },
+      undo:     { it: 'Annulla', de: 'Rückgängig', fr: 'Annuler', en: 'Undo' },
+      redo:     { it: 'Ripristina', de: 'Wiederholen', fr: 'Rétablir', en: 'Redo' },
+      linkTitlePh:{ it: 'Titolo (facoltativo)', de: 'Titel (optional)', fr: 'Titre (facultatif)', en: 'Title (optional)' },
+      linkOk:   { it: 'Inserisci', de: 'Einfügen', fr: 'Insérer', en: 'Insert' },
+      bodyPh:   { it: 'Scrivi qui...', de: 'Hier schreiben...', fr: 'Écris ici...', en: 'Write here...' },
+      delete:   { it: 'Elimina', de: 'Löschen', fr: 'Supprimer', en: 'Delete' },
+      close:    { it: 'Chiudi', de: 'Schliessen', fr: 'Fermer', en: 'Close' },
+      saved:    { it: 'Salvato ✓', de: 'Gespeichert ✓', fr: 'Enregistré ✓', en: 'Saved ✓' },
+      confirmDelete:{ it: 'Eliminare questo appunto?', de: 'Diese Notiz löschen?', fr: 'Supprimer cette note ?', en: 'Delete this note?' },
+      confirmImport:{ it: 'Importare {n} appunti? Quelli attuali verranno sostituiti.', de: '{n} Notizen importieren? Die aktuellen werden ersetzt.', fr: 'Importer {n} notes ? Les actuelles seront remplacées.', en: 'Import {n} notes? Current ones will be replaced.' },
+      invalidFile:{ it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
+      tagNote:  { it: 'Nota', de: 'Notiz', fr: 'Note', en: 'Note' },
+      tagTel:   { it: 'Telefono', de: 'Telefon', fr: 'Téléphone', en: 'Phone' },
+    };
+    let curLang = (function() {
+      try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) return g; } catch (e) {}
+      return 'it';
+    })();
+    function t(key, vars) {
+      const e = T[key];
+      let s = (!e ? key : (e[curLang] || e.it || key));
+      if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+      return s;
+    }
+
+    // ===== Dati =====
+    const KEY = 'mylollotool-appunti';
+    function load() {
+      try { const d = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(d) ? d : []; }
+      catch { return []; }
+    }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(appunti)); } catch (e) {} }
+    let appunti = load();
+    let filter = 'all';
+
+    const $ = id => document.getElementById(id);
+    const grid = $('grid'), search = $('search'), emptyBox = $('empty');
+    const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero'), fOrario = $('f-orario');
+    const telWrap = $('telWrap'), fBody = $('f-body'), fStatus = $('f-status');
+    let editId = null, editType = 'note', saveT = null;
+
+    document.querySelectorAll('[data-i]').forEach(el => { el.outerHTML = svg(el.dataset.i); });
+
+    // ===== Sanitizza anteprima (allowlist) =====
+    function sanitizePreview(html) {
+      const doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
+      const cont = doc.body.firstChild;
+      // Checkbox -> testo
+      cont.querySelectorAll('.todo').forEach(td => {
+        const inp = td.querySelector('input[type=checkbox]');
+        const on = inp && (inp.hasAttribute('checked') || inp.checked);
+        const span = doc.createElement('span');
+        span.textContent = (on ? '☑ ' : '☐ ') + td.textContent.trim();
+        td.replaceWith(span);
+      });
+      const ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, SPAN:1, A:1 };
+      const walk = node => {
+        [...node.childNodes].forEach(ch => {
+          if (ch.nodeType === 3) return;
+          if (ch.nodeType !== 1 || !ALLOWED[ch.tagName]) {
+            const txt = doc.createTextNode(ch.textContent);
+            node.replaceChild(txt, ch);
+            return;
+          }
+          if (ch.tagName === 'A') {
+            const href = ch.getAttribute('href') || '';
+            [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+            if (/^https?:\/\//i.test(href) || href.startsWith('tel:') || href.startsWith('mailto:')) ch.setAttribute('href', href);
+            else { const txt = doc.createTextNode(ch.textContent); node.replaceChild(txt, ch); return; }
+          } else if (ch.tagName === 'SPAN') {
+            const c = ch.style.color;
+            [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+            if (c) ch.style.color = c;
+          } else {
+            [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+          }
+          walk(ch);
+        });
+      };
+      walk(cont);
+      return cont.innerHTML;
+    }
+    const plainText = html => {
+      const d = new DOMParser().parseFromString(html || '', 'text/html');
+      return (d.body.textContent || '').toLowerCase();
+    };
+    const fmtDate = ts => {
+      try { return new Date(ts).toLocaleDateString(curLang, { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+      catch { return ''; }
+    };
+
+    // ===== Griglia =====
+    function card(a) {
+      const isTel = a.type === 'tel';
+      const safeNum = esc(a.numero || '');
+      const telHref = 'tel:' + String(a.numero || '').replace(/[^\d+]/g, '');
+      return `
+      <article class="note${isTel ? ' tel' : ''}" data-id="${esc(a.id)}">
+        <div class="note-body">
+          ${a.title ? `<div class="note-title">${esc(a.title)}</div>` : ''}
+          ${isTel && a.numero ? `<div class="note-num"><a href="${esc(telHref)}" data-open="tel">${safeNum}</a></div>` : ''}
+          ${isTel && a.orario ? `<div class="note-meta">${svg('clock')}<span>${esc(a.orario)}</span></div>` : ''}
+          ${a.html ? `<div class="note-preview">${sanitizePreview(a.html)}</div>` : ''}
+          <div class="note-foot">
+            <span class="note-date">${esc(fmtDate(a.updated))}</span>
+            <span class="note-tag">${esc(t(isTel ? 'tagTel' : 'tagNote'))}</span>
+          </div>
+        </div>
+        <div class="note-actions">
+          <button data-action="edit" title="${esc(t(isTel ? 'editTel' : 'editNote'))}">${svg('edit')}</button>
+          <button data-action="delete" title="${esc(t('delete'))}">${svg('trash')}</button>
+        </div>
+      </article>`;
+    }
+    function render() {
+      $('countPill').textContent = t('count', { n: appunti.length });
+      const q = search.value.trim().toLowerCase();
+      let list = [...appunti].sort((a, b) => (b.updated || 0) - (a.updated || 0));
+      if (filter !== 'all') list = list.filter(a => a.type === filter);
+      if (q) list = list.filter(a => [a.title, a.numero, a.orario, plainText(a.html)].join(' ').toLowerCase().includes(q));
+      document.querySelectorAll('#chips .chip').forEach(c => c.classList.toggle('active', c.dataset.f === filter));
+      if (!appunti.length) {
+        grid.innerHTML = '';
+        emptyBox.hidden = false;
+        emptyBox.querySelector('span').textContent = t('empty');
+        return;
+      }
+      if (!list.length) {
+        grid.innerHTML = '';
+        emptyBox.hidden = false;
+        emptyBox.querySelector('span').textContent = t('emptyFound');
+        return;
+      }
+      emptyBox.hidden = true;
+      grid.innerHTML = list.map(card).join('');
+    }
+    grid.addEventListener('click', e => {
+      const actBtn = e.target.closest('[data-action]');
+      const link = e.target.closest('a[data-open="tel"]');
+      if (link) return; // lascia aprire tel:
+      const art = e.target.closest('.note');
+      if (!art) return;
+      const a = appunti.find(x => x.id === art.dataset.id);
+      if (!a) return;
+      if (actBtn && actBtn.dataset.action === 'delete') {
+        if (confirm(t('confirmDelete'))) { appunti = appunti.filter(x => x.id !== a.id); save(); render(); }
+        return;
+      }
+      openEditor(a.type, a.id);
+    });
+    search.addEventListener('input', render);
+    $('chips').addEventListener('click', e => {
+      const c = e.target.closest('.chip');
+      if (c) { filter = c.dataset.f; render(); }
+    });
+
+    // ===== Editor =====
+    function syncTodoAttrs() {
+      fBody.querySelectorAll('.todo input[type=checkbox]').forEach(i => {
+        if (i.checked) i.setAttribute('checked', '');
+        else i.removeAttribute('checked');
+      });
+    }
+    function collect() {
+      syncTodoAttrs();
+      return {
+        title: fTitle.value.trim(),
+        numero: fNumero.value.trim(),
+        orario: fOrario.value.trim(),
+        html: fBody.innerHTML.trim(),
+      };
+    }
+    function isEmpty(d) {
+      return !d.title && !d.numero && !d.orario && !plainText(d.html).trim();
+    }
+    function scheduleSave() {
+      fStatus.textContent = '';
+      clearTimeout(saveT);
+      saveT = setTimeout(() => {
+        if (!editId) return;
+        const a = appunti.find(x => x.id === editId);
+        if (!a) return;
+        Object.assign(a, collect(), { updated: Date.now() });
+        if (isEmpty(a)) appunti = appunti.filter(x => x.id !== editId);
+        save(); render();
+        fStatus.textContent = t('saved');
+      }, 500);
+    }
+    function openEditor(type, id) {
+      editType = type;
+      editId = id || uid();
+      if (!id) appunti.unshift({ id: editId, type, title: '', numero: '', orario: '', html: '', updated: Date.now() });
+      const a = appunti.find(x => x.id === editId);
+      $('form-title').textContent = t((id ? 'edit' : 'new') + (type === 'tel' ? 'Tel' : 'Note'));
+      telWrap.hidden = type !== 'tel';
+      fTitle.value = a.title || '';
+      fNumero.value = a.numero || '';
+      fOrario.value = a.orario || '';
+      fBody.innerHTML = a.html || '';
+      fStatus.textContent = '';
+      $('btn-del').style.display = id ? '' : 'none';
+      modal.hidden = false;
+      setTimeout(() => (telWrap.hidden ? fTitle : fNumero).focus(), 50);
+    }
+    function closeEditor() {
+      clearTimeout(saveT);
+      if (editId) {
+        const a = appunti.find(x => x.id === editId);
+        if (a) {
+          Object.assign(a, collect(), { updated: Date.now() });
+          if (isEmpty(a)) appunti = appunti.filter(x => x.id !== editId);
+          save(); render();
+        }
+      }
+      editId = null;
+      modal.hidden = true;
+    }
+    $('btn-add-note').onclick = () => openEditor('note');
+    $('btn-add-tel').onclick = () => openEditor('tel');
+    $('btn-close').onclick = closeEditor;
+    modal.addEventListener('mousedown', e => { if (e.target === modal) closeEditor(); });
+    [fTitle, fNumero, fOrario].forEach(el => el.addEventListener('input', scheduleSave));
+    fBody.addEventListener('input', scheduleSave);
+    $('btn-del').onclick = () => {
+      if (!editId) return;
+      if (confirm(t('confirmDelete'))) {
+        appunti = appunti.filter(x => x.id !== editId);
+        save(); render();
+        editId = null;
+        modal.hidden = true;
+      }
+    };
+
+    // ===== Toolbar formattazione (stile My JW, execCommand) =====
+    document.querySelectorAll('#toolbar button').forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+    document.querySelectorAll('#toolbar [data-cmd]').forEach(b => b.addEventListener('click', () => {
+      document.execCommand(b.dataset.cmd, false, null);
+      fBody.focus();
+      scheduleSave();
+    }));
+    // Checkbox riga (stile My JW .todo)
+    $('tool-todo').addEventListener('click', () => {
+      fBody.focus();
+      const sel = window.getSelection();
+      const div = document.createElement('div');
+      div.className = 'todo';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.tabIndex = -1;
+      div.appendChild(cb);
+      div.appendChild(document.createTextNode('\u00A0'));
+      if (sel.rangeCount) {
+        const r = sel.getRangeAt(0);
+        r.deleteContents();
+        r.insertNode(div);
+        r.setStartAfter(div);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      } else {
+        fBody.appendChild(div);
+      }
+      fBody.focus();
+      scheduleSave();
+    });
+    // Colore testo
+    const palette = $('palette');
+    $('tool-color').addEventListener('click', e => { e.stopPropagation(); palette.hidden = !palette.hidden; $('linkrow').hidden = true; });
+    palette.addEventListener('click', e => {
+      const sw = e.target.closest('.swatch');
+      if (!sw) return;
+      fBody.focus();
+      if (sw.id === 'sw-reset') unwrapColor();
+      else document.execCommand('foreColor', false, sw.dataset.c);
+      scheduleSave();
+    });
+    function unwrapColor() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      let node = sel.getRangeAt(0).commonAncestorContainer;
+      if (node.nodeType === 3) node = node.parentNode;
+      while (node && node !== fBody) {
+        if (node.nodeName === 'SPAN' && node.style.color) {
+          const parent = node.parentNode;
+          while (node.firstChild) parent.insertBefore(node.firstChild, node);
+          parent.removeChild(node);
+          break;
+        }
+        node = node.parentNode;
+      }
+    }
+    // Link (stile My JW: titolo + url)
+    const linkrow = $('linkrow');
+    $('tool-link').addEventListener('click', e => { e.stopPropagation(); linkrow.hidden = !linkrow.hidden; palette.hidden = true; if (!linkrow.hidden) $('link-url').focus(); });
+    $('link-ok').addEventListener('click', () => {
+      const url = $('link-url').value.trim();
+      if (!url) return;
+      const title = $('link-title').value.trim() || url;
+      fBody.focus();
+      const sel = window.getSelection();
+      if (sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+        document.execCommand('createLink', false, url);
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = title;
+        if (sel.rangeCount) {
+          const r = sel.getRangeAt(0);
+          r.deleteContents();
+          r.insertNode(a);
+          r.setStartAfter(a);
+          r.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(r);
+        } else fBody.appendChild(a);
+      }
+      $('link-url').value = '';
+      $('link-title').value = '';
+      linkrow.hidden = true;
+      fBody.focus();
+      scheduleSave();
+    });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#toolbar') && !e.target.closest('.palette') && !e.target.closest('.linkrow')) {
+        palette.hidden = true;
+        linkrow.hidden = true;
+      }
+    });
+
+    // ===== Menu ingranaggio =====
+    const tools = $('tools');
+    $('menuBtn').onclick = (e) => { e.stopPropagation(); tools.classList.toggle('open'); };
+    document.addEventListener('click', (e) => { if (!tools.contains(e.target)) tools.classList.remove('open'); });
+    $('drop').addEventListener('click', (e) => { if (e.target.closest('button')) tools.classList.remove('open'); });
+
+    // ===== Esporta / Importa =====
+    $('btn-export').onclick = () => {
+      const blob = new Blob([JSON.stringify(appunti, null, 2)], { type: 'application/json' });
+      const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'appunti.json' });
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+    $('btn-import').onclick = () => $('file-import').click();
+    $('file-import').onchange = async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const d = JSON.parse(await file.text());
+        if (!Array.isArray(d)) throw new Error();
+        const valid = d.filter(x => x && (x.title || x.numero || x.orario || x.html)).map(x => ({
+          id: String(x.id || uid()),
+          type: x.type === 'tel' ? 'tel' : 'note',
+          title: String(x.title || ''),
+          numero: String(x.numero || ''),
+          orario: String(x.orario || ''),
+          html: String(x.html || ''),
+          updated: Number(x.updated) || Date.now(),
+        }));
+        if (confirm(t('confirmImport', { n: valid.length }))) {
+          appunti = valid; save(); render();
+        }
+      } catch { alert(t('invalidFile')); }
+      e.target.value = '';
+    };
+
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (tools.classList.contains('open')) { tools.classList.remove('open'); return; }
+      if (!modal.hidden) closeEditor();
+    });
+
+    // ===== Tema globale =====
+    (function syncGlobalTheme() {
+      const G = 'mylollotool-theme';
+      function apply(th) { document.body.classList.toggle('dark', th === 'dark'); }
+      try { const g = localStorage.getItem(G); if (g === 'dark' || g === 'light') apply(g); } catch (e) {}
+      window.addEventListener('message', (e) => {
+        if (e?.data?.type === G && (e.data.theme === 'dark' || e.data.theme === 'light')) {
+          apply(e.data.theme);
+          try { localStorage.setItem(G, e.data.theme); } catch (err) {}
+        }
+      });
+      window.addEventListener('storage', (e) => {
+        if (e.key === G && (e.newValue === 'dark' || e.newValue === 'light')) apply(e.newValue);
+      });
+    })();
+
+    // ===== Lingua globale =====
+    function applyLang(l) {
+      curLang = LANGS.includes(l) ? l : 'it';
+      document.documentElement.lang = curLang;
+      try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
+      document.title = t('title');
+      document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+      document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+      document.querySelectorAll('[data-t-title]').forEach(el => { el.title = t(el.dataset.tTitle); });
+      fBody.dataset.ph = t('bodyPh');
+      render();
+    }
+    window.addEventListener('message', (e) => {
+      if (e?.data?.type === LANG_KEY && LANGS.includes(e.data.lang)) applyLang(e.data.lang);
+    });
+    window.addEventListener('storage', (e) => {
+      if (e.key === LANG_KEY && LANGS.includes(e.newValue)) applyLang(e.newValue);
+    });
+
+    applyLang(curLang);
+  </script>
+</body>
+</html>

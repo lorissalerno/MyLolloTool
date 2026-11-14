@@ -10,6 +10,7 @@ Nessuna build, nessun bundler. UI in italiano.
 - `Turni Swisscom.html` — turni con `html[data-theme]`. Storage: `turni_v7`, `turni_tema`, `turni_link`, `turni_meta7`. Header stile condiviso con tutte le pagine: altezza totale fissa 60px (riga blu sempre a 74px dal top), `flex-wrap:nowrap`, `.sub` con ellipsis, `h1` 20px/`1.25` Inter 800. `.brand{margin-left:46px}` (54px mobile, 0 oltre 1060px); `header` `padding-bottom:8px`/`margin-bottom:12px`; pulsanti header 40px su pc e mobile (come il pulsante menu), icona-sola `.stato` su mobile per lo spazio).
 - `DataSales.html` — DB SQLite via sql.js + Chart.js/jspdf da CDN. Default scuro. Banner modifiche non salvate: default CSS `display:none`, mostrato solo via JS (`updateUnsavedBackupBanner`). Header come le altre pagine ma più largo (1600px): altezza totale fissa 60px con `padding-top:14px` sul wrap sticky (riga blu sempre a 74px), `.app-logo{margin-left:66px}` sempre (niente azzeramento oltre 1060px) così il titolo non finisce sotto il pulsante menu. Su telefono (`≤600px`) le mini-barre KPI header sono nascoste (restano nelle card) così titolo + anno ci stanno.
 - `agenti.html` — card link agenti, storage `mylollotool-agenti`. Toggle larghezza card (280px/360px) in toolbar, stato in `mylollotool-agenti-width`. Nessuna dipendenza esterna.
+- `appunti.html` — note stile My JW (card masonry, editor contenteditable con toolbar: grassetto/corsivo/sottolineato/elenchi/checkbox/colori/link, autosave). Due tipi: nota libera e telefono (numero/orario/note, numero con `tel:`). Storage `mylollotool-appunti`, ricerca + filtri tipo, export/import JSON da menu ingranaggio. Nessuna dipendenza esterna.
 - `novita.html` — pagina "Novità": storico modifiche funzionali (solo uso essenziale, niente grafica). Stessa palette agenti, `body.dark`, i18n it/de/fr/en, nessun bottone tema/lingua. Costante `SITE_VERSION` nel `<script>`.
 - `DataSales.html`, `Turni Swisscom.html` — hanno dipendenze CDN: i test offline devono tollerare errori rete.
 
@@ -58,7 +59,7 @@ Test rapidi senza browser:
 ```bash
 grep -c "mylollotool-theme" index.html DataSales.html agenti.html
 grep -c "GLOBAL_KEY\|mylollotool-theme" "SCT Tool.html"
-grep -c "mylollotool-lang" index.html DataSales.html agenti.html "Turni Swisscom.html"
+grep -c "mylollotool-lang" index.html DataSales.html agenti.html appunti.html "Turni Swisscom.html"
 ```
 
 Check sintassi JS (estrarre solo `<script>` senza `src`, dopo `<!DOCTYPE html>` per SCT Tool — il commento iniziale contiene la stringa `<script>` e dà falso errore):
