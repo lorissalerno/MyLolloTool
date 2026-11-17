@@ -1011,7 +1011,8 @@
     }
     /* Ensure donut canvas doesn't grow too large and centers */
     .chart-grid .chart-card:nth-child(2) { display: flex; flex-direction: column; align-items: center; }
-    .chart-grid .chart-card:nth-child(2) canvas { max-width: 320px; width: 100%; height: auto !important; }
+    .doughnut-wrap { width: 100%; max-width: 260px; margin: 0 auto; }
+    .doughnut-wrap canvas { width: 100% !important; height: auto !important; display: block; }
     @media (max-width: 900px) {
       .chart-grid .chart-card:nth-child(2) canvas { max-width: 100%; }
     }
@@ -1314,7 +1315,7 @@
         <canvas id="chartMonthly" height="110"></canvas>
       </div>
       <div class="chart-card">
-        <canvas id="chartTypes" height="220"></canvas>
+        <div class="doughnut-wrap"><canvas id="chartTypes" height="220"></canvas></div>
         <div id="chartTypesLegend" class="chart-legend-grid"></div>
       </div>
     </div>
@@ -3587,6 +3588,8 @@ function renderCharts(monthly, aoitT, retT, aoitProdLabels, aoitProdData, aoitYe
     },
     options: {
       responsive:true,
+      maintainAspectRatio:true,
+      aspectRatio:1,
       plugins:{
         legend:{ display: false },
         tooltip:{ callbacks:{ label: ctx => ctx.label+': CHF '+fCHF(ctx.raw) } }
