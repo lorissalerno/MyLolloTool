@@ -1150,59 +1150,6 @@
     <div><span class="logo-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg><span data-t="headerTitle">Vendite</span></span><span class="logo-sub" data-t="headerSub">Gestione vendite e prodotti</span></div>
   </div>
 
-  <div class="header-goals header-mid">
-    <!-- AOIT -->
-    <div class="header-goal-item">
-      <div class="header-goal-info">
-        <span class="header-goal-lbl">AOIT</span>
-        <span class="header-goal-pct" id="hGoalAoitPct">0%</span>
-      </div>
-      <div class="header-goal-track aoit">
-        <div class="header-goal-fill aoit" id="hGoalAoitBar" style="width:0%"></div>
-      </div>
-    </div>
-    <!-- Retention -->
-    <div class="header-goal-item">
-      <div class="header-goal-info">
-        <span class="header-goal-lbl">Retention</span>
-        <span class="header-goal-pct" id="hGoalRetPct">0%</span>
-      </div>
-      <div class="header-goal-track ret">
-        <div class="header-goal-fill ret" id="hGoalRetBar" style="width:0%"></div>
-      </div>
-    </div>
-    <!-- New Internet -->
-    <div class="header-goal-item">
-      <div class="header-goal-info">
-        <span class="header-goal-lbl">Int</span>
-        <span class="header-goal-pct" id="hGoalNewIntPct">0%</span>
-      </div>
-      <div class="header-goal-track narrow">
-        <div class="header-goal-fill newt" id="hGoalNewIntBar" style="width:0%"></div>
-      </div>
-    </div>
-    <!-- New TV -->
-    <div class="header-goal-item">
-      <div class="header-goal-info">
-        <span class="header-goal-lbl">TV</span>
-        <span class="header-goal-pct" id="hGoalNewTvPct">0%</span>
-      </div>
-      <div class="header-goal-track narrow">
-        <div class="header-goal-fill newt" id="hGoalNewTvBar" style="width:0%"></div>
-      </div>
-    </div>
-    <!-- New Mobile -->
-    <div class="header-goal-item">
-      <div class="header-goal-info">
-        <span class="header-goal-lbl">Mob</span>
-        <span class="header-goal-pct" id="hGoalNewMobPct">0%</span>
-      </div>
-      <div class="header-goal-track narrow">
-        <div class="header-goal-fill newt" id="hGoalNewMobBar" style="width:0%"></div>
-      </div>
-    </div>
-  </div>
-
   <div class="year-wrap">
     <span data-t="yearLabel">Anno:</span>
     <select id="yearSel" onchange="changeYear()"></select>
@@ -1214,7 +1161,7 @@
 <div class="nav-tabs-wrap">
 <nav class="nav-tabs" style="justify-content: space-between; align-items: center;">
   <div style="display: flex; gap: 4px;">
-    <div class="nav-tab active" id="tab-stats"    onclick="showTab('stats')" data-t="tabDashboard">Dashboard</div>
+    <div class="nav-tab active" id="tab-stats"    onclick="showTab('stats')" data-t="tabDashboard">Panoramica</div>
     <div class="nav-tab"        id="tab-sales"    onclick="showTab('sales')" data-t="tabSales">Vendite</div>
     <div class="nav-tab"        id="tab-products" onclick="showTab('products')" data-t="tabProducts">Database AOIT</div>
     <div class="nav-tab"        id="tab-archive"  onclick="showTab('archive')" data-t="tabArchive">Archivio</div>
@@ -1222,6 +1169,7 @@
   </div>
   <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px;">
     <span id="lastBackupLbl" style="font-size: 11.5px; color: var(--txt-muted); font-weight: 600;">Ultimo backup: mai</span>
+    <button class="btn btn-ghost btn-sm" id="tab-settings" onclick="showTab('settings')" style="padding: 4px 10px; font-size: 11px;" data-t="settingsBtn">⚙ Impostazioni</button>
     <button class="btn btn-ghost btn-sm" onclick="exportFullBackup()" style="padding: 4px 10px; font-size: 11px;" data-t="backupBtn">Backup</button>
     <button class="btn btn-ghost btn-sm" onclick="triggerFullBackupImport()" style="padding: 4px 10px; font-size: 11px;" data-t="importBackupBtn">Importa backup</button>
   </div>
@@ -1236,34 +1184,15 @@
        ====================================================== -->
   <div class="tab-panel active" id="panel-stats">
 
-    <!-- Goal -->
+    <!-- Goal (progress: gli input annuali sono in Impostazioni) -->
     <div class="goal-section">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
         <div>
           <div style="font-size:15px;font-weight:700;margin-bottom:3px;" data-t="goalsTitle">Obiettivi Annuali</div>
-          <div style="font-size:12px;color:var(--txt-sec);" data-t="goalsSub">Imposta l'obiettivo annuale per calcolare l'obiettivo mensile dinamico</div>
+          <div style="font-size:12px;color:var(--txt-sec);" data-t="goalsSub">Avanzamento mensile e annuale rispetto agli obiettivi</div>
         </div>
-        <div class="goal-inputs" style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl" data-t="goalAoit">AOIT (CHF)</label>
-            <input type="number" class="fi" id="goalAoit" style="width:110px;" placeholder="0" oninput="saveGoal()">
-          </div>
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl" data-t="goalRetention">Retention</label>
-            <input type="number" class="fi" id="goalRetentions" style="width:110px;" placeholder="0" oninput="saveGoal()">
-          </div>
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl" data-t="goalInternet">Internet</label>
-            <input type="number" class="fi" id="goalNewInternet" style="width:110px;" placeholder="0" oninput="saveGoal()">
-          </div>
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl" data-t="goalTv">TV</label>
-            <input type="number" class="fi" id="goalNewTv" style="width:110px;" placeholder="0" oninput="saveGoal()">
-          </div>
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl" data-t="goalMobile">Mobile</label>
-            <input type="number" class="fi" id="goalNewMobile" style="width:110px;" placeholder="0" oninput="saveGoal()">
-          </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <button class="btn btn-ghost btn-sm" onclick="showTab('settings')" data-t="editInSettings">Modifica in Impostazioni</button>
           <button class="btn btn-ghost btn-sm" onclick="exportDashboardPDF()" data-th="exportPdfBtn" style="align-self:flex-end; white-space:nowrap; width:70px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; font-size:12px; padding:4px 6px;">Esporta<br>PDF</button>
         </div>
       </div>
@@ -1377,7 +1306,19 @@
       </div>
     </div>
 
-    <!-- Monthly breakdown -->
+    <!-- Charts: sopra il dettaglio mensile, sotto gli obiettivi -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title" id="chartMonthlyTitle" data-t="chartMonthlyTitle">AOIT mensili (CHF)</div>
+        <canvas id="chartMonthly" height="110"></canvas>
+      </div>
+      <div class="chart-card">
+        <canvas id="chartTypes" height="220"></canvas>
+        <div id="chartTypesLegend" class="chart-legend-grid"></div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown: sotto a tutto -->
     <div class="card" style="margin-top: 18px;">
       <div class="card-head"><span class="card-title" data-t="detailMonthly">Dettaglio Mensile</span></div>
       <div class="tbl-wrap">
@@ -1401,18 +1342,6 @@
           </thead>
           <tbody id="statMonthlyBody"></tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- Charts -->
-    <div class="chart-grid">
-      <div class="chart-card">
-        <div class="chart-title" id="chartMonthlyTitle" data-t="chartMonthlyTitle">AOIT mensili (CHF)</div>
-        <canvas id="chartMonthly" height="110"></canvas>
-      </div>
-      <div class="chart-card">
-        <canvas id="chartTypes" height="220"></canvas>
-        <div id="chartTypesLegend" class="chart-legend-grid"></div>
       </div>
     </div>
   </div>
@@ -1507,6 +1436,43 @@
       </div>
       <div style="padding:20px;">
         <div class="archive-list" id="archiveList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       TAB: IMPOSTAZIONI (obiettivi annuali)
+       ====================================================== -->
+  <div class="tab-panel" id="panel-settings">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title" data-t="settingsTitle">Impostazioni</span>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:3px;" data-t="goalsTitle">Obiettivi Annuali</div>
+        <div style="font-size:12px;color:var(--txt-sec);margin-bottom:16px;" data-t="goalsSubSettings">Imposta l'obiettivo annuale per calcolare l'obiettivo mensile dinamico in Panoramica</div>
+        <div class="goal-inputs" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" data-t="goalAoit">AOIT (CHF)</label>
+            <input type="number" class="fi" id="goalAoit" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" data-t="goalRetention">Retention</label>
+            <input type="number" class="fi" id="goalRetentions" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" data-t="goalInternet">Internet</label>
+            <input type="number" class="fi" id="goalNewInternet" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" data-t="goalTv">TV</label>
+            <input type="number" class="fi" id="goalNewTv" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl" data-t="goalMobile">Mobile</label>
+            <input type="number" class="fi" id="goalNewMobile" style="width:110px;" placeholder="0" oninput="saveGoal()">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1813,7 +1779,7 @@ const T = {
   exportBackup:{it:'Esporta backup',de:'Backup exportieren',fr:'Exporter le backup',en:'Export backup'},
   close:{it:'Chiudi',de:'Schliessen',fr:'Fermer',en:'Close'},
   yearLabel:{it:'Anno:',de:'Jahr:',fr:'Année :',en:'Year:'},
-  tabDashboard:{it:'Dashboard',de:'Dashboard',fr:'Tableau de bord',en:'Dashboard'},
+  tabDashboard:{it:'Panoramica',de:'Übersicht',fr:'Aperçu',en:'Overview'},
   tabSales:{it:'Vendite',de:'Verkäufe',fr:'Ventes',en:'Sales'},
   tabProducts:{it:'Database AOIT',de:'AOIT-Datenbank',fr:'Base AOIT',en:'AOIT Database'},
   tabArchive:{it:'Archivio',de:'Archiv',fr:'Archives',en:'Archive'},
@@ -1827,7 +1793,11 @@ const T = {
   cancelWord:{it:'Annulla',de:'Abbrechen',fr:'Annuler',en:'Cancel'},
   saveWord:{it:'Salva',de:'Speichern',fr:'Enregistrer',en:'Save'},
   goalsTitle:{it:'Obiettivi Annuali',de:'Jahresziele',fr:'Objectifs annuels',en:'Annual goals'},
-  goalsSub:{it:'Imposta l’obiettivo annuale per calcolare l’obiettivo mensile dinamico',de:'Setze das Jahresziel zur Berechnung des dynamischen Monatsziels',fr:'Définissez l’objectif annuel pour calculer l’objectif mensuel dynamique',en:'Set the annual goal to compute the dynamic monthly goal'},
+  goalsSub:{it:'Avanzamento mensile e annuale rispetto agli obiettivi',de:'Monats- und Jahresfortschritt gegenüber den Zielen',fr:'Progression mensuelle et annuelle par rapport aux objectifs',en:'Monthly and annual progress against goals'},
+  goalsSubSettings:{it:'Imposta l’obiettivo annuale per calcolare l’obiettivo mensile dinamico in Panoramica',de:'Setze das Jahresziel zur Berechnung des dynamischen Monatsziels in Übersicht',fr:'Définissez l’objectif annuel pour calculer l’objectif mensuel dynamique dans Aperçu',en:'Set the annual goal to compute the dynamic monthly goal in Overview'},
+  settingsBtn:{it:'⚙ Impostazioni',de:'⚙ Einstellungen',fr:'⚙ Paramètres',en:'⚙ Settings'},
+  settingsTitle:{it:'Impostazioni',de:'Einstellungen',fr:'Paramètres',en:'Settings'},
+  editInSettings:{it:'Modifica in Impostazioni',de:'In Einstellungen ändern',fr:'Modifier dans Paramètres',en:'Edit in Settings'},
   goalAoit:{it:'AOIT (CHF)',de:'AOIT (CHF)',fr:'AOIT (CHF)',en:'AOIT (CHF)'},
   goalRetention:{it:'Retention',de:'Retention',fr:'Rétention',en:'Retention'},
   goalInternet:{it:'Internet',de:'Internet',fr:'Internet',en:'Internet'},
@@ -2310,10 +2280,15 @@ function changeYear() {
 function showTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  document.getElementById('tab-'   + name).classList.add('active');
+  const setBtn = document.getElementById('tab-settings');
+  if (setBtn) setBtn.classList.remove('active');
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  const tab = document.getElementById('tab-'   + name);
+  if (tab) tab.classList.add('active');
   localStorage.setItem('activeTab', name);
   if (name === 'stats')   { loadGoals(); renderStats(); }
+  if (name === 'settings'){ loadGoals(); }
   if (name === 'archive') renderArchive();
   if (name === 'offerte') renderOffers();
 }
@@ -3449,19 +3424,8 @@ function updateGoalProgress() {
   syncHeaderGoal(Math.round(aoitYearAch), aoitYearly, retYearAch, retYearly, newIntYearAch, newIntYearly, newTvYearAch, newTvYearly, newMobYearAch, newMobYearly);
 }
 
-function syncHeaderGoal(aoitAch, aoitTgt, retAch, retTgt, intAch, intTgt, tvAch, tvTgt, mobAch, mobTgt) {
-  const setHBar = (barId, pctId, ach, tgt) => {
-    const bar = document.getElementById(barId);
-    const text = document.getElementById(pctId);
-    const pct = tgt > 0 ? Math.round(ach / tgt * 100) : 0;
-    if (bar) bar.style.width = Math.min(100, pct) + '%';
-    if (text) text.textContent = fCHF(tgt > 0 ? ach : 0) + ' / ' + fCHF(tgt > 0 ? tgt : 0);
-  };
-  setHBar('hGoalAoitBar', 'hGoalAoitPct', aoitAch, aoitTgt);
-  setHBar('hGoalRetBar',  'hGoalRetPct',  retAch, retTgt);
-  setHBar('hGoalNewIntBar', 'hGoalNewIntPct', intAch, intTgt);
-  setHBar('hGoalNewTvBar',  'hGoalNewTvPct',  tvAch, tvTgt);
-  setHBar('hGoalNewMobBar', 'hGoalNewMobPct', mobAch, mobTgt);
+function syncHeaderGoal() {
+  // Mini-barre header rimosse: gli obiettivi restano solo in Panoramica (no-op).
 }
 
 function setBar(id, pct) {

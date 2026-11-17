@@ -76,3 +76,4 @@ Con Playwright: naviga su `index.html`, apri sidebar (`#toggle`), clicca `#theme
 - Niente `localStorage.clear()` aggressivi: solo chiavi proprie.
 - Testi UI in italiano. Pesi file: DataSales ~160KB, Lollo ~110KB — non duplicare librerie.
 - Push su `main` = deploy Pages automatico. Verificare `git status` prima del commit; non committare `.playwright-mcp/`, screenshot `*.png`, log server.
+- REGOLA OBBLIGATORIA: ogni modifica completata va sempre committata e pushata su `main` subito (niente modifiche solo locali).
