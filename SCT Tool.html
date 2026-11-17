@@ -106,11 +106,12 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       line-height: 1.45;
     }
-    /* Wrapper del contenuto, gestisce min-width e overflow orizzontale */
+    /* Wrapper del contenuto, fluido: nessuna min-width (evita scroll orizzontale su mobile/finestre strette) */
     .page-wrap,
     .page-wrap-taasalo3 {
       padding: 14px 18px 72px;
-      min-width: 720px;
+      min-width: 0;
+      width: 100%;
       max-width: 900px;
       margin: 0 auto;
       transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -120,15 +121,24 @@
       max-width: 100vw;
     }
     .header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: nowrap;
-      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; height: 60px; position: relative; }
-    .header-row .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
+      border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; min-height: 60px; position: relative; }
+    .header-row .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; overflow: hidden; margin-left: 46px; transition: margin-left .25s ease; }
     .header-row .brand > div { min-width: 0; }
+    .header-text { min-width: 0; flex: 1; overflow: hidden; }
     @media (min-width: 1060px) { .header-row .brand { margin-left: 0; } }
     .header-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
     .header-text h1 { margin: 0; font-size: 20px; line-height: 1.25; color: var(--text); display: flex; align-items: center; gap: 10px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; letter-spacing: -.4px; }
     .header-text h1 svg { width: 20px; height: 20px; flex: none; }
     .header-text .subtle { margin: 1px 0 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 600px) { .header-row { gap: 8px; } .header-row .brand { margin-left: 54px; } }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      #tool-longmeasure { grid-column: auto; }
+    }
+    @media (max-width: 480px) {
+      .page-wrap, .page-wrap-taasalo3 { padding: 10px 12px 72px; }
+      .header-text h1 { font-size: 18px; }
+    }
     .page-wrap .iconbtn, .page-wrap-taasalo3 .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
       border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; flex-shrink: 0; }
     .settings-toggle, .expand-toggle { width: 40px !important; height: 40px !important; border-radius: 999px !important; box-shadow: none !important; }

@@ -59,6 +59,13 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.03</strong><time>17/11/2026</time></div>
+      <ul>
+        <li><span class="tag">SCT</span><span data-t="e103a">SCT Tool fluido su finestre strette e mobile: niente più scroll orizzontale, titolo non più coperto dal pulsante menu, riquadri su una colonna.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.02</strong><time>14/11/2026</time></div>
       <ul>
         <li><span class="tag">Menu</span><span data-t="e102a">Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.</span></li>
@@ -95,11 +102,15 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.02';
+    const SITE_VERSION = '1.03';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const T = {
+      e103a: { it: 'SCT Tool fluido su finestre strette e mobile: niente più scroll orizzontale, titolo non più coperto dal pulsante menu, riquadri su una colonna.',
+               de: 'SCT Tool flüssig auf schmalen Fenstern und mobil: kein horizontales Scrollen mehr, Titel nicht mehr vom Menüknopf verdeckt, Boxen einspaltig.',
+               fr: 'SCT Tool fluide sur fenêtres étroites et mobile : plus de défilement horizontal, titre non masqué par le bouton menu, blocs sur une colonne.',
+               en: 'SCT Tool fluid on narrow windows and mobile: no more horizontal scroll, title no longer covered by the menu button, single-column cards.' },
       e102a: { it: 'Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.',
                de: 'Gesamt-Backup im Menü: eine .json-Datei mit Daten aller Seiten, plus Wiederherstellen.',
                fr: 'Sauvegarde unique dans le menu : un seul fichier .json avec les données de toutes les pages, plus Restaurer.',
