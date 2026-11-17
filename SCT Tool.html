@@ -131,14 +131,6 @@
     .header-text h1 svg { width: 20px; height: 20px; flex: none; }
     .header-text .subtle { margin: 1px 0 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 600px) { .header-row { gap: 8px; } .header-row .brand { margin-left: 54px; } }
-    @media (max-width: 700px) {
-      .grid { grid-template-columns: 1fr; }
-      #tool-longmeasure { grid-column: auto; }
-    }
-    @media (max-width: 480px) {
-      .page-wrap, .page-wrap-taasalo3 { padding: 10px 12px 72px; }
-      .header-text h1 { font-size: 18px; }
-    }
     .page-wrap .iconbtn, .page-wrap-taasalo3 .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
       border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; flex-shrink: 0; }
     .settings-toggle, .expand-toggle { width: 40px !important; height: 40px !important; border-radius: 999px !important; box-shadow: none !important; }
@@ -153,6 +145,15 @@
     .page-wrap.expanded .grid,
     .page-wrap-taasalo3.expanded .grid {
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    /* Responsive: sotto 700px una colonna (dopo le regole base, così vince in cascata) */
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      #tool-longmeasure { grid-column: auto !important; } /* vince su grid-column:span 2 definito più sotto */
+    }
+    @media (max-width: 480px) {
+      .page-wrap, .page-wrap-taasalo3 { padding: 10px 12px 72px; }
+      .header-text h1 { font-size: 18px; }
     }
     .card {
       background: var(--panel);
