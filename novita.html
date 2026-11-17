@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 48px; }
+    body { font-family: system-ui, sans-serif; background: #F3F4F6; color: #1F2937; padding: 14px 24px 48px; overflow-x: clip; }
     /* Footer fisso stile SCT Tool (uguale su tutte le pagine) */
     .mlt-footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
       border-top: 1px solid #E5E7EB; background: #FFFFFF; padding: 5px 18px;
@@ -17,13 +17,13 @@
     body.dark .mlt-footer { background: #141417; border-color: #2A2A35; color: #9898A8; }
     svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
           stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    /* Header stile Turni: titolo + sottotitolo a sinistra, pill a destra, riga blu sotto */
+    /* Testata full-bleed come SCT Tool: riga blu da bordo a bordo sotto il pulsante menu,
+       titolo sempre a destra del pulsante via CSS (mai azzerato, nessuno spostamento JS) */
     header.page-head { display: flex; justify-content: space-between; align-items: center; gap: 14px;
-      flex-wrap: nowrap; border-bottom: 2px solid #3B82F6; padding-bottom: 8px; margin-bottom: 12px; height: 60px; }
-    .page-head .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 46px; transition: margin-left .25s ease; }
+      flex-wrap: nowrap; border-bottom: 2px solid #3B82F6; padding: 0 24px 8px; margin: 0 calc(50% - 50vw) 12px; width: 100vw; max-width: 100vw; min-height: 60px; }
+    .page-head .brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-left: 52px; transition: margin-left .25s ease; }
     .page-head .brand > div { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 12px; }
     .page-head h1 { flex: none; }
-    @media (min-width: 1060px) { .page-head .brand { margin-left: 0; } }
     .page-head h1 { display: flex; align-items: center; gap: 10px; font-size: 20px; line-height: 1.25; margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; letter-spacing: -.4px; }
     .page-head h1 svg { width: 20px; height: 20px; }
     .page-head .sub { color: #4B5563; font-size: 11px; margin: 0; max-width: 760px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
