@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
   <title>MyLolloTool</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -148,6 +149,12 @@
       opacity: .55; text-decoration: underline; color: inherit; padding: 0; text-align: left;
     }
     #backup-import:hover { opacity: 1; }
+    /* Backup sporco: una pagina figlia ha cambiato dati dopo l'ultimo export */
+    #backup-export.dirty { background: #3B82F6; border-color: #3B82F6; color: #fff; opacity: 1; animation: backupPulse 1.6s ease-in-out infinite; }
+    body[data-mtheme="dark"] #backup-export.dirty { background: #3B82F6; border-color: #3B82F6; color: #fff; }
+    @keyframes backupPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,.45); } 50% { box-shadow: 0 0 0 6px rgba(59,130,246,0); } }
+    #backup-status.dirty { opacity: 1; color: #1D4ED8; font-weight: 700; }
+    body[data-mtheme="dark"] #backup-status.dirty { color: #7dc3ff; }
 
     /* Link Novità ancorato al fondo, giusto sopra lingua/tema */
     #sidebar-foot { margin-top: auto; }
@@ -357,6 +364,7 @@
       backupOk: { it: 'Backup scaricato: conservalo fuori dal browser', de: 'Backup geladen: ausserhalb des Browsers aufbewahren', fr: 'Sauvegarde téléchargée : garde-la hors du navigateur', en: 'Backup downloaded: keep it outside the browser' },
       importErr:{ it: 'File backup non valido.', de: 'Ungültige Backup-Datei.', fr: 'Fichier de sauvegarde invalide.', en: 'Invalid backup file.' },
       backupOld:{ it: 'Backup vecchio: premi Backup', de: 'Backup alt: Backup drücken', fr: 'Sauvegarde ancienne : appuie sur Sauvegarde', en: 'Old backup: press Backup' },
+      unsavedMenu:{ it: 'Modifiche non salvate: premi Backup', de: 'Ungesicherte Änderungen: Backup drücken', fr: 'Modifications non sauvegardées : appuie sur Sauvegarde', en: 'Unsaved changes: press Backup' },
       frame:    { it: 'Contenuto', de: 'Inhalt', fr: 'Contenu', en: 'Content' },
       theme:    { it: 'Cambia tema', de: 'Thema wechseln', fr: 'Changer de thème', en: 'Toggle theme' },
       lang:     { it: 'Cambia lingua', de: 'Sprache wechseln', fr: 'Changer de langue', en: 'Change language' },
@@ -671,6 +679,16 @@
         setGlobalTheme(e.data.theme, false);
         paintFrameNow(e.data.theme);
       }
+      // Una pagina figlia ha esportato/importato il backup: lo stato menù è allineato
+      if (e?.data?.type === 'mylollotool-backup-done') {
+        try {
+          const now = new Date();
+          const pad = n => String(n).padStart(2, '0');
+          localStorage.setItem(BACKUP_LAST, pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear() + ', ' + pad(now.getHours()) + ':' + pad(now.getMinutes()));
+        } catch (err) {}
+        backupDirty = false;
+        updateBackupStatus();
+      }
     });
     // Backup via storage event (stessa origine, anche da altre schede)
     window.addEventListener('storage', (e) => {
@@ -683,6 +701,8 @@
         paintLang(e.newValue);
         broadcastLang(e.newValue);
       }
+      // Una pagina figlia ha cambiato dati dopo l'ultimo export: segnala backup da rifare
+      if (backupIsDataKey(e.key)) { backupDirty = true; updateBackupStatus(); }
     });
 
     // ===== Backup unificato: un solo file .json per tutte le pagine =====
@@ -693,6 +713,16 @@
     const backupExportBtn = document.getElementById('backup-export');
     const backupImportBtn = document.getElementById('backup-import');
     const backupStatus = document.getElementById('backup-status');
+    // true se una pagina ha cambiato dati dopo l'ultimo export (via storage event)
+    let backupDirty = false;
+    function backupIsDataKey(k) {
+      if (!k || k === BACKUP_LAST || k === 'lollodata_last_backup' ||
+          k === 'theme' || k === 'activeTab' ||
+          k === 'mylollotool-theme' || k === 'mylollotool-lang') return false;
+      return k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
+             k.startsWith('mylollotool-') || k.startsWith('turni_') ||
+             k.startsWith('sct-');
+    }
     function backupKeys() {
       const out = {};
       for (let i = 0; i < localStorage.length; i++) {
@@ -722,7 +752,15 @@
     function updateBackupStatus() {
       let last = null;
       try { last = localStorage.getItem(BACKUP_LAST); } catch (e) {}
-      backupStatus.textContent = last ? (mt('lastPrefix') + last) : mt('lastNever');
+      if (backupDirty) {
+        backupStatus.textContent = mt('unsavedMenu');
+        backupStatus.classList.add('dirty');
+        backupExportBtn.classList.add('dirty');
+      } else {
+        backupStatus.textContent = last ? (mt('lastPrefix') + last) : mt('lastNever');
+        backupStatus.classList.remove('dirty');
+        backupExportBtn.classList.remove('dirty');
+      }
     }
     function exportUnifiedBackup() {
       const data = backupKeys();
@@ -738,6 +776,7 @@
       a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       try { localStorage.setItem(BACKUP_LAST, label); } catch (e) {}
+      backupDirty = false;
       updateBackupStatus();
     }
     function importUnifiedBackup(file) {
@@ -756,6 +795,8 @@
           keys.forEach(k => { try { localStorage.setItem(k, data[k]); } catch (e) {} });
           syncLegacyKeys(getGlobalTheme());
           paintLang(curLang);
+          backupDirty = false;
+          updateBackupStatus();
           try { frame.contentWindow.location.reload(); } catch (e) {}
         } catch (e) { alert(mt('importErr')); }
       };
