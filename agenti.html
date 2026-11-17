@@ -97,8 +97,6 @@
       background: var(--cat); flex: none; }
     .category h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-    body.wide .grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
-    body.wide .card-link { min-height: 104px; }
 
     .card { position: relative; border-radius: var(--radius);
       background: var(--surface);
@@ -223,7 +221,6 @@
       <input id="search" type="text" data-t-ph="searchPh" placeholder="Cerca un agente...">
     </div>
     <button class="btn primary" id="btn-add"><span data-i="plus"></span><span data-t="add">Aggiungi agente</span></button>
-    <button class="iconbtn" id="btn-width" data-t-title="widthTitle" title="Alterna card strette e larghe" aria-pressed="false"><span data-i="expand"></span></button>
     <input type="file" id="file-import" accept=".json,application/json" hidden>
   </div>
 
@@ -344,13 +341,10 @@
       export:     { it: 'Esporta', de: 'Exportieren', fr: 'Exporter', en: 'Export' },
       importTitle:{ it: 'Carica una lista da file .json', de: 'Liste aus .json-Datei laden', fr: 'Charger une liste depuis un fichier .json', en: 'Load list from .json file' },
       import:     { it: 'Importa', de: 'Importieren', fr: 'Importer', en: 'Import' },
-      widthTitle: { it: 'Alterna card strette e larghe', de: 'Zwischen schmalen und breiten Karten wechseln', fr: 'Alterner cartes étroites et larges', en: 'Toggle narrow/wide cards' },
       expand:     { it: 'Allarga', de: 'Erweitern', fr: 'Élargir', en: 'Expand' },
       collapse:   { it: 'Riduci', de: 'Verkleinern', fr: 'Réduire', en: 'Collapse' },
       expandTitle: { it: 'Allarga a tutta pagina', de: 'Auf volle Breite erweitern', fr: 'Élargir à toute la page', en: 'Expand to full page' },
       collapseTitle: { it: 'Torna alla larghezza normale', de: 'Zurück zur normalen Breite', fr: 'Revenir à la largeur normale', en: 'Back to normal width' },
-      wide:       { it: 'Larga', de: 'Breit', fr: 'Large', en: 'Wide' },
-      narrow:     { it: 'Stretta', de: 'Schmal', fr: 'Étroite', en: 'Narrow' },
       newAgent:   { it: 'Nuovo agente', de: 'Neuer Agent', fr: 'Nouvel agent', en: 'New agent' },
       editAgent:  { it: 'Modifica agente', de: 'Agent bearbeiten', fr: 'Modifier l’agent', en: 'Edit agent' },
       name:       { it: 'Nome', de: 'Name', fr: 'Nom', en: 'Name' },
@@ -528,22 +522,6 @@
 
     search.addEventListener('input', render);
 
-    // ===== Larghezza card (strette/larghe) =====
-    const WIDTH_KEY = 'mylollotool-agenti-width';
-    function applyWidth(w) {
-      const wide = w === 'wide';
-      document.body.classList.toggle('wide', wide);
-      const b = $('btn-width');
-      if (b) {
-        b.innerHTML = svg(wide ? 'collapse' : 'expand');
-        b.setAttribute('aria-pressed', String(wide));
-      }
-      try { localStorage.setItem(WIDTH_KEY, wide ? 'wide' : 'normal'); } catch (e) {}
-    }
-    try { applyWidth(localStorage.getItem(WIDTH_KEY) === 'wide' ? 'wide' : 'normal'); } catch (e) {}
-    $('btn-width').onclick = () =>
-      applyWidth(document.body.classList.contains('wide') ? 'normal' : 'wide');
-
     // ===== Allarga a tutta pagina (come SCT Tool: .wrap 960px -> tutta larghezza) =====
     const EXP_KEY = 'mylollotool-agenti-expanded';
     function paintExpandBtn() {
@@ -685,7 +663,6 @@
       document.querySelectorAll('[data-t-title]').forEach(el => { el.title = t(el.dataset.tTitle); });
       renderIconPicker();
       render();
-      try { applyWidth(document.body.classList.contains('wide') ? 'wide' : 'normal'); } catch (e) {}
       try { paintExpandBtn(); } catch (e) {}
     }
     window.addEventListener('message', (e) => {
