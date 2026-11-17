@@ -214,7 +214,7 @@
 
   <header class="page-head">
     <div class="brand"><div><h1><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/></svg><span data-t="title">Agenti AI</span></h1><p class="sub" data-t="sub">I tuoi collegamenti rapidi agli agenti e strumenti AI</p></div></div>
-    <div class="right" id="tools"><span class="pill" id="countPill"></span><button class="iconbtn" id="menuBtn" data-t-title="menuTitle" title="Menu"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button><span id="drop"><button class="btn" id="btn-expand" data-t-title="expandTitle" title="Allarga a tutta pagina"><span data-i="expand"></span><span class="exp-label" data-t="expand">Allarga</span></button><button class="btn" id="btn-export" data-t-title="exportTitle" title="Scarica la lista come file .json"><span data-i="download"></span><span data-t="export">Esporta</span></button><button class="btn" id="btn-import" data-t-title="importTitle" title="Carica una lista da file .json"><span data-i="upload"></span><span data-t="import">Importa</span></button></span></div>
+    <div class="right" id="tools"><span class="pill" id="countPill"></span><button class="iconbtn" id="menuBtn" data-t-title="menuTitle" title="Menu"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button><button class="iconbtn" id="btn-expand" title="Allarga a tutta pagina"><span data-i="expand"></span></button><span id="drop"><button class="btn" id="btn-export" data-t-title="exportTitle" title="Scarica la lista come file .json"><span data-i="download"></span><span data-t="export">Esporta</span></button><button class="btn" id="btn-import" data-t-title="importTitle" title="Carica una lista da file .json"><span data-i="upload"></span><span data-t="import">Importa</span></button></span></div>
   </header>
 
   <div class="toolbar">
@@ -550,13 +550,9 @@
       const b = $('btn-expand');
       if (!b) return;
       const ex = document.querySelector('.wrap').classList.contains('expanded');
-      const tmp = document.createElement('span');
-      tmp.innerHTML = svg(ex ? 'collapse' : 'expand');
-      const oldSvg = b.querySelector('svg');
-      if (oldSvg && tmp.firstChild) oldSvg.replaceWith(tmp.firstChild);
-      const lbl = b.querySelector('.exp-label');
-      if (lbl) { lbl.dataset.t = ex ? 'collapse' : 'expand'; lbl.textContent = t(ex ? 'collapse' : 'expand'); }
+      b.innerHTML = svg(ex ? 'collapse' : 'expand');
       b.title = t(ex ? 'collapseTitle' : 'expandTitle');
+      b.setAttribute('aria-pressed', String(ex));
     }
     function applyExpand(ex) {
       document.querySelector('.wrap').classList.toggle('expanded', ex);
