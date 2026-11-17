@@ -83,7 +83,9 @@
 
     /* Griglia masonry stile My JW */
     .grid { column-count: 2; column-gap: 14px; }
-    @media (max-width: 640px) { .grid { column-count: 1; } }
+    .wrap.expanded .grid { column-count: 3; }
+    @media (max-width: 1100px) { .wrap.expanded .grid { column-count: 2; } }
+    @media (max-width: 640px) { .grid { column-count: 1; } .wrap.expanded .grid { column-count: 1; } }
     .note { position: relative; background: #fff; border: 1.5px solid #E5E7EB; border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,.04); break-inside: avoid; margin-bottom: 14px;
             cursor: pointer; overflow: hidden; transition: transform .15s, box-shadow .15s; animation: cardIn .25s ease; }
