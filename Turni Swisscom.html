@@ -58,6 +58,23 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 .stato .dot{width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:inherit;position:relative}
 .stato .dot svg{width:14px;height:14px}
 .stato.ok .dot{color:var(--ok)} .stato.saved .dot{color:var(--warn)} .stato.err .dot{color:var(--err)} .stato.none .dot{color:var(--off)}
+.sdialog{max-width:460px}
+#sbody{margin-top:2px}
+.srow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--line)}
+.srow:last-child{border-bottom:0}
+.srange{flex:1;min-width:0}
+.srange b{display:block;font-size:13px;font-variant-numeric:tabular-nums}
+.srange small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.svals{text-align:right;flex:none}
+.svals b{font-size:14px;font-variant-numeric:tabular-nums}
+.svals small{display:block;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.svals small.has{color:var(--extra);font-weight:700}
+html[data-theme="white"] .svals small.has{color:#2B6CB0}
+.stot{display:flex;align-items:center;gap:10px;margin-top:12px;background:var(--todaybg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stot .srange b{font-size:14px}
+.stot .svals b{font-size:16px}
+.snote{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.sempty{padding:18px 6px;text-align:center;color:var(--muted);font-size:13px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:4px}
 .panel,.steps{padding:16px 18px;margin-bottom:14px}
 .ptitle{font-weight:700;font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
@@ -201,7 +218,7 @@ body{padding-bottom:32px}
 .overlay{position:fixed;inset:0;background:rgba(11,92,255,.12);border:3px dashed var(--accent);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);z-index:99;pointer-events:none}
 .overlay.on{display:flex}
 #print{display:none}
-@media (max-width:600px){body{overflow-x:clip}.wrap{padding:14px 12px 6px}header{gap:8px;padding-bottom:8px;margin-bottom:12px;align-items:center}.brand{margin-left:54px}header>div:first-child{flex:1;min-width:0}h1{font-size:20px}.logo{width:38px;height:38px}.sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.right{justify-content:flex-end;gap:8px}.tbtn,.iconbtn{height:40px}.iconbtn{width:40px}.stato{height:40px;width:40px;padding:0;justify-content:center;font-size:0;gap:0}.modal{align-items:flex-end;padding:0}#modal{align-items:flex-start}#tmodal{align-items:flex-start}#pmodal{align-items:flex-start}#cmodal{align-items:flex-start}.dialog{max-width:none;max-height:92vh;max-height:92dvh;border-radius:16px 16px 0 0;animation:sheet .3s cubic-bezier(.2,.8,.2,1)}#modal .dialog,#tmodal .dialog,#pmodal .dialog,#cmodal .dialog{border-radius:16px;margin-top:calc(24px + env(safe-area-inset-top));animation:sheetTop .3s cubic-bezier(.2,.8,.2,1)}.ctaRow #salva,.ctaRow .sec{height:48px}.field input{height:48px}.tfoot button{flex:1;min-height:44px}.whead{display:grid;grid-template-columns:1fr;padding:6px 10px 0}.whead>div:first-child{display:none}.scale{height:12px}.scale span{font-size:9px}.scale span:nth-child(even):not(:last-child){display:none}.scale span.last{display:none}.week{margin-bottom:10px}.week~.week .whead{display:none}.row{display:grid;grid-template-columns:1fr;row-gap:4px;padding:8px 10px 9px 7px;min-height:0}.dl{flex-direction:row;align-items:center;gap:6px;margin-bottom:0;font-size:12.5px;line-height:1.3}.dl b{width:auto}.badge{font-size:8px;padding:2px 5px}.info{margin-left:2px}.track{height:32px}.seg{font-size:11px}.free{color:var(--muted);font-weight:600;font-size:12px}.det{padding-left:0;grid-template-columns:84px 1fr;gap:2px 8px}.nav{gap:8px;margin-bottom:10px}#prev{height:44px}.nav .iconbtn{width:44px;height:44px}.nav .sec{min-height:44px}#oggi:disabled{opacity:.6}.empty{padding:26px 16px 24px}.footbar{padding-bottom:env(safe-area-inset-bottom)}.footin{font-size:10.5px;padding:7px 12px;flex-wrap:wrap;row-gap:2px}.footin .sep{display:none}#toasts{bottom:calc(14px + env(safe-area-inset-bottom))}.tfoot{flex-wrap:wrap}}
+@media (max-width:600px){body{overflow-x:clip}.wrap{padding:14px 12px 6px}header{gap:8px;padding-bottom:8px;margin-bottom:12px;align-items:center}.brand{margin-left:54px}header>div:first-child{flex:1;min-width:0}h1{font-size:20px}.logo{width:38px;height:38px}.sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.right{justify-content:flex-end;gap:8px}.tbtn,.iconbtn{height:40px}.iconbtn{width:40px}.stato{height:40px;width:40px;padding:0;justify-content:center;font-size:0;gap:0}.modal{align-items:flex-end;padding:0}#modal{align-items:flex-start}#tmodal{align-items:flex-start}#pmodal{align-items:flex-start}#cmodal{align-items:flex-start}#smodal{align-items:flex-start}.dialog{max-width:none;max-height:92vh;max-height:92dvh;border-radius:16px 16px 0 0;animation:sheet .3s cubic-bezier(.2,.8,.2,1)}#modal .dialog,#tmodal .dialog,#pmodal .dialog,#cmodal .dialog,#smodal .dialog{border-radius:16px;margin-top:calc(24px + env(safe-area-inset-top));animation:sheetTop .3s cubic-bezier(.2,.8,.2,1)}.ctaRow #salva,.ctaRow .sec{height:48px}.field input{height:48px}.tfoot button{flex:1;min-height:44px}.whead{display:grid;grid-template-columns:1fr;padding:6px 10px 0}.whead>div:first-child{display:none}.scale{height:12px}.scale span{font-size:9px}.scale span:nth-child(even):not(:last-child){display:none}.scale span.last{display:none}.week{margin-bottom:10px}.week~.week .whead{display:none}.row{display:grid;grid-template-columns:1fr;row-gap:4px;padding:8px 10px 9px 7px;min-height:0}.dl{flex-direction:row;align-items:center;gap:6px;margin-bottom:0;font-size:12.5px;line-height:1.3}.dl b{width:auto}.badge{font-size:8px;padding:2px 5px}.info{margin-left:2px}.track{height:32px}.seg{font-size:11px}.free{color:var(--muted);font-weight:600;font-size:12px}.det{padding-left:0;grid-template-columns:84px 1fr;gap:2px 8px}.nav{gap:8px;margin-bottom:10px}#prev{height:44px}.nav .iconbtn{width:44px;height:44px}.nav .sec{min-height:44px}#oggi:disabled{opacity:.6}.empty{padding:26px 16px 24px}.footbar{padding-bottom:env(safe-area-inset-bottom)}.footin{font-size:10.5px;padding:7px 12px;flex-wrap:wrap;row-gap:2px}.footin .sep{display:none}#toasts{bottom:calc(14px + env(safe-area-inset-bottom))}.tfoot{flex-wrap:wrap}}
 @keyframes sheet{from{opacity:0;transform:translateY(24px)}}
 @keyframes sheetTop{from{opacity:0;transform:translateY(-24px)}}
 @page{size:A4 portrait;margin:11mm 12mm}
@@ -244,6 +261,7 @@ body{padding-bottom:32px}
   <div class="brand"><div><h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-t="appTitle">I miei turni</span></h1><div class="sub" id="sub"></div></div></div>
   <div class="right" id="tools">
     <button class="stato none" id="stato"></button>
+    <button class="iconbtn" id="stats" data-t-title="statsBtn" title="Statistiche"></button>
     <button class="iconbtn" id="menu" data-t-title="menuTitle" title="Menu" aria-expanded="false"></button>
     <span id="drop">
       <button id="aggiorna" class="tbtn" data-t-title="updTitle" title="Aggiorna dal link"></button>
@@ -278,6 +296,7 @@ body{padding-bottom:32px}
  <div class="modal screen" id="tmodal" hidden><div class="dialog tdialog" id="tdialog" role="dialog" aria-modal="true"></div></div>
  <div class="modal screen" id="pmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="pico"></div><div class="dtit"><div class="ptitle" data-t="pdfDlgT">Scarica il PDF</div><div class="dsub" data-t="pdfDlgS">Scegli quali settimane includere. Ogni mese resta su un foglio separato.</div></div><button class="iconbtn" id="pchiudi" data-t-title="close" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="pdfOggi"></button><button class="sec" id="pdfTutte"></button></div></div></div>
  <div class="modal screen" id="cmodal" hidden><div class="dialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="cico"></div><div class="dtit"><div class="ptitle" data-t="cancDlgT">Cancellare tutti i turni?</div><div class="dsub" data-t="cancDlgS">Verranno eliminati i turni salvati in questo browser. Il link resta collegato.</div></div><button class="iconbtn" id="cchiudi" data-t-title="close" title="Chiudi"></button></div><div class="ctaRow pcol"><button id="cancSi"></button><button class="sec" id="cancNo"></button></div></div></div>
+ <div class="modal screen" id="smodal" hidden><div class="dialog sdialog" role="dialog" aria-modal="true"><div class="dhead"><div class="dico" id="sico"></div><div class="dtit"><div class="ptitle" data-t="statsTitle">Statistiche ore</div><div class="dsub" data-t="statsSub">Ore nette senza pause, per settimana (lunedì–domenica). Straordinari in dettaglio.</div></div><button class="iconbtn" id="schiudi" data-t-title="close" title="Chiudi"></button></div><div id="sbody"></div><div class="tfoot"><button id="sok"></button></div></div></div>
 
 <section class="card steps" id="steps" hidden>
   <div class="ptitle" style="color:var(--warn)" data-t="stepsT">Il calendario è in download</div>
@@ -443,6 +462,7 @@ const IC={
  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v3M17 3v3M4 9h16"/><path d="M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>',
  qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3zM19 19h1v1h-1zM19 14h1M14 19h1"/></svg>',
  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/></svg>',
   gear:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.62.06-.94 0-.32-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94 0 .32.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.44.34.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.49.42h3.8c.24 0 .44-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.18.12.47.02.61-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>'
 };
 
@@ -613,6 +633,16 @@ const T={
   pdfDoc:{it:'Turni',de:'Schichten',fr:'Gardes',en:'Shifts'},
   turnoFallback:{it:'Turno',de:'Schicht',fr:'Garde',en:'Shift'},
   assenteFallback:{it:'Assente',de:'Abwesend',fr:'Absent',en:'Absent'},
+  statsBtn:{it:'Statistiche ore',de:'Stundenstatistik',fr:'Statistiques d’heures',en:'Hours statistics'},
+  statsTitle:{it:'Statistiche ore',de:'Stundenstatistik',fr:'Statistiques d’heures',en:'Hours statistics'},
+  statsSub:{it:'Ore nette senza pause, per settimana (lunedì–domenica). Straordinari in dettaglio.',de:'Netto-Stunden ohne Pausen, pro Woche (Montag–Sonntag). Überstunden im Detail.',fr:'Heures nettes sans pauses, par semaine (lundi–dimanche). Heures sup en détail.',en:'Net hours without breaks, per week (Monday–Sunday). Overtime in detail.'},
+  statsDays:{it:'{n} giorni',de:'{n} Tage',fr:'{n} jours',en:'{n} days'},
+  statsOneDay:{it:'1 giorno',de:'1 Tag',fr:'1 jour',en:'1 day'},
+  statsExtra:{it:'di cui {d} straordinari',de:'davon {d} Überstunden',fr:'dont {d} heures sup.',en:'of which {d} overtime'},
+  statsNoExtra:{it:'nessuno straordinario',de:'keine Überstunden',fr:'aucune heure sup.',en:'no overtime'},
+  statsTotal:{it:'Totale turni caricati',de:'Geladene Schichten gesamt',fr:'Total des gardes chargées',en:'Total loaded shifts'},
+  statsEmpty:{it:'Nessun turno da conteggiare.',de:'Keine Schicht zu zählen.',fr:'Aucune garde à compter.',en:'No shifts to count.'},
+  statsNote:{it:'Le pause (lunch) non sono conteggiate. Vacanze e assenze non fanno ore.',de:'Pausen (Lunch) werden nicht gezählt. Ferien und Abwesenheiten geben keine Stunden.',fr:'Les pauses (lunch) ne sont pas comptées. Vacances et absences ne font pas d’heures.',en:'Breaks (lunch) are not counted. Holidays and absences add no hours.'},
 };
 let curLang=(()=>{try{const g=localStorage.getItem(LANG_KEY);if(LANGS.includes(g))return g;}catch(e){}return 'it';})();
 function t(k,v){let s=(T[k]&&(T[k][curLang]||T[k].it))||k;if(v)for(const x in v)s=s.replace('{'+x+'}',v[x]);return s;}
@@ -864,6 +894,34 @@ function mostraTurno(k){
 function chiudiTurno(){$('tmodal').hidden=true;}
 const haNote=t=>t&&((t.note)||(t.segs||[]).some(x=>x.d));
 
+/* ===== Statistiche ore (popup): nette senza pause, per settimana lun–dom ===== */
+function oreSettimanali(){
+  const d=load(), weeks={};
+  for(const k in d){
+    const turn=d[k]; if(!turn||turn.tipo!=='turno') continue;
+    const mon=monday(k), w=weeks[mon]||(weeks[mon]={mon,lav:0,ext:0,giorni:0});
+    let lav=0,ext=0;
+    (turn.segs||[]).forEach(x=>{const c=cls(x.n),m=x.e-x.s; if(c==='pause') return; lav+=m; if(c==='extra') ext+=m;});
+    if(lav>0) w.giorni++;
+    w.lav+=lav; w.ext+=ext;
+  }
+  return Object.values(weeks).sort((a,b)=>a.mon<b.mon?-1:a.mon>b.mon?1:0);
+}
+function renderStats(){
+  const weeks=oreSettimanali(), box=$('sbody');
+  if(!weeks.length){ box.innerHTML=`<div class="sempty">${esc(t('statsEmpty'))}</div>`; return; }
+  let tot=0,totX=0;
+  box.innerHTML=weeks.map(w=>{
+    tot+=w.lav; totX+=w.ext;
+    const range=`${dm(w.mon)} – ${dm(kAdd(w.mon,6))}`;
+    const giorni=w.giorni===1?t('statsOneDay'):t('statsDays',{n:w.giorni});
+    const det=w.ext>0?t('statsExtra',{d:dur(w.ext)}):t('statsNoExtra');
+    return `<div class="srow"><div class="srange"><b>${range}</b><small>${esc(giorni)}</small></div><div class="svals"><b>${dur(w.lav)}</b><small class="${w.ext>0?'has':''}">${esc(det)}</small></div></div>`;
+  }).join('')+`<div class="stot"><div class="srange"><b>${esc(t('statsTotal'))}</b><small>${esc(t('statsNote'))}</small></div><div class="svals"><b>${dur(tot)}</b><small class="${totX>0?'has':''}">${esc(totX>0?t('statsExtra',{d:dur(totX)}):t('statsNoExtra'))}</small></div></div>`;
+}
+function apriStats(){ renderStats(); $('smodal').hidden=false; requestAnimationFrame(()=>$('sok').focus()); }
+function chiudiStats(){ $('smodal').hidden=true; }
+
 function render(){
   const d=load(), ks=Object.keys(d).sort(), out=$('out'), oggi=oggiK();
   navUI(ks);
@@ -958,6 +1016,8 @@ function paintButtons(){
   $('cancNo').innerHTML=IC.check+`<span>${t('cancNo')}</span>`;
   $('prev').innerHTML=IC.up+`<span>${t('prevWeek')}</span>`;
   $('scarica').innerHTML=IC.down+t('dlAgain');
+  $('stats').innerHTML=IC.stats;
+  $('sico').innerHTML=IC.stats; $('schiudi').innerHTML=IC.x; $('sok').textContent=t('close');
 }
 function applyLang(l){
   curLang=LANGS.includes(l)?l:'it';
@@ -966,6 +1026,7 @@ function applyLang(l){
   paintButtons();
   setStato(stato,statoMsg);
   render();
+  if(!$('smodal').hidden) renderStats();
 }
 window.addEventListener('message',e=>{
   if(e?.data?.type===LANG_KEY&&LANGS.includes(e.data.lang)) applyLang(e.data.lang);
@@ -988,6 +1049,9 @@ function init(){
   $('cmodal').onclick=e=>{if(e.target===$('cmodal')) chiudiCanc();};
   $('prev').onclick=()=>vai(); $('oggi').onclick=tornaOggi;
   $('stato').onclick=()=>$('modal').hidden?apriPanel():chiudiPanel();
+  $('stats').onclick=apriStats;
+  $('sok').onclick=chiudiStats; $('schiudi').onclick=chiudiStats;
+  $('smodal').onclick=e=>{if(e.target===$('smodal')) chiudiStats();};
   $('menu').innerHTML=IC.gear; $('menu').onclick=()=>{const t=$('tools'),a=t.classList.toggle('aperto');$('menu').setAttribute('aria-expanded',a);};
   $('tools').addEventListener('click',e=>{if(e.target.closest('#menu'))return; if(e.target.closest('.tbtn,.iconbtn')) $('tools').classList.remove('aperto');});
   document.addEventListener('click',e=>{if(!$('tools').classList.contains('aperto'))return; if(!$('tools').contains(e.target)) $('tools').classList.remove('aperto');});
@@ -1006,7 +1070,7 @@ function init(){
   $('out').onclick=e=>{const r=e.target.closest('.row'); if(r) mostraTurno(r.dataset.k);};
   $('tmodal').onclick=e=>{if(e.target===$('tmodal')) chiudiTurno();};
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){ if(!$('tmodal').hidden){chiudiTurno();return;} if(!$('pmodal').hidden){chiudiPdf();return;} if(!$('cmodal').hidden){chiudiCanc();return;} if(!$('modal').hidden){chiudiPanel();return;} if(!/INPUT|TEXTAREA/.test(e.target.tagName)) tornaOggi(); return; }
+    if(e.key==='Escape'){ if(!$('tmodal').hidden){chiudiTurno();return;} if(!$('smodal').hidden){chiudiStats();return;} if(!$('pmodal').hidden){chiudiPdf();return;} if(!$('cmodal').hidden){chiudiCanc();return;} if(!$('modal').hidden){chiudiPanel();return;} if(!/INPUT|TEXTAREA/.test(e.target.tagName)) tornaOggi(); return; }
     if(/INPUT|TEXTAREA/.test(e.target.tagName)) return;
     if(e.key==='ArrowLeft'&&!$('prev').disabled) vai();});
   let dc=0; const ov=$('overlay');
