@@ -62,6 +62,8 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 #sbody{margin-top:2px}
 .srow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--line)}
 .srow:last-child{border-bottom:0}
+.srow.now{background:var(--todaybg);border-left:3px solid var(--accent);padding-left:9px;border-radius:0 8px 8px 0}
+.srange b .badge{margin-left:6px}
 .srange{flex:1;min-width:0}
 .srange b{display:block;font-size:13px;font-variant-numeric:tabular-nums}
 .srange small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
@@ -643,6 +645,7 @@ const T={
   statsTotal:{it:'Totale turni caricati',de:'Geladene Schichten gesamt',fr:'Total des gardes chargées',en:'Total loaded shifts'},
   statsEmpty:{it:'Nessun turno da conteggiare.',de:'Keine Schicht zu zählen.',fr:'Aucune garde à compter.',en:'No shifts to count.'},
   statsNote:{it:'Le pause (lunch) non sono conteggiate. Vacanze e assenze non fanno ore.',de:'Pausen (Lunch) werden nicht gezählt. Ferien und Abwesenheiten geben keine Stunden.',fr:'Les pauses (lunch) ne sont pas comptées. Vacances et absences ne font pas d’heures.',en:'Breaks (lunch) are not counted. Holidays and absences add no hours.'},
+  statsNow:{it:'Questa settimana',de:'Diese Woche',fr:'Cette semaine',en:'This week'},
 };
 let curLang=(()=>{try{const g=localStorage.getItem(LANG_KEY);if(LANGS.includes(g))return g;}catch(e){}return 'it';})();
 function t(k,v){let s=(T[k]&&(T[k][curLang]||T[k].it))||k;if(v)for(const x in v)s=s.replace('{'+x+'}',v[x]);return s;}
@@ -908,15 +911,16 @@ function oreSettimanali(){
   return Object.values(weeks).sort((a,b)=>a.mon<b.mon?-1:a.mon>b.mon?1:0);
 }
 function renderStats(){
-  const weeks=oreSettimanali(), box=$('sbody');
+  const weeks=oreSettimanali(), box=$('sbody'), cur=monday(oggiK());
   if(!weeks.length){ box.innerHTML=`<div class="sempty">${esc(t('statsEmpty'))}</div>`; return; }
   let tot=0,totX=0;
   box.innerHTML=weeks.map(w=>{
     tot+=w.lav; totX+=w.ext;
+    const now=w.mon===cur;
     const range=`${dm(w.mon)} – ${dm(kAdd(w.mon,6))}`;
     const giorni=w.giorni===1?t('statsOneDay'):t('statsDays',{n:w.giorni});
     const det=w.ext>0?t('statsExtra',{d:dur(w.ext)}):t('statsNoExtra');
-    return `<div class="srow"><div class="srange"><b>${range}</b><small>${esc(giorni)}</small></div><div class="svals"><b>${dur(w.lav)}</b><small class="${w.ext>0?'has':''}">${esc(det)}</small></div></div>`;
+    return `<div class="srow${now?' now':''}"><div class="srange"><b>${range}${now?`<span class="badge">${esc(t('statsNow'))}</span>`:''}</b><small>${esc(giorni)}</small></div><div class="svals"><b>${dur(w.lav)}</b><small class="${w.ext>0?'has':''}">${esc(det)}</small></div></div>`;
   }).join('')+`<div class="stot"><div class="srange"><b>${esc(t('statsTotal'))}</b><small>${esc(t('statsNote'))}</small></div><div class="svals"><b>${dur(tot)}</b><small class="${totX>0?'has':''}">${esc(totX>0?t('statsExtra',{d:dur(totX)}):t('statsNoExtra'))}</small></div></div>`;
 }
 function apriStats(){ renderStats(); $('smodal').hidden=false; requestAnimationFrame(()=>$('sok').focus()); }
