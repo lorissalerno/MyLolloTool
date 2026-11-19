@@ -59,6 +59,13 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.04</strong><time>19/11/2026</time></div>
+      <ul>
+        <li><span class="tag">Menu</span><span data-t="e104a">Menu: il pulsante Novità si illumina quando c'è una versione nuova e smette quando apri la pagina.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.03</strong><time>17/11/2026</time></div>
       <ul>
         <li><span class="tag">SCT</span><span data-t="e103a">SCT Tool fluido su finestre strette e mobile: niente più scroll orizzontale, titolo non più coperto dal pulsante menu, riquadri su una colonna.</span></li>
@@ -109,7 +116,7 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.03';
+    const SITE_VERSION = '1.04';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
@@ -146,6 +153,10 @@
                de: 'Menü: die Backup-Box meldet ungesicherte Änderungen, wenn eine Seite Daten ändert, mit hervorgehobenem Knopf.',
                fr: 'Menu : le bloc sauvegarde signale les modifications non sauvegardées quand une page change des données, avec bouton mis en avant.',
                en: 'Menu: the backup box flags unsaved changes when a page edits data, with a highlighted button.' },
+      e104a: { it: 'Menu: il pulsante Novità si illumina quando c\u2019è una versione nuova e smette quando apri la pagina.',
+               de: 'Menü: Die Neuigkeiten-Taste leuchtet bei einer neuen Version und erlischt, wenn du die Seite öffnest.',
+               fr: 'Menu : le bouton Nouveautés s\u2019illumine quand il y a une nouvelle version et s\u2019éteint quand tu ouvres la page.',
+               en: 'Menu: the What\u2019s new button lights up on a new version and turns off when you open the page.' },
       e102a: { it: 'Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.',
                de: 'Gesamt-Backup im Menü: eine .json-Datei mit Daten aller Seiten, plus Wiederherstellen.',
                fr: 'Sauvegarde unique dans le menu : un seul fichier .json avec les données de toutes les pages, plus Restaurer.',
@@ -251,6 +262,8 @@
       if (LANGS.includes(g)) curLang = g;
     } catch (e) {}
     applyLang(curLang);
+    // Vista la pagina = novità lette: il menu smette di evidenziarla (stessa origine, arriva via storage event)
+    try { localStorage.setItem('mylollotool-novita-seen', SITE_VERSION); } catch (e) {}
   </script>
   <footer class="mlt-footer">© Copyright <span class="mlt-year">2026</span>&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20Novita">Feedback</a></footer>
   <script>try{document.querySelectorAll('.mlt-year').forEach(function(el){el.textContent=new Date().getFullYear();});}catch(e){}</script>

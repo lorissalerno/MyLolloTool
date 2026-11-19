@@ -117,13 +117,17 @@
     /* Maniglia di trascinamento: overlay a sinistra, i titoli non si spostano */
     .menu-grip {
       display: none; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
-      width: 16px; height: 24px; align-items: center; justify-content: center;
-      cursor: grab; opacity: .55; touch-action: none; z-index: 1;
+      width: 18px; height: 28px; align-items: center; justify-content: center;
+      cursor: grab; opacity: .95; touch-action: none; z-index: 1;
+      color: #6B7280;
     }
+    body[data-mtheme="dark"] .menu-grip { color: #F3F4F6; }
     #sidebar.editing .menu-grip { display: grid; }
     #sidebar.editing .menu-item > a { padding-left: 20px; }
-    .menu-grip svg { width: 12px; height: 22px; }
+    .menu-grip svg { width: 14px; height: 20px; fill: currentColor; stroke: none; }
     .menu-grip:active { cursor: grabbing; }
+    .menu-grip:hover { color: #111827; }
+    body[data-mtheme="dark"] .menu-grip:hover { color: #fff; }
 
     /* Backup: riga discreta sopra Novità, bottone a sinistra e testi affiancati */
     #backup-box { display: flex; align-items: center; gap: 10px; padding: 6px 16px 8px; }
@@ -174,6 +178,12 @@
     #changelog-link.active { opacity: 1; background: rgba(0,0,0,.1); }
     body[data-mtheme="dark"] #changelog-link.active { background: rgba(255,255,255,.14); }
     #changelog-link svg { width: 14px; height: 14px; }
+    /* Novità non lette: evidenzia finché l'utente non apre la pagina */
+    #changelog-link.has-news { opacity: 1; font-weight: 700; background: rgba(59,130,246,.16); box-shadow: 0 0 0 1px rgba(59,130,246,.45); animation: newsPulse 1.8s ease-in-out infinite; }
+    #changelog-link.has-news #site-version { background: #3B82F6; color: #fff; }
+    #changelog-link.has-news::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #EF4444; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+    @keyframes newsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,.45); } 50% { box-shadow: 0 0 0 5px rgba(59,130,246,0); } }
+    @media (prefers-reduced-motion: reduce) { #changelog-link.has-news { animation: none; } }
     #changelog-txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #site-version {
       font-size: 11px; font-weight: 700; letter-spacing: .03em;
@@ -337,7 +347,8 @@
     const menuLinks = document.getElementById('menu-links');
     const menuEditBtn = document.getElementById('menu-edit');
     // Versione sito: +0.01 solo una volta al giorno con modifica funzionale (vedi AGENTS.md + novita.html).
-    const SITE_VERSION = '1.03';
+    const SITE_VERSION = '1.04';
+    const NEWS_SEEN_KEY = 'mylollotool-novita-seen';
     const changelogLink = document.getElementById('changelog-link');
     const changelogTxt = document.getElementById('changelog-txt');
     const siteVersionEl = document.getElementById('site-version');
@@ -434,7 +445,7 @@
         const label = menuLabel(d);
         const toggle = s.hidden ? mt('show') : mt('hide');
         const grip = menuEditing ? `
-          <span class="menu-grip" aria-hidden="true" title="${mt('drag')}"><svg viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="9" cy="2" r="1.4"/><circle cx="15" cy="2" r="1.4"/><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="17" r="1.4"/><circle cx="15" cy="17" r="1.4"/><circle cx="9" cy="22" r="1.4"/><circle cx="15" cy="22" r="1.4"/></g></svg></span>` : '';
+          <span class="menu-grip" aria-hidden="true" title="${mt('drag')}"><svg viewBox="0 0 12 20"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="4" r="1.9"/><circle cx="8.5" cy="4" r="1.9"/><circle cx="3.5" cy="10" r="1.9"/><circle cx="8.5" cy="10" r="1.9"/><circle cx="3.5" cy="16" r="1.9"/><circle cx="8.5" cy="16" r="1.9"/></g></svg></span>` : '';
         const ctl = menuEditing ? `
           <span class="menu-ctl">
             <button type="button" data-act="eye" data-id="${d.id}" class="${s.hidden ? 'off' : ''}" title="${toggle}" aria-label="${toggle} ${label}" aria-pressed="${s.hidden ? 'false' : 'true'}">${s.hidden ? MENU_ICONS.eyeOff : MENU_ICONS.eye}</button>
@@ -476,7 +487,18 @@
       }
       if (e.target.closest('a')) setMenu(false);
     });
-    changelogLink.addEventListener('click', () => setMenu(false));
+    changelogLink.addEventListener('click', () => { markNewsSeen(); setMenu(false); });
+
+    // Novità non lette: evidenzia il pulsante finché l'utente non apre la pagina
+    function updateNewsBadge() {
+      let seen = null;
+      try { seen = localStorage.getItem(NEWS_SEEN_KEY); } catch (e) {}
+      changelogLink.classList.toggle('has-news', seen !== SITE_VERSION);
+    }
+    function markNewsSeen() {
+      try { localStorage.setItem(NEWS_SEEN_KEY, SITE_VERSION); } catch (e) {}
+      changelogLink.classList.remove('has-news');
+    }
 
     // Riordino con trascinamento del mouse (solo in modalità modifica)
     let dragId = null;
@@ -541,6 +563,7 @@
 
     function loadPage(hash) {
       if (hash === '#novita') {
+        markNewsSeen();
         if (frame.getAttribute('src') !== changelogLink.dataset.src) frame.src = changelogLink.dataset.src;
         links.forEach(a => a.classList.remove('active'));
         changelogLink.classList.add('active');
@@ -706,6 +729,8 @@
       }
       // Una pagina figlia ha cambiato dati dopo l'ultimo export: segnala backup da rifare
       if (backupIsDataKey(e.key)) { backupDirty = true; updateBackupStatus(); }
+      // Novità lette in un'altra scheda/iframe: aggiorna l'evidenziazione
+      if (e.key === NEWS_SEEN_KEY) updateNewsBadge();
     });
 
     // ===== Backup unificato: un solo file .json per tutte le pagine =====
@@ -720,6 +745,7 @@
     let backupDirty = false;
     function backupIsDataKey(k) {
       if (!k || k === BACKUP_LAST || k === 'lollodata_last_backup' ||
+          k === NEWS_SEEN_KEY ||
           k === 'theme' || k === 'activeTab' ||
           k === 'mylollotool-theme' || k === 'mylollotool-lang') return false;
       return k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
@@ -730,7 +756,7 @@
       const out = {};
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k || k === BACKUP_LAST) continue;
+        if (!k || k === BACKUP_LAST || k === NEWS_SEEN_KEY) continue;
         if (k.startsWith('lollodb_') || k.startsWith('lollodata_') ||
             k.startsWith('mylollotool-') || k.startsWith('turni_') ||
             k.startsWith('sct-') || k === 'theme' || k === 'activeTab' ||
@@ -816,6 +842,7 @@
     setGlobalLang(getGlobalLang(), false);
     setGlobalTheme(getGlobalTheme(), false);
     paintBackup();
+    updateNewsBadge();
     loadPage(location.hash);
     // Auto giornaliero: se l'ultimo backup è più vecchio di 24h, scaricalo da solo
     try {
