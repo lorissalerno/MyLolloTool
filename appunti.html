@@ -213,6 +213,12 @@
     #f-body a { color: #2563EB; }
     #f-body .todo { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
     #f-body .todo input { width: 16px; height: 16px; margin-top: 3px; flex: none; accent-color: #2563EB; cursor: pointer; }
+    /* Todo in anteprima card (statica) e visualizzatore (interattiva): sempre in colonna */
+    .note-preview .todo-ro, #v-body .todo-ro { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
+    .note-preview .todo-ro .box, #v-body .todo-ro .box { flex: none; width: 16px; text-align: center; line-height: 1.6; }
+    #v-body .todo { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
+    #v-body .todo input[type="checkbox"] { width: 16px; height: 16px; margin-top: 3px; flex: none; accent-color: #2563EB; cursor: pointer; }
+    #v-body .todo.done .todo-txt { text-decoration: line-through; opacity: .6; }
     /* Visualizzatore */
     #v-body { font-size: 14px; line-height: 1.6; word-break: break-word; }
     #v-body ul, #v-body ol { padding-left: 22px; margin: 6px 0; }
@@ -471,24 +477,76 @@
     document.querySelectorAll('[data-i]').forEach(el => { el.outerHTML = svg(el.dataset.i); });
 
     // ===== Sanitizza anteprima (allowlist) =====
-    function sanitizePreview(html) {
+    // interactive=false -> card: righe statiche verticali (☐/☑)
+    // interactive=true  -> visualizzatore: checkbox reali cliccabili
+    function sanitizePreview(html, interactive) {
       const doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
       const cont = doc.body.firstChild;
-      // Checkbox -> testo
-      cont.querySelectorAll('.todo').forEach(td => {
+      // Checkbox -> riga verticale (non inline)
+      cont.querySelectorAll('.todo').forEach((td, idx) => {
         const inp = td.querySelector('input[type=checkbox]');
-        const on = inp && (inp.hasAttribute('checked') || inp.checked);
-        const span = doc.createElement('span');
-        span.textContent = (on ? '☑ ' : '☐ ') + td.textContent.trim();
-        td.replaceWith(span);
+        const on = !!(inp && (inp.hasAttribute('checked') || inp.checked));
+        if (interactive) {
+          const wrap = doc.createElement('div');
+          wrap.className = 'todo' + (on ? ' done' : '');
+          wrap.setAttribute('data-idx', String(idx));
+          const cb = doc.createElement('input');
+          cb.setAttribute('type', 'checkbox');
+          cb.setAttribute('data-idx', String(idx));
+          if (on) cb.setAttribute('checked', '');
+          const txt = doc.createElement('span');
+          txt.className = 'todo-txt';
+          [...td.childNodes].forEach(n => {
+            if (n.nodeType === 1 && n.tagName === 'INPUT') return;
+            txt.appendChild(n);
+          });
+          // toglie un eventuale NBSP iniziale messo dall'editor
+          const fc = txt.firstChild;
+          if (fc && fc.nodeType === 3) fc.textContent = fc.textContent.replace(/^\u00A0\s?/, '');
+          if (!txt.textContent.trim() && !txt.querySelector('img,br')) txt.innerHTML = '<br>';
+          wrap.appendChild(cb);
+          wrap.appendChild(txt);
+          td.replaceWith(wrap);
+        } else {
+          const ro = doc.createElement('div');
+          ro.className = 'todo-ro';
+          const box = doc.createElement('span');
+          box.className = 'box';
+          box.textContent = on ? '☑' : '☐';
+          const txt = doc.createElement('span');
+          [...td.childNodes].forEach(n => {
+            if (n.nodeType === 1 && n.tagName === 'INPUT') return;
+            txt.appendChild(n);
+          });
+          const fc2 = txt.firstChild;
+          if (fc2 && fc2.nodeType === 3) fc2.textContent = fc2.textContent.replace(/^\u00A0\s?/, '');
+          if (!txt.textContent.trim()) txt.innerHTML = '<br>';
+          ro.appendChild(box);
+          ro.appendChild(txt);
+          td.replaceWith(ro);
+        }
       });
-      const ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, SPAN:1, A:1 };
+      const ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, SPAN:1, A:1, INPUT:1 };
       const walk = node => {
         [...node.childNodes].forEach(ch => {
           if (ch.nodeType === 3) return;
           if (ch.nodeType !== 1 || !ALLOWED[ch.tagName]) {
             const txt = doc.createTextNode(ch.textContent);
             node.replaceChild(txt, ch);
+            return;
+          }
+          if (ch.tagName === 'INPUT') {
+            // solo checkbox del visualizzatore, tutto il resto viene droppato
+            const t = (ch.getAttribute('type') || '').toLowerCase();
+            const di = ch.getAttribute('data-idx');
+            if (t !== 'checkbox' || di === null || !interactive) {
+              node.removeChild(ch);
+              return;
+            }
+            [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+            ch.setAttribute('type', 'checkbox');
+            ch.setAttribute('data-idx', di);
+            if (ch.checked || ch.hasAttribute('checked')) ch.setAttribute('checked', '');
             return;
           }
           if (ch.tagName === 'A') {
@@ -498,8 +556,16 @@
             else { const txt = doc.createTextNode(ch.textContent); node.replaceChild(txt, ch); return; }
           } else if (ch.tagName === 'SPAN') {
             const c = ch.style.color;
+            const cls = ch.className === 'box' || ch.className === 'todo-txt' ? ch.className : '';
             [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
             if (c) ch.style.color = c;
+            if (cls) ch.className = cls;
+          } else if (ch.tagName === 'DIV') {
+            const cls = ch.className === 'todo' || ch.className === 'todo done' || ch.className === 'todo-ro' ? ch.className : '';
+            const di = ch.getAttribute('data-idx');
+            [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+            if (cls) ch.className = cls;
+            if (di !== null) ch.setAttribute('data-idx', di);
           } else {
             [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
           }
@@ -995,12 +1061,42 @@
         $('v-sched').innerHTML = lines.map(l => `<div>${esc(l)}</div>`).join('') || (a.orario ? esc(a.orario) : '');
       }
       const vb = $('v-body');
-      vb.innerHTML = sanitizePreview(a.html);
+      vb.innerHTML = sanitizePreview(a.html, true);
       // link esterni in nuova scheda
       vb.querySelectorAll('a[href^="http"]').forEach(l => { l.target = '_blank'; l.rel = 'noopener'; });
       $('v-date').textContent = fmtDate(a.updated);
       viewer.hidden = false;
     }
+    // Checkbox cliccabili nel visualizzatore: salva lo stato senza aprire Modifica
+    $('v-body').addEventListener('change', e => {
+      const cb = e.target.closest('input[type="checkbox"][data-idx]');
+      if (!cb || !viewId) return;
+      const a = appunti.find(x => x.id === viewId);
+      if (!a) return;
+      const idx = Number(cb.getAttribute('data-idx'));
+      const doc = new DOMParser().parseFromString('<div>' + (a.html || '') + '</div>', 'text/html');
+      const todos = doc.body.firstChild.querySelectorAll('.todo');
+      const td = todos[idx];
+      if (!td) return;
+      let inp = td.querySelector('input[type=checkbox]');
+      if (!inp) {
+        inp = doc.createElement('input');
+        inp.setAttribute('type', 'checkbox');
+        td.prepend(inp);
+      }
+      if (cb.checked) inp.setAttribute('checked', '');
+      else inp.removeAttribute('checked');
+      a.html = doc.body.firstChild.innerHTML;
+      a.updated = Date.now();
+      save(); render();
+      $('v-date').textContent = fmtDate(a.updated);
+      cb.closest('.todo')?.classList.toggle('done', cb.checked);
+      e.stopPropagation();
+    });
+    // click sulla checkbox non deve chiudere / non fa altro
+    $('v-body').addEventListener('click', e => {
+      if (e.target.closest('input[type="checkbox"]')) e.stopPropagation();
+    });
     function closeViewer() { viewId = null; viewer.hidden = true; }
     $('btn-vclose').onclick = closeViewer;
     $('btn-vdel').onclick = () => {
