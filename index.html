@@ -150,9 +150,12 @@
     }
     #backup-import:hover { opacity: 1; }
     /* Backup sporco: una pagina figlia ha cambiato dati dopo l'ultimo export */
-    #backup-export.dirty { background: #3B82F6; border-color: #3B82F6; color: #fff; opacity: 1; animation: backupPulse 1.6s ease-in-out infinite; }
+    #backup-export.dirty { background: #3B82F6; border-color: #3B82F6; color: #fff; opacity: 1; animation: backupPulse 1.6s ease-in-out infinite, backupWiggle 4.5s ease-in-out infinite; }
     body[data-mtheme="dark"] #backup-export.dirty { background: #3B82F6; border-color: #3B82F6; color: #fff; }
     @keyframes backupPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,.45); } 50% { box-shadow: 0 0 0 6px rgba(59,130,246,0); } }
+    /* Vibrazione breve ogni tanto: resto del tempo fermo */
+    @keyframes backupWiggle { 0%, 88%, 100% { transform: rotate(0) translateX(0); } 90% { transform: rotate(-10deg) translateX(-1px); } 92% { transform: rotate(8deg) translateX(1px); } 94% { transform: rotate(-5deg); } 96% { transform: rotate(3deg); } }
+    @media (prefers-reduced-motion: reduce) { #backup-export.dirty { animation: none; } }
     #backup-status.dirty { opacity: 1; color: #1D4ED8; font-weight: 700; }
     body[data-mtheme="dark"] #backup-status.dirty { color: #7dc3ff; }
 

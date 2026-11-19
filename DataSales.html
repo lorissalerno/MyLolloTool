@@ -2043,14 +2043,8 @@ const newTypes = [
 // ----------------------------------------------------------------
 // BOOT
 // ----------------------------------------------------------------
-window.addEventListener('beforeunload', (event) => {
-  if (!unsavedBackupChanges) return;
-  const message = t('beforeUnloadMsg');
-  event.preventDefault();
-  event.returnValue = message;
-  return message;
-});
-
+// Niente popup beforeunload: i dati restano in localStorage e lo stato
+// backup vive nel menu laterale (backupDirty via storage event).
 window.addEventListener('DOMContentLoaded', async () => {
   try {
     updateThemeIcon();
