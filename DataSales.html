@@ -1863,6 +1863,11 @@ const T = {
   notesLabel:{it:'Note',de:'Notizen',fr:'Notes',en:'Notes'},
   notesPh:{it:'Note opzionali...',de:'Optionale Notizen...',fr:'Notes facultatives...',en:'Optional notes...'},
   emptyProductsT:{it:'Nessun prodotto trovato',de:'Kein Produkt gefunden',fr:'Aucun produit trouvé',en:'No products found'},
+  emptyDbT:{it:'Database AOIT vuoto',de:'AOIT-Datenbank leer',fr:'Base AOIT vide',en:'AOIT database empty'},
+  emptyDbP:{it:'Carica il database pronto 2026 (32 prodotti) oppure importa il tuo file CSV.',de:'Lade die fertige Datenbank 2026 (32 Produkte) oder importiere deine CSV-Datei.',fr:'Chargez la base prête 2026 (32 produits) ou importez votre fichier CSV.',en:'Load the ready 2026 database (32 products) or import your CSV file.'},
+  loadReadyBtn:{it:'Carica database pronto 2026',de:'Fertige Datenbank 2026 laden',fr:'Charger la base prête 2026',en:'Load ready 2026 database'},
+  downloadReadyBtn:{it:'Scarica CSV pronto',de:'Fertige CSV herunterladen',fr:'Télécharger le CSV prêt',en:'Download ready CSV'},
+  clearFiltersBtn:{it:'Cancella filtri',de:'Filter löschen',fr:'Effacer les filtres',en:'Clear filters'},
   emptyComboT:{it:'Nessun risultato',de:'Kein Ergebnis',fr:'Aucun résultat',en:'No results'},
   productsTitle:{it:'Database AOIT',de:'AOIT-Datenbank',fr:'Base AOIT',en:'AOIT Database'},
   searchProdPh:{it:'Cerca prodotto o categoria...',de:'Produkt oder Kategorie suchen...',fr:'Rechercher un produit ou une catégorie...',en:'Search product or category...'},
@@ -1981,6 +1986,41 @@ const CAT_MAP = {
   'MOBILE':     'c-mob',
   'MY SERVICE': 'c-ms'
 };
+
+// Database AOIT pronto 2026 (incluso nel file: import con 1 click quando il database è vuoto).
+const DEFAULT_AOIT_CSV_2026 = `Categoria,Prodotto,Prezzo/mese,Mesi,AOIT
+INTERNET,Blue Security & Service L,32.28,36,1162.08
+INTERNET,Upgrade Blue Sec M -> L,499.32,1,499.32
+INTERNET,Blue Security & Service M,18.41,36,662.76
+INTERNET,Upgrade Blue Sec S -> M,333.00,1,333.00
+INTERNET,Blue Security & Service S,9.16,36,329.76
+INTERNET,Internet Security,6.38,36,229.68
+TV,Archiv Extra (500h),4.63,12,55.56
+TV,Blue Binge,18.41,24,441.84
+TV,Blue Premium,18.41,6,110.46
+TV,Blue Sport annual,32.29,12,387.48
+TV,Blue Sport monthly,46.12,6,276.72
+TV,Blue SuperMax annual,23.03,12,276.36
+TV,Blue SuperMax monthly,32.29,6,193.74
+TV,Disney+ Standard annual,9.94,24,238.56
+TV,Disney+ Standard monthly,11.93,12,143.16
+TV,Disney+ Standard with ads,7.31,12,87.72
+TV,Multiroom Max,9.16,24,219.84
+TV,MySports monthly,36.91,6,221.46
+TV,Paramount+ annual,9.25,12,111.00
+TV,Paramount+ monthly,11.10,6,66.60
+TV,Netflix Standard,19.33,6,115.98
+TV,MySports annual,27.66,6,165.96
+TV,YouTube,14.70,12,176.40
+MOBILE,Easy Protection M,14.90,24,357.60
+MOBILE,Easy Protection S,9.90,24,237.60
+MOBILE,Intercontinental Pack,64.76,12,777.12
+MOBILE,International Calls,18.50,12,222.00
+MOBILE,Premium Speed,9.25,12,111.00
+MY SERVICE,MyService L,20.26,24,486.24
+MY SERVICE,MyService M,15.63,24,375.12
+MY SERVICE,MyService Computer S,9.16,24,219.84
+MY SERVICE,MyService Mobile S,9.16,24,219.84`;
 
 const KEY_PRODS   = 'lollodb_products_v1';
 const KEY_SALES   = yr => `lollodb_sales_${yr}_v1`;
@@ -2823,8 +2863,28 @@ function renderProducts() {
   }
 
   if (!products.length) {
-    container.innerHTML = `<div class="card"><div class="empty"><h3>${t('emptyProductsT')}</h3></div></div>`;
     document.getElementById('productsTot').textContent = 'CHF 0';
+    // Se c'è un filtro attivo ma il database non è vuoto: è solo la ricerca a non dare risultati
+    let totalCount = 0;
+    try {
+      const qr = dbP.exec('SELECT COUNT(*) FROM products WHERE is_active=1');
+      if (qr.length && qr[0].values.length) totalCount = parseInt(qr[0].values[0][0]) || 0;
+    } catch(e) {}
+    if (search && totalCount > 0) {
+      container.innerHTML = `<div class="card"><div class="empty"><h3>${t('emptyProductsT')}</h3><div class="btn-group" style="justify-content:center;margin-top:14px;"><button class="btn btn-ghost btn-sm" onclick="clearProductSearch()">${t('clearFiltersBtn')}</button></div></div></div>`;
+      return;
+    }
+    // Database davvero vuoto: offri il database pronto 2026 con 1 click + import/scarica CSV
+    container.innerHTML = `<div class="card"><div class="empty">
+      <div style="font-size:40px;margin-bottom:12px;">📦</div>
+      <h3>${t('emptyDbT')}</h3>
+      <p style="max-width:480px;margin:6px auto 18px;">${t('emptyDbP')}</p>
+      <div class="btn-group" style="justify-content:center;">
+        <button class="btn btn-primary" onclick="loadReadyAoitDatabase()">⬇ ${t('loadReadyBtn')}</button>
+        <button class="btn btn-ghost" onclick="importProductCatalogList()">${t('importCsv')}</button>
+        <button class="btn btn-ghost" onclick="downloadReadyAoitCsv()">${t('downloadReadyBtn')}</button>
+      </div>
+    </div></div>`;
     return;
   }
 
@@ -4199,6 +4259,96 @@ function parseCsv(text) {
   return rows.filter(r => r.some(c => c !== ''));
 }
 
+function csvRowsToProducts(rows) {
+  const header = rows[0].map(c => c.trim().toLowerCase());
+  // L'header CSV cambia con la lingua: accetta tutte le varianti (it/de/fr/en)
+  const HDR = {
+    category: ['categoria','kategorie','catégorie','categorie','category'],
+    name: ['prodotto','produkt','produit','product'],
+    price: ['prezzo/mese','preis/monat','prix/mois','price/month'],
+    months: ['mesi','monate','mois','months'],
+    aoit: ['aoit']
+  };
+  const col = key => header.findIndex(h => HDR[key].includes(h));
+  const idx = { category: col('category'), name: col('name'), price: col('price'), months: col('months'), aoit: col('aoit') };
+
+  if (idx.category < 0 || idx.name < 0 || idx.price < 0 || idx.months < 0) {
+    throw new Error(t('csvBadFormat'));
+  }
+
+  const imported = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const cat = (row[idx.category] || '').trim();
+    const name = (row[idx.name] || '').trim();
+    const price = parseFloat(String(row[idx.price] || '0').replace(',', '.'));
+    const months = parseInt(String(row[idx.months] || '1'), 10);
+
+    if (!name || Number.isNaN(price) || price < 0 || Number.isNaN(months) || months < 1) continue;
+    imported.push([cat, name, price, months]);
+  }
+
+  if (!imported.length) throw new Error(t('csvNoValid'));
+  return imported;
+}
+
+function replaceProductsCatalog(imported) {
+  dbP.run('UPDATE products SET is_active=0');
+  let maxOrd = 0;
+  try {
+    const res = dbP.exec('SELECT MAX(sort_order) FROM products');
+    if (res.length && res[0].values.length) maxOrd = parseInt(res[0].values[0][0]) || 0;
+  } catch (e) {}
+
+  imported.forEach((item, index) => {
+    dbP.run('INSERT INTO products (category,name,price_chf,months,is_active,sort_order) VALUES (?,?,?,?,?,?)', [item[0], item[1], item[2], item[3], 1, maxOrd + index + 1]);
+  });
+
+  saveP(dbP);
+  renderProducts();
+}
+
+function clearProductSearch() {
+  const el = document.getElementById('pSearch');
+  if (el) el.value = '';
+  renderProducts();
+}
+
+// Database pronto 2026 incluso nel file: 1 click, senza scegliere file (conferma solo se sovrascrive dati esistenti)
+async function loadReadyAoitDatabase() {
+  try {
+    const rows = parseCsv(DEFAULT_AOIT_CSV_2026);
+    if (rows.length < 2) throw new Error(t('csvEmptyFile'));
+    const imported = csvRowsToProducts(rows);
+
+    let existing = 0;
+    try {
+      const qr = dbP.exec('SELECT COUNT(*) FROM products WHERE is_active=1');
+      if (qr.length && qr[0].values.length) existing = parseInt(qr[0].values[0][0]) || 0;
+    } catch(e) {}
+    if (existing > 0) {
+      if (!await cfm(t('cfmCsvTitle'), t('cfmCsvMsg'))) return;
+    }
+
+    replaceProductsCatalog(imported);
+    toast(t('csvImported'), 'ok');
+  } catch (e) {
+    toast(t('csvImportErr') + e.message, 'err');
+  }
+}
+
+function downloadReadyAoitCsv() {
+  const blob = new Blob([DEFAULT_AOIT_CSV_2026], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'database_AOIT_2026.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 async function handleProductsListImport(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -4212,49 +4362,9 @@ async function handleProductsListImport(event) {
     const rows = parseCsv(text);
     if (rows.length < 2) throw new Error(t('csvEmptyFile'));
 
-    const header = rows[0].map(c => c.trim().toLowerCase());
-    // L'header CSV cambia con la lingua: accetta tutte le varianti (it/de/fr/en)
-    const HDR = {
-      category: ['categoria','kategorie','catégorie','categorie','category'],
-      name: ['prodotto','produkt','produit','product'],
-      price: ['prezzo/mese','preis/monat','prix/mois','price/month'],
-      months: ['mesi','monate','mois','months'],
-      aoit: ['aoit']
-    };
-    const col = key => header.findIndex(h => HDR[key].includes(h));
-    const idx = { category: col('category'), name: col('name'), price: col('price'), months: col('months'), aoit: col('aoit') };
+    const imported = csvRowsToProducts(rows);
 
-    if (idx.category < 0 || idx.name < 0 || idx.price < 0 || idx.months < 0) {
-      throw new Error(t('csvBadFormat'));
-    }
-
-    const imported = [];
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const cat = (row[idx.category] || '').trim();
-      const name = (row[idx.name] || '').trim();
-      const price = parseFloat(String(row[idx.price] || '0').replace(',', '.'));
-      const months = parseInt(String(row[idx.months] || '1'), 10);
-
-      if (!name || Number.isNaN(price) || price < 0 || Number.isNaN(months) || months < 1) continue;
-      imported.push([cat, name, price, months]);
-    }
-
-    if (!imported.length) throw new Error(t('csvNoValid'));
-
-    dbP.run('UPDATE products SET is_active=0');
-    let maxOrd = 0;
-    try {
-      const res = dbP.exec('SELECT MAX(sort_order) FROM products');
-      if (res.length && res[0].values.length) maxOrd = parseInt(res[0].values[0][0]) || 0;
-    } catch (e) {}
-
-    imported.forEach((item, index) => {
-      dbP.run('INSERT INTO products (category,name,price_chf,months,is_active,sort_order) VALUES (?,?,?,?,?,?)', [item[0], item[1], item[2], item[3], 1, maxOrd + index + 1]);
-    });
-
-    saveP(dbP);
-    renderProducts();
+    replaceProductsCatalog(imported);
     toast(t('csvImported'), 'ok');
   } catch (e) {
     toast(t('csvImportErr') + e.message, 'err');
