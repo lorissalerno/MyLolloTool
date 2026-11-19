@@ -3025,8 +3025,12 @@ function migrateLocalProducts() {
   if (!dbP) return;
   try {
     dbP.run("UPDATE products SET price_chf = 155.28, months = 1 WHERE name = 'Upgrade MyService S -> M' AND price_chf = 2.0;");
+    let touched = 0;
+    try { touched += dbP.getRowsModified(); } catch(e) {}
     dbP.run("UPDATE products SET price_chf = 499.32, months = 1 WHERE name = 'Upgrade Blue Sec M -> L' AND price_chf = 2.0;");
-    saveP(dbP);
+    try { touched += dbP.getRowsModified(); } catch(e) {}
+    // Salva (e segnala backup da rifare) solo se la migrazione ha cambiato davvero righe
+    if (touched > 0) saveP(dbP);
   } catch(e) {
     console.error("Errore migrazione prodotti locali:", e);
   }

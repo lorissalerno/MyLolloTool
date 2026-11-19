@@ -727,8 +727,11 @@
         paintLang(e.newValue);
         broadcastLang(e.newValue);
       }
-      // Una pagina figlia ha cambiato dati dopo l'ultimo export: segnala backup da rifare
-      if (backupIsDataKey(e.key)) { backupDirty = true; updateBackupStatus(); }
+      // Una pagina figlia ha cambiato dati dopo l'ultimo export: segnala backup da rifare.
+      // Le pagine riscrivono alcune chiavi anche al semplice avvio (es. anni, tema, lingua
+      // con valore identico): senza confronto, ogni ricarico accenderebbe il pulsante.
+      // oldValue/newValue filtrano le riscritture senza modifica reale.
+      if (backupIsDataKey(e.key) && e.newValue !== e.oldValue) { backupDirty = true; updateBackupStatus(); }
       // Novità lette in un'altra scheda/iframe: aggiorna l'evidenziazione
       if (e.key === NEWS_SEEN_KEY) updateNewsBadge();
     });
