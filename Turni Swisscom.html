@@ -667,7 +667,7 @@ function merge(nuovi){
     if(b){ if(a) agg++; else nuo++; d[k]=nuovi[k]; } else { delete d[k]; tolti++; }
     if(k<oggi) pass++;
   }
-  save(d); return {letti:ks.length,nuo,agg,tolti,pass};
+  if(nuo||agg||tolti) save(d); return {letti:ks.length,nuo,agg,tolti,pass};
 }
 function esito(r,fonte){
   if(!r){msg(t('esitoNone'),true);return;}
@@ -683,7 +683,8 @@ async function importa(files){
   files=[...files]; if(!files.length) return;
   const tot={letti:0,nuo:0,agg:0,tolti:0,pass:0}; let ok=false;
   for(const f of files){const r=merge(parseAuto(await leggiFile(f))); if(r){ok=true; for(const k in tot) tot[k]+=r[k];}}
-  if(ok){ setMeta({last:Date.now(),via:'file'}); $('steps').hidden=true; }
+  if(tot.nuo||tot.agg||tot.tolti){ setMeta({last:Date.now(),via:'file'}); }
+  if(ok){ $('steps').hidden=true; }
   render(); esito(ok?tot:null,t('esitoFile'));
 }
 
@@ -723,7 +724,7 @@ async function sync(manuale){
   const r=await fetchLink(link);
   if(manuale) $('aggiorna').disabled=false;
   if(r.txt){
-    const e=merge(parseICS(r.txt)); setMeta({last:Date.now(),via:'link'}); setStato('ok'); render();
+    const e=merge(parseICS(r.txt)); if(e&&(e.nuo||e.agg||e.tolti)) setMeta({last:Date.now(),via:'link'}); setStato('ok'); render();
     if(manuale||(e&&(e.nuo||e.agg||e.tolti))) esito(e,t('esitoLink'));
     return 'ok';
   }
