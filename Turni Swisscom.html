@@ -72,10 +72,6 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 .svals small{display:block;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .svals small.has{color:var(--extra);font-weight:700}
 html[data-theme="white"] .svals small.has{color:#2B6CB0}
-.stot{display:flex;align-items:center;gap:10px;margin-top:12px;background:var(--todaybg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-.stot .srange b{font-size:14px}
-.stot .svals b{font-size:16px}
-.snote{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
 .sempty{padding:18px 6px;text-align:center;color:var(--muted);font-size:13px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:4px}
 .panel,.steps{padding:16px 18px;margin-bottom:14px}
@@ -642,9 +638,7 @@ const T={
   statsOneDay:{it:'1 giorno',de:'1 Tag',fr:'1 jour',en:'1 day'},
   statsExtra:{it:'di cui {d} straordinari',de:'davon {d} Überstunden',fr:'dont {d} heures sup.',en:'of which {d} overtime'},
   statsNoExtra:{it:'nessuno straordinario',de:'keine Überstunden',fr:'aucune heure sup.',en:'no overtime'},
-  statsTotal:{it:'Totale turni caricati',de:'Geladene Schichten gesamt',fr:'Total des gardes chargées',en:'Total loaded shifts'},
   statsEmpty:{it:'Nessun turno da conteggiare.',de:'Keine Schicht zu zählen.',fr:'Aucune garde à compter.',en:'No shifts to count.'},
-  statsNote:{it:'Le pause (lunch) non sono conteggiate. Vacanze e assenze non fanno ore.',de:'Pausen (Lunch) werden nicht gezählt. Ferien und Abwesenheiten geben keine Stunden.',fr:'Les pauses (lunch) ne sont pas comptées. Vacances et absences ne font pas d’heures.',en:'Breaks (lunch) are not counted. Holidays and absences add no hours.'},
   statsNow:{it:'Questa settimana',de:'Diese Woche',fr:'Cette semaine',en:'This week'},
 };
 let curLang=(()=>{try{const g=localStorage.getItem(LANG_KEY);if(LANGS.includes(g))return g;}catch(e){}return 'it';})();
@@ -913,15 +907,13 @@ function oreSettimanali(){
 function renderStats(){
   const weeks=oreSettimanali(), box=$('sbody'), cur=monday(oggiK());
   if(!weeks.length){ box.innerHTML=`<div class="sempty">${esc(t('statsEmpty'))}</div>`; return; }
-  let tot=0,totX=0;
   box.innerHTML=weeks.map(w=>{
-    tot+=w.lav; totX+=w.ext;
     const now=w.mon===cur;
     const range=`${dm(w.mon)} – ${dm(kAdd(w.mon,6))}`;
     const giorni=w.giorni===1?t('statsOneDay'):t('statsDays',{n:w.giorni});
     const det=w.ext>0?t('statsExtra',{d:dur(w.ext)}):t('statsNoExtra');
     return `<div class="srow${now?' now':''}"><div class="srange"><b>${range}${now?`<span class="badge">${esc(t('statsNow'))}</span>`:''}</b><small>${esc(giorni)}</small></div><div class="svals"><b>${dur(w.lav)}</b><small class="${w.ext>0?'has':''}">${esc(det)}</small></div></div>`;
-  }).join('')+`<div class="stot"><div class="srange"><b>${esc(t('statsTotal'))}</b><small>${esc(t('statsNote'))}</small></div><div class="svals"><b>${dur(tot)}</b><small class="${totX>0?'has':''}">${esc(totX>0?t('statsExtra',{d:dur(totX)}):t('statsNoExtra'))}</small></div></div>`;
+  }).join('');
 }
 function apriStats(){ renderStats(); $('smodal').hidden=false; requestAnimationFrame(()=>$('sok').focus()); }
 function chiudiStats(){ $('smodal').hidden=true; }
