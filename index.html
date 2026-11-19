@@ -737,9 +737,7 @@
     });
 
     // ===== Backup unificato: un solo file .json per tutte le pagine =====
-    // Pulsante discreto sotto Modifica menu. Auto giornaliero: all'apertura,
-    // se l'ultimo backup è più vecchio di 24h prova a scaricarlo da solo
-    // (il browser a volte lo blocca senza un gesto: in quel caso resta il click).
+    // Pulsante discreto sotto Modifica menu. Solo su click, nessun autoscaricamento.
     const BACKUP_LAST = 'mylollotool-last-backup';
     const backupExportBtn = document.getElementById('backup-export');
     const backupImportBtn = document.getElementById('backup-import');
@@ -772,14 +770,6 @@
       backupImportBtn.title = mt('restoreTitle');
       backupImportBtn.textContent = mt('restore');
       updateBackupStatus();
-    }
-    function backupDate() {
-      try {
-        const last = localStorage.getItem(BACKUP_LAST);
-        if (!last) return null;
-        const d = new Date(last.replace(/(\d+)\/(\d+)\/(\d+),?/, '$3-$2-$1'));
-        return isNaN(d) ? null : d;
-      } catch (e) { return null; }
     }
     function updateBackupStatus() {
       let last = null;
@@ -847,11 +837,6 @@
     paintBackup();
     updateNewsBadge();
     loadPage(location.hash);
-    // Auto giornaliero: se l'ultimo backup è più vecchio di 24h, scaricalo da solo
-    try {
-      const d = backupDate();
-      if (!d || Date.now() - d.getTime() > 864e5) setTimeout(exportUnifiedBackup, 1500);
-    } catch (e) {}
   </script>
 </body>
 </html>
