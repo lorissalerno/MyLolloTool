@@ -1039,8 +1039,24 @@
     }));
     // Checkbox riga (stile My JW .todo)
     $('tool-todo').addEventListener('click', () => {
-      fBody.focus();
       const sel = window.getSelection();
+      // leggi la posizione PRIMA di spostare il focus (focus() da solo
+      // ricollasserebbe il cursore a inizio testo e toglierebbe la checkbox sbagliata)
+      let inBody = false;
+      if (sel.rangeCount) {
+        let sc = sel.getRangeAt(0).startContainer;
+        if (sc.nodeType === 3) sc = sc.parentNode;
+        inBody = !!(sc && sc.closest && (sc.closest('#f-body') || sc.id === 'f-body'));
+      }
+      fBody.focus();
+      // se il cursore era nel titolo/numero o fuori dal testo, portalo in fondo al testo
+      if (!inBody) {
+        const r0 = document.createRange();
+        r0.selectNodeContents(fBody);
+        r0.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(r0);
+      }
       const mkTodo = () => {
         const d = document.createElement('div');
         d.className = 'todo';
