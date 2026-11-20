@@ -146,6 +146,24 @@
     .note-date { font-size: 10px; color: #9CA3AF; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
     .note-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #DBEAFE; color: #1D4ED8; }
     .note.tel .note-tag { background: #DBEAFE; }
+    /* Nota appuntata: resta in cima, spillino in alto a destra (visibile al passaggio del mouse) */
+    .note.pinned { border-color: #2563EB; }
+    .note.pinned .note-body { padding-right: 44px; }
+    .pinbtn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center; border-radius: 999px;
+      border: 1px solid #E5E7EB; background: #fff; color: #9CA3AF; cursor: pointer;
+      opacity: 0; transition: opacity .15s, background .15s, color .15s; z-index: 2; }
+    .pinbtn svg { width: 15px; height: 15px; }
+    .note:hover .pinbtn, .note:focus-within .pinbtn { opacity: 1; }
+    .pinbtn:hover { background: #DBEAFE; color: #1D4ED8; }
+    .pinbtn.on { opacity: 1; color: #2563EB; border-color: #2563EB; background: #DBEAFE; }
+    @media (hover: none) { .pinbtn { opacity: 1; } }
+    body.dark .note.pinned { border-color: #3B82F6; }
+    body.dark .pinbtn { background: #141417; border-color: #2A2A35; color: #9898A8; }
+    body.dark .pinbtn:hover { background: #1F1F26; color: #EEEEF0; }
+    body.dark .pinbtn.on { color: #60A5FA; border-color: #3B82F6; background: #1A1A1F; }
+    .pinrow { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .pinrow input { width: 16px; height: 16px; accent-color: #2563EB; cursor: pointer; }
 
     .empty { padding: 40px; text-align: center; color: #4B5563; background: #FFFFFF;
              border: 2px dashed #E5E7EB; border-radius: 10px; }
@@ -290,6 +308,7 @@
       <label class="field"><span data-t="titolo">Titolo</span>
         <input id="f-title" type="text" maxlength="120" data-t-ph="titoloPh" placeholder="Titolo (facoltativo)">
       </label>
+      <label class="pinrow"><input type="checkbox" id="f-pinned"><span data-t="pin">Appunta in alto</span></label>
       <div class="toolbar-ed" id="toolbar" role="toolbar">
         <button type="button" class="toolbtn" data-cmd="bold" data-t-title="bold" title="Grassetto"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
         <button type="button" class="toolbtn" data-cmd="italic" data-t-title="italic" title="Corsivo"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
@@ -343,6 +362,7 @@
       <div id="v-body"></div>
       <div class="actions">
         <span class="status" id="v-date"></span>
+        <button type="button" class="iconbtn" id="btn-vpin" data-t-title="pin" title="Appunta in alto"></button>
         <button type="button" class="iconbtn" id="btn-vdel" data-t-title="delete" title="Elimina"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         <button type="button" class="btn primary" id="btn-edit" data-t="modify">Modifica</button>
         <button type="button" class="btn" id="btn-vclose" data-t="close">Chiudi</button>
@@ -364,6 +384,7 @@
       collapse: '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>',
       phone:    '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
       clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      pin:      '<path d="M9 3h6l1 7 3 3H5l3-3z"/><path d="M12 17v5"/>',
     };
     const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${UI[n] || ''}</svg>`;
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -435,6 +456,8 @@
       invalidFile:{ it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
       tagNote:  { it: 'Nota', de: 'Notiz', fr: 'Note', en: 'Note' },
       tagTel:   { it: 'Telefono', de: 'Telefon', fr: 'Téléphone', en: 'Phone' },
+      pin:      { it: 'Appunta in alto', de: 'Oben anheften', fr: 'Épingler en haut', en: 'Pin to top' },
+      unpin:    { it: 'Togli dagli appuntati', de: 'Lösen', fr: 'Désépingler', en: 'Unpin' },
     };
     let curLang = (function() {
       try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) return g; } catch (e) {}
@@ -461,9 +484,9 @@
       const every = (s, e) => ({ 1: [[s, e]], 2: [[s, e]], 3: [[s, e]], 4: [[s, e]], 5: [[s, e]], 6: [[s, e]], 7: [[s, e]] });
       const workdays = (s, e) => ({ 1: [[s, e]], 2: [[s, e]], 3: [[s, e]], 4: [[s, e]], 5: [[s, e]] });
       return [
-        { id: uid(), type: 'tel', title: 'Swisscom', numero: '0800 800 800', orario: '', hours: every('00:00', '23:59'), html: '', updated: now },
-        { id: uid(), type: 'tel', title: 'Cablex', numero: '0800 222 444', orario: '', hours: workdays('08:00', '17:00'), html: '', updated: now },
-        { id: uid(), type: 'tel', title: 'My Service', numero: '0800 822 830', orario: '', hours: Object.assign(workdays('08:00', '20:00'), { 6: [['08:00', '17:00']] }), html: '', updated: now },
+        { id: uid(), type: 'tel', title: 'Swisscom', numero: '0800 800 800', orario: '', hours: every('00:00', '23:59'), html: '', updated: now, pinned: false },
+        { id: uid(), type: 'tel', title: 'Cablex', numero: '0800 222 444', orario: '', hours: workdays('08:00', '17:00'), html: '', updated: now, pinned: false },
+        { id: uid(), type: 'tel', title: 'My Service', numero: '0800 822 830', orario: '', hours: Object.assign(workdays('08:00', '20:00'), { 6: [['08:00', '17:00']] }), html: '', updated: now, pinned: false },
       ];
     }
     function load() {
@@ -475,7 +498,7 @@
           return seed;
         }
         const d = JSON.parse(raw);
-        return Array.isArray(d) ? d : [];
+        return Array.isArray(d) ? d.map(x => ({ pinned: false, ...x, pinned: !!x.pinned })) : [];
       }
       catch { return []; }
     }
@@ -485,7 +508,7 @@
 
     const $ = id => document.getElementById(id);
     const grid = $('grid'), search = $('search'), emptyBox = $('empty');
-    const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero');
+    const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero'), fPinned = $('f-pinned');
     const schedRows = $('schedRows');
     const telWrap = $('telWrap'), fBody = $('f-body'), fStatus = $('f-status');
     let editId = null, editType = 'note';
@@ -835,9 +858,11 @@
       const telHref = 'tel:' + String(a.numero || '').replace(/[^\d+]/g, '');
       const lines = schedLines(a);
       const st = isTel ? openState(a) : null;
+      const pinned = !!a.pinned;
       const legacy = isTel && !lines.length && a.orario ? `<div class="note-meta">${svg('clock')}<span>${esc(a.orario)}</span></div>` : '';
       return `
-      <article class="note${isTel ? ' tel' : ''}" data-id="${esc(a.id)}">
+      <article class="note${isTel ? ' tel' : ''}${pinned ? ' pinned' : ''}" data-id="${esc(a.id)}">
+        <button type="button" class="pinbtn${pinned ? ' on' : ''}" data-pin title="${esc(t(pinned ? 'unpin' : 'pin'))}" aria-pressed="${pinned ? 'true' : 'false'}" aria-label="${esc(t(pinned ? 'unpin' : 'pin'))}">${svg('pin')}</button>
         <div class="note-body">
           ${isTel
             ? `${(a.title || lines.length) ? `<div class="note-top">${a.title ? `<div class="note-title">${esc(a.title)}</div>` : `<span></span>`}${lines.length ? `<div class="note-right sched">${lines.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : ''}</div>` : ''}
@@ -853,10 +878,18 @@
         </div>
       </article>`;
     }
+    function togglePin(id) {
+      const a = appunti.find(x => x.id === id);
+      if (!a) return;
+      a.pinned = !a.pinned;
+      save(); render();
+      // se il visualizzatore è aperto sulla stessa nota, aggiorna il suo tasto
+      if (viewId === id) paintVPin();
+    }
     function render() {
       $('countPill').textContent = t('count', { n: appunti.length });
       const q = search.value.trim().toLowerCase();
-      let list = [...appunti].sort((a, b) => (b.updated || 0) - (a.updated || 0));
+      let list = [...appunti].sort((a, b) => (((b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)) || ((b.updated || 0) - (a.updated || 0))));
       if (filter !== 'all') list = list.filter(a => a.type === filter);
       if (q) list = list.filter(a => [a.title, a.numero, a.orario, schedLines(a).join(' '), plainText(a.html)].join(' ').toLowerCase().includes(q));
       document.querySelectorAll('#chips .chip').forEach(c => c.classList.toggle('active', c.dataset.f === filter));
@@ -879,6 +912,13 @@
       });
     }
     grid.addEventListener('click', e => {
+      const pin = e.target.closest('[data-pin]');
+      if (pin) {
+        e.stopPropagation();
+        const art = pin.closest('.note');
+        if (art) togglePin(art.dataset.id);
+        return;
+      }
       const link = e.target.closest('a[data-open="tel"]');
       if (link) return; // lascia aprire tel:
       const art = e.target.closest('.note');
@@ -928,6 +968,7 @@
         title: fTitle.value.trim(),
         numero: fNumero.value.trim(),
         html: srcMode ? fSrc.value.trim() : fBody.innerHTML.trim(),
+        pinned: !!(fPinned && fPinned.checked),
       };
       if (editType === 'tel') {
         const hours = collectSched();
@@ -951,12 +992,13 @@
     function openEditor(type, id) {
       editType = type;
       editId = id || uid();
-      if (!id) appunti.unshift({ id: editId, type, title: '', numero: '', orario: '', hours: {}, html: '', updated: Date.now() });
+      if (!id) appunti.unshift({ id: editId, type, title: '', numero: '', orario: '', hours: {}, html: '', updated: Date.now(), pinned: false });
       const a = appunti.find(x => x.id === editId);
       $('form-title').textContent = t((id ? 'edit' : 'new') + (type === 'tel' ? 'Tel' : 'Note'));
       telWrap.hidden = type !== 'tel';
       fTitle.value = a.title || '';
       fNumero.value = a.numero || '';
+      if (fPinned) fPinned.checked = !!a.pinned;
       if (type === 'tel') buildSched(a.hours || {});
       if (srcMode) setSrcMode(false);
       else $('tool-source').classList.remove('on');
@@ -994,6 +1036,7 @@
     $('btn-close').onclick = closeEditor;
     modal.addEventListener('mousedown', e => { if (e.target === modal) closeEditor(); });
     [fTitle, fNumero].forEach(el => el.addEventListener('input', markDirty));
+    if (fPinned) fPinned.addEventListener('change', markDirty);
     fBody.addEventListener('input', markDirty);
     // Enter / Backspace dentro le checkbox: comportamento da vera checklist
     fBody.addEventListener('keydown', e => {
@@ -1278,6 +1321,21 @@
     // ===== Visualizzatore (sola lettura, poi Modifica) =====
     const viewer = $('viewer');
     let viewId = null;
+    function paintVPin() {
+      const b = $('btn-vpin');
+      if (!b) return;
+      const a = appunti.find(x => x.id === viewId);
+      const pinned = !!(a && a.pinned);
+      b.innerHTML = svg('pin');
+      b.classList.toggle('on', pinned);
+      if (!b.classList.contains('iconbtn')) b.classList.add('iconbtn');
+      b.style.color = pinned ? '#2563EB' : '';
+      b.style.borderColor = pinned ? '#2563EB' : '';
+      b.style.background = pinned ? '#DBEAFE' : '';
+      b.title = t(pinned ? 'unpin' : 'pin');
+      b.setAttribute('aria-pressed', String(pinned));
+      b.setAttribute('aria-label', t(pinned ? 'unpin' : 'pin'));
+    }
     function openViewer(id) {
       const a = appunti.find(x => x.id === id);
       if (!a) return;
@@ -1305,6 +1363,7 @@
       $('v-date').textContent = fmtDate(a.updated);
       viewer.classList.remove('fs');
       paintVFull();
+      paintVPin();
       viewer.hidden = false;
     }
     // Checkbox cliccabili nel visualizzatore: salva lo stato senza aprire Modifica
@@ -1363,6 +1422,7 @@
         viewer.hidden = true;
       }
     };
+    $('btn-vpin').onclick = (e) => { e.stopPropagation(); if (viewId) togglePin(viewId); };
     viewer.addEventListener('mousedown', e => { if (e.target === viewer) closeViewer(); });
     $('btn-edit').onclick = () => {
       const a = appunti.find(x => x.id === viewId);
@@ -1409,7 +1469,7 @@
       try {
         const d = JSON.parse(await file.text());
         if (!Array.isArray(d)) throw new Error();
-        const valid = d.filter(x => x && (x.title || x.numero || x.orario || x.hours || x.html)).map(x => ({
+        const valid = d.filter(x => x && (x.title || x.numero || x.orario || x.hours || x.html || x.pinned)).map(x => ({
           id: String(x.id || uid()),
           type: x.type === 'tel' ? 'tel' : 'note',
           title: String(x.title || ''),
@@ -1418,6 +1478,7 @@
           hours: (x.hours && typeof x.hours === 'object') ? x.hours : {},
           html: String(x.html || ''),
           updated: Number(x.updated) || Date.now(),
+          pinned: !!x.pinned,
         }));
         if (confirm(t('confirmImport', { n: valid.length }))) {
           appunti = valid; save(); render();
@@ -1464,6 +1525,7 @@
       fBody.dataset.ph = t('bodyPh');
       try { paintExpandBtn(); } catch (e) {}
       try { paintVFull(); } catch (e) {}
+      try { if (viewId) paintVPin(); } catch (e) {}
       render();
     }
     window.addEventListener('message', (e) => {
