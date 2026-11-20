@@ -171,8 +171,14 @@
     .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
              padding: 20px; background: rgba(0,10,40,.5); }
     .dialog { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 640px; max-height: 100%;
-              overflow: auto; padding: 20px; background: #fff; border-radius: 12px; }
+              overflow: auto; padding: 20px; background: #fff; border-radius: 12px; position: relative; }
     body.dark .dialog { background: #141417; }
+    /* Tasto tutto schermo in alto a destra nel visualizzatore */
+    .dlg-full { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; }
+    #viewer .dialog h2 { padding-right: 40px; }
+    /* Visualizzatore a tutto schermo (classe, non API: funziona anche dentro l'iframe del menu) */
+    #viewer.fs { padding: 0; }
+    #viewer.fs .dialog { max-width: none; max-height: none; width: 100%; height: 100%; border-radius: 0; }
     .dialog h2 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
     .dialog h2 svg { width: 20px; height: 20px; }
     .field { display: flex; flex-direction: column; gap: 5px; font-size: 14px; font-weight: 600; }
@@ -327,6 +333,7 @@
   <!-- Visualizzatore -->
   <div id="viewer" class="modal" hidden>
     <div class="dialog" role="dialog" aria-modal="true">
+      <button type="button" class="iconbtn dlg-full" id="btn-vfull" title="Tutto schermo"></button>
       <h2 id="v-title"></h2>
       <div id="v-tel" hidden>
         <div class="note-num" id="v-num"></div>
@@ -1296,6 +1303,8 @@
       // link esterni in nuova scheda
       vb.querySelectorAll('a[href^="http"]').forEach(l => { l.target = '_blank'; l.rel = 'noopener'; });
       $('v-date').textContent = fmtDate(a.updated);
+      viewer.classList.remove('fs');
+      paintVFull();
       viewer.hidden = false;
     }
     // Checkbox cliccabili nel visualizzatore: salva lo stato senza aprire Modifica
@@ -1329,8 +1338,22 @@
     $('v-body').addEventListener('click', e => {
       if (e.target.closest('input[type="checkbox"]')) e.stopPropagation();
     });
-    function closeViewer() { viewId = null; viewer.hidden = true; }
+    function closeViewer() { viewId = null; viewer.hidden = true; viewer.classList.remove('fs'); }
     $('btn-vclose').onclick = closeViewer;
+    // Tutto schermo nel visualizzatore: SVG angoli in fuori/dentro
+    function paintVFull() {
+      const b = $('btn-vfull');
+      if (!b) return;
+      const fs = viewer.classList.contains('fs');
+      b.innerHTML = svg(fs ? 'collapse' : 'expand');
+      b.title = t(fs ? 'collapseTitle' : 'expandTitle');
+      b.setAttribute('aria-pressed', String(fs));
+    }
+    $('btn-vfull').onclick = e => {
+      e.stopPropagation();
+      viewer.classList.toggle('fs');
+      paintVFull();
+    };
     $('btn-vdel').onclick = () => {
       if (!viewId) return;
       if (confirm(t('confirmDelete'))) {
@@ -1406,7 +1429,10 @@
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       if (tools.classList.contains('open')) { tools.classList.remove('open'); return; }
-      if (!viewer.hidden) { closeViewer(); return; }
+      if (!viewer.hidden) {
+        if (viewer.classList.contains('fs')) { viewer.classList.remove('fs'); paintVFull(); return; }
+        closeViewer(); return;
+      }
       if (!modal.hidden) closeEditor();
     });
 
@@ -1437,6 +1463,7 @@
       document.querySelectorAll('[data-t-title]').forEach(el => { el.title = t(el.dataset.tTitle); });
       fBody.dataset.ph = t('bodyPh');
       try { paintExpandBtn(); } catch (e) {}
+      try { paintVFull(); } catch (e) {}
       render();
     }
     window.addEventListener('message', (e) => {
