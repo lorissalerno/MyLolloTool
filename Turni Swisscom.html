@@ -62,7 +62,7 @@ button:disabled{opacity:.35;cursor:default;filter:none}
 #sbody{margin-top:2px;flex:1 1 auto;min-height:0;max-height:62vh;max-height:62dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none;padding:2px 4px 10px 2px;scroll-padding-top:34px}
 #sbody::-webkit-scrollbar{display:none;width:0;height:0}
 #sbody:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:8px}
-.smonth{position:sticky;top:0;z-index:2;background:var(--card);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 2px 6px}
+.smonth{position:sticky;top:0;z-index:2;background:var(--card);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--head);margin:0;padding:18px 2px 8px 0}
 .smonth:first-child{padding-top:2px}
 .srow{display:flex;align-items:center;gap:12px;padding:10px 4px 10px 2px;border-bottom:1px solid var(--line)}
 .srow:last-child{border-bottom:0}
@@ -936,7 +936,8 @@ function renderStats(){
     tot.innerHTML=`<b>${esc(t('statsTotal'))} ${dur(totLav)}</b><small class="${totExt>0?'has':''}">${esc(det)}</small>`;
   }
 }
-function apriStats(){ renderStats(); $('smodal').hidden=false; requestAnimationFrame(()=>{ const box=$('sbody'), now=box.querySelector('.srow.now'); if(now){ const r=now.getBoundingClientRect(), b=box.getBoundingClientRect(); box.scrollTop+=(r.top-b.top)-b.height/2+r.height/2; } $('sok').focus({preventScroll:true}); }); }
+function centraStats(){ const box=$('sbody'), now=box.querySelector('.srow.now'); if(!now) return; const prev=now.previousElementSibling; const r=now.getBoundingClientRect(), b=box.getBoundingClientRect(); let sopra=8; if(prev) sopra+=prev.getBoundingClientRect().height; box.scrollTop+=(r.top-b.top)-sopra; }
+function apriStats(){ renderStats(); $('smodal').hidden=false; requestAnimationFrame(()=>{ centraStats(); $('sok').focus({preventScroll:true}); }); }
 function chiudiStats(){ $('smodal').hidden=true; }
 
 function render(){
@@ -1043,7 +1044,7 @@ function applyLang(l){
   paintButtons();
   setStato(stato,statoMsg);
   render();
-  if(!$('smodal').hidden) renderStats();
+  if(!$('smodal').hidden){ renderStats(); requestAnimationFrame(centraStats); }
 }
 window.addEventListener('message',e=>{
   if(e?.data?.type===LANG_KEY&&LANGS.includes(e.data.lang)) applyLang(e.data.lang);
