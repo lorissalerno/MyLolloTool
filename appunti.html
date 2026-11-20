@@ -476,12 +476,26 @@
 
     document.querySelectorAll('[data-i]').forEach(el => { el.outerHTML = svg(el.dataset.i); });
 
+    // Appiattisce .todo annidati (l'editor poteva crearli con Invio + bottone checkbox):
+    // un todo dentro un altro verrebbe renderizzato con due box sulla stessa riga.
+    function flattenTodos(root) {
+      if (!root || !root.querySelector) return;
+      let nested;
+      let guard = 0;
+      while ((nested = root.querySelector('.todo .todo')) && guard++ < 50) {
+        const outer = nested.parentElement ? nested.parentElement.closest('.todo') : null;
+        if (!outer) break;
+        outer.after(nested);
+      }
+    }
+
     // ===== Sanitizza anteprima (allowlist) =====
     // interactive=false -> card: righe statiche verticali (☐/☑)
     // interactive=true  -> visualizzatore: checkbox reali cliccabili
     function sanitizePreview(html, interactive) {
       const doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
       const cont = doc.body.firstChild;
+      flattenTodos(cont);
       // Checkbox -> riga verticale (non inline)
       cont.querySelectorAll('.todo').forEach((td, idx) => {
         const inp = td.querySelector('input[type=checkbox]');
@@ -500,9 +514,11 @@
             if (n.nodeType === 1 && n.tagName === 'INPUT') return;
             txt.appendChild(n);
           });
-          // toglie un eventuale NBSP iniziale messo dall'editor
+          // via eventuali input residui annidati (andrebbero in doppia checkbox)
+          txt.querySelectorAll('input').forEach(i => i.remove());
+          // toglie NBSP iniziale dell'editor + eventuale ☐/☑ testuale duplicato
           const fc = txt.firstChild;
-          if (fc && fc.nodeType === 3) fc.textContent = fc.textContent.replace(/^\u00A0\s?/, '');
+          if (fc && fc.nodeType === 3) fc.textContent = fc.textContent.replace(/^[\u00A0\s]*[☐☑]\s?/, '').replace(/^\u00A0\s?/, '');
           if (!txt.textContent.trim() && !txt.querySelector('img,br')) txt.innerHTML = '<br>';
           wrap.appendChild(cb);
           wrap.appendChild(txt);
@@ -518,8 +534,9 @@
             if (n.nodeType === 1 && n.tagName === 'INPUT') return;
             txt.appendChild(n);
           });
+          txt.querySelectorAll('input').forEach(i => i.remove());
           const fc2 = txt.firstChild;
-          if (fc2 && fc2.nodeType === 3) fc2.textContent = fc2.textContent.replace(/^\u00A0\s?/, '');
+          if (fc2 && fc2.nodeType === 3) fc2.textContent = fc2.textContent.replace(/^[\u00A0\s]*[☐☑]\s?/, '').replace(/^\u00A0\s?/, '');
           if (!txt.textContent.trim()) txt.innerHTML = '<br>';
           ro.appendChild(box);
           ro.appendChild(txt);
@@ -903,6 +920,7 @@
       fNumero.value = a.numero || '';
       if (type === 'tel') buildSched(a.hours || {});
       fBody.innerHTML = a.html || '';
+      flattenTodos(fBody);
       fStatus.textContent = '';
       $('btn-del').style.display = id ? '' : 'none';
       modal.hidden = false;
@@ -961,15 +979,27 @@
       div.appendChild(document.createTextNode('\u00A0'));
       if (sel.rangeCount) {
         const r = sel.getRangeAt(0);
-        r.deleteContents();
-        r.insertNode(div);
-        r.setStartAfter(div);
+        // Se il cursore è dentro una checkbox esistente, inserisci DOPO di essa
+        // (insertNode da solo anniderebbe un .todo dentro l'altro -> doppia checkbox in vista)
+        let anchor = r.startContainer;
+        if (anchor.nodeType === 3) anchor = anchor.parentNode;
+        const existing = anchor && anchor.closest ? anchor.closest('.todo') : null;
+        if (existing && fBody.contains(existing)) {
+          r.deleteContents();
+          existing.after(div);
+          r.setStartAfter(div);
+        } else {
+          r.deleteContents();
+          r.insertNode(div);
+          r.setStartAfter(div);
+        }
         r.collapse(true);
         sel.removeAllRanges();
         sel.addRange(r);
       } else {
         fBody.appendChild(div);
       }
+      flattenTodos(fBody);
       fBody.focus();
       scheduleSave();
     });
@@ -1075,6 +1105,7 @@
       if (!a) return;
       const idx = Number(cb.getAttribute('data-idx'));
       const doc = new DOMParser().parseFromString('<div>' + (a.html || '') + '</div>', 'text/html');
+      flattenTodos(doc.body.firstChild);
       const todos = doc.body.firstChild.querySelectorAll('.todo');
       const td = todos[idx];
       if (!td) return;

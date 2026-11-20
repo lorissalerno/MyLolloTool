@@ -59,6 +59,13 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.05</strong><time>20/11/2026</time></div>
+      <ul>
+        <li><span class="tag">Appunti</span><span data-t="e105a">Appunti: risolto il doppio quadratino sulle checkbox (note vecchie riparate da sole), nuova checkbox sempre su riga propria.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.04</strong><time>19/11/2026</time></div>
       <ul>
         <li><span class="tag">Appunti</span><span data-t="e104f">Appunti: checkbox in colonna anche in card e visualizzatore, spuntabili direttamente senza aprire Modifica.</span></li>
@@ -121,7 +128,7 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.04';
+    const SITE_VERSION = '1.05';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
@@ -182,6 +189,10 @@
                de: 'Notizen: Checkboxen auch in Karte und Ansicht untereinander, direkt anklickbar ohne Bearbeiten zu öffnen.',
                fr: 'Notes : cases à cocher en colonne aussi dans la carte et la visionneuse, cochables sans ouvrir Modifier.',
                en: 'Notes: checkboxes stacked in card and viewer too, tickable directly without opening Edit.' },
+      e105a: { it: 'Appunti: risolto il doppio quadratino sulle checkbox (note vecchie riparate da sole), nuova checkbox sempre su riga propria.',
+               de: 'Notizen: doppeltes Kästchen bei Checkboxen behoben (alte Notizen heilen von selbst), neue Checkbox immer in eigener Zeile.',
+               fr: 'Notes : double case à cocher corrigée (les anciennes notes se réparent toutes seules), nouvelle case toujours sur sa propre ligne.',
+               en: 'Notes: fixed double checkbox squares (old notes heal themselves), new checkbox always on its own line.' },
       e102a: { it: 'Backup unico nel menu: un solo file .json con dati di tutte le pagine, più Ripristina.',
                de: 'Gesamt-Backup im Menü: eine .json-Datei mit Daten aller Seiten, plus Wiederherstellen.',
                fr: 'Sauvegarde unique dans le menu : un seul fichier .json avec les données de toutes les pages, plus Restaurer.',
