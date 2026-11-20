@@ -209,6 +209,11 @@
     #f-body:focus { border-color: #3B82F6; }
     body.dark #f-body { background: #1A1A1F; border-color: #2A2A35; color: #EEEEF0; }
     #f-body:empty:before { content: attr(data-ph); color: #9CA3AF; font-style: italic; }
+    #f-src { min-height: 180px; max-height: 40vh; overflow: auto; padding: 10px 12px; border: 1px solid #E5E7EB;
+             border-radius: 8px; font-size: 13px; line-height: 1.5; background: #FFFFFF; color: #1F2937; outline: none;
+             font-family: ui-monospace, Consolas, monospace; white-space: pre-wrap; width: 100%; resize: vertical; }
+    #f-src:focus { border-color: #3B82F6; }
+    body.dark #f-src { background: #1A1A1F; border-color: #2A2A35; color: #EEEEF0; }
     #f-body ul, #f-body ol { padding-left: 22px; margin: 6px 0; }
     #f-body a { color: #2563EB; }
     #f-body .todo { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0; }
@@ -289,6 +294,7 @@
         <span class="toolsep"></span>
         <button type="button" class="toolbtn" id="tool-color" data-t-title="color" title="Colore testo"><span style="font-size:17px;line-height:1;border-bottom:3px solid #e03e3e;">A</span></button>
         <button type="button" class="toolbtn" id="tool-link" data-t-title="link" title="Link"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <button type="button" class="toolbtn" id="tool-source" data-t-title="source" title="Codice HTML"><span style="font-size:12px;font-family:ui-monospace,Consolas,monospace;">&lt;/&gt;</span></button>
         <span class="toolsep"></span>
         <button type="button" class="toolbtn" data-cmd="undo" data-t-title="undo" title="Annulla"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
         <button type="button" class="toolbtn" data-cmd="redo" data-t-title="redo" title="Ripristina"><svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg></button>
@@ -308,6 +314,7 @@
         <button type="button" class="btn primary" id="link-ok" data-t="linkOk">Inserisci</button>
       </div>
       <div id="f-body" contenteditable="true" spellcheck="true" data-ph="Scrivi qui..."></div>
+      <textarea id="f-src" hidden spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
       <div class="actions">
         <span class="status" id="f-status"></span>
         <button type="button" class="btn danger" id="btn-del" data-t="delete">Elimina</button>
@@ -405,6 +412,7 @@
       todo:     { it: 'Checkbox', de: 'Checkbox', fr: 'Case à cocher', en: 'Checkbox' },
       color:    { it: 'Colore testo', de: 'Textfarbe', fr: 'Couleur du texte', en: 'Text color' },
       link:     { it: 'Link', de: 'Link', fr: 'Lien', en: 'Link' },
+      source:   { it: 'Codice HTML', de: 'HTML-Code', fr: 'Code HTML', en: 'HTML code' },
       undo:     { it: 'Annulla', de: 'Rückgängig', fr: 'Annuler', en: 'Undo' },
       redo:     { it: 'Ripristina', de: 'Wiederholen', fr: 'Rétablir', en: 'Redo' },
       linkTitlePh:{ it: 'Titolo (facoltativo)', de: 'Titel (optional)', fr: 'Titre (facultatif)', en: 'Title (optional)' },
@@ -884,12 +892,34 @@
         else i.removeAttribute('checked');
       });
     }
+    // Vista codice HTML (sorgente) nell'editor: pulsante </> nella toolbar
+    const fSrc = $('f-src');
+    let srcMode = false;
+    function setSrcMode(on) {
+      srcMode = on;
+      if (on) {
+        syncTodoAttrs();
+        fSrc.value = fBody.innerHTML;
+        fBody.hidden = true;
+        fSrc.hidden = false;
+        palette.hidden = true;
+        linkrow.hidden = true;
+        fSrc.focus();
+      } else {
+        fBody.innerHTML = fSrc.value;
+        flattenTodos(fBody);
+        fBody.hidden = false;
+        fSrc.hidden = true;
+        fBody.focus();
+      }
+      $('tool-source').classList.toggle('on', on);
+    }
     function collect() {
       syncTodoAttrs();
       const d = {
         title: fTitle.value.trim(),
         numero: fNumero.value.trim(),
-        html: fBody.innerHTML.trim(),
+        html: srcMode ? fSrc.value.trim() : fBody.innerHTML.trim(),
       };
       if (editType === 'tel') {
         const hours = collectSched();
@@ -927,6 +957,8 @@
       fTitle.value = a.title || '';
       fNumero.value = a.numero || '';
       if (type === 'tel') buildSched(a.hours || {});
+      if (srcMode) setSrcMode(false);
+      else $('tool-source').classList.remove('on');
       fBody.innerHTML = a.html || '';
       flattenTodos(fBody);
       normalizeEditorColors();
@@ -1196,6 +1228,9 @@
     // Link (stile My JW: titolo + url)
     const linkrow = $('linkrow');
     $('tool-link').addEventListener('click', e => { e.stopPropagation(); linkrow.hidden = !linkrow.hidden; palette.hidden = true; if (!linkrow.hidden) $('link-url').focus(); });
+    // Vista codice: commuta tra testo formattato e sorgente HTML
+    $('tool-source').addEventListener('click', e => { e.stopPropagation(); setSrcMode(!srcMode); scheduleSave(); });
+    fSrc.addEventListener('input', scheduleSave);
     $('link-ok').addEventListener('click', () => {
       const url = $('link-url').value.trim();
       if (!url) return;
