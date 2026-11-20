@@ -543,7 +543,7 @@
           td.replaceWith(ro);
         }
       });
-      const ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, SPAN:1, A:1, INPUT:1 };
+      const ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, SPAN:1, FONT:1, A:1, INPUT:1 };
       const walk = node => {
         [...node.childNodes].forEach(ch => {
           if (ch.nodeType === 3) return;
@@ -571,8 +571,16 @@
             [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
             if (/^https?:\/\//i.test(href) || href.startsWith('tel:') || href.startsWith('mailto:')) ch.setAttribute('href', href);
             else { const txt = doc.createTextNode(ch.textContent); node.replaceChild(txt, ch); return; }
+          } else if (ch.tagName === 'FONT') {
+            // execCommand('foreColor') crea <font color="...">: lo converte in <span>
+            const c = ch.getAttribute('color') || ch.style.color;
+            const span = doc.createElement('span');
+            if (c) span.style.color = c;
+            while (ch.firstChild) span.appendChild(ch.firstChild);
+            node.replaceChild(span, ch);
+            ch = span;
           } else if (ch.tagName === 'SPAN') {
-            const c = ch.style.color;
+            const c = ch.style.color || ch.getAttribute('color');
             const cls = ch.className === 'box' || ch.className === 'todo-txt' ? ch.className : '';
             [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
             if (c) ch.style.color = c;
@@ -921,6 +929,7 @@
       if (type === 'tel') buildSched(a.hours || {});
       fBody.innerHTML = a.html || '';
       flattenTodos(fBody);
+      normalizeEditorColors();
       fStatus.textContent = '';
       $('btn-del').style.display = id ? '' : 'none';
       modal.hidden = false;
@@ -945,6 +954,68 @@
     modal.addEventListener('mousedown', e => { if (e.target === modal) closeEditor(); });
     [fTitle, fNumero].forEach(el => el.addEventListener('input', scheduleSave));
     fBody.addEventListener('input', scheduleSave);
+    // Enter / Backspace dentro le checkbox: comportamento da vera checklist
+    fBody.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== 'Backspace') return;
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const r = sel.getRangeAt(0);
+      let node = r.startContainer;
+      if (node.nodeType === 3) node = node.parentNode;
+      const todo = node && node.closest ? node.closest('.todo') : null;
+      if (!todo || !fBody.contains(todo)) return;
+      const txtEmpty = todo.textContent.replace(/\u00A0/g, '').trim() === '';
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (txtEmpty) {
+          // checkbox vuota + Enter = esci dalla lista (torna riga normale)
+          const p = document.createElement('div');
+          p.innerHTML = '<br>';
+          todo.replaceWith(p);
+          const nr = document.createRange();
+          nr.selectNodeContents(p);
+          nr.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(nr);
+        } else {
+          // spezza la riga: nuovo todo con il testo dopo il cursore
+          const next = document.createElement('div');
+          next.className = 'todo';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.tabIndex = -1;
+          next.appendChild(cb);
+          next.appendChild(document.createTextNode('\u00A0'));
+          if (!r.collapsed) r.deleteContents();
+          const tail = r.cloneRange();
+          try { tail.setEnd(todo, todo.childNodes.length); }
+          catch { try { tail.setEndAfter(todo); } catch (e2) {} }
+          const frag = tail.extractContents();
+          if (frag.querySelectorAll) frag.querySelectorAll('input').forEach(i => i.remove());
+          next.appendChild(frag);
+          todo.after(next);
+          flattenTodos(fBody);
+          const nr = document.createRange();
+          try { nr.setStart(next, 2); } catch (e2) { nr.selectNodeContents(next); nr.collapse(false); }
+          nr.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(nr);
+        }
+        scheduleSave();
+      } else if (e.key === 'Backspace' && r.collapsed && txtEmpty) {
+        // checkbox vuota + Backspace = esci dalla lista
+        e.preventDefault();
+        const p = document.createElement('div');
+        p.innerHTML = '<br>';
+        todo.replaceWith(p);
+        const nr = document.createRange();
+        nr.selectNodeContents(p);
+        nr.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nr);
+        scheduleSave();
+      }
+    });
     schedRows.addEventListener('input', scheduleSave);
     schedRows.addEventListener('change', scheduleSave);
     schedSimple.addEventListener('input', scheduleSave);
@@ -970,34 +1041,61 @@
     $('tool-todo').addEventListener('click', () => {
       fBody.focus();
       const sel = window.getSelection();
-      const div = document.createElement('div');
-      div.className = 'todo';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.tabIndex = -1;
-      div.appendChild(cb);
-      div.appendChild(document.createTextNode('\u00A0'));
+      const mkTodo = () => {
+        const d = document.createElement('div');
+        d.className = 'todo';
+        const c = document.createElement('input');
+        c.type = 'checkbox';
+        c.tabIndex = -1;
+        d.appendChild(c);
+        d.appendChild(document.createTextNode('\u00A0'));
+        return d;
+      };
       if (sel.rangeCount) {
-        const r = sel.getRangeAt(0);
-        // Se il cursore è dentro una checkbox esistente, inserisci DOPO di essa
-        // (insertNode da solo anniderebbe un .todo dentro l'altro -> doppia checkbox in vista)
-        let anchor = r.startContainer;
-        if (anchor.nodeType === 3) anchor = anchor.parentNode;
-        const existing = anchor && anchor.closest ? anchor.closest('.todo') : null;
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === 3) node = node.parentNode;
+        const existing = node && node.closest ? node.closest('.todo') : null;
         if (existing && fBody.contains(existing)) {
-          r.deleteContents();
-          existing.after(div);
-          r.setStartAfter(div);
-        } else {
-          r.deleteContents();
-          r.insertNode(div);
-          r.setStartAfter(div);
+          // sei già su una checkbox: secondo click la toglie (torna riga normale)
+          const inp = existing.querySelector('input[type=checkbox]');
+          if (inp) inp.remove();
+          existing.classList.remove('todo');
+          flattenTodos(fBody);
+          fBody.focus();
+          scheduleSave();
+          return;
         }
+        // riga normale con testo: convertila in checkbox invece di andare a capo
+        let block = null;
+        if (node !== fBody) {
+          block = node;
+          while (block && block.parentNode !== fBody) block = block.parentNode;
+          if (!block || block.parentNode !== fBody) block = null;
+        }
+        if (block && block.tagName === 'DIV') {
+          block.classList.add('todo');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.tabIndex = -1;
+          if (!block.textContent.replace(/\u00A0/g, '').trim()) block.innerHTML = '';
+          block.prepend(cb);
+          if (!block.textContent.replace(/\u00A0/g, '').trim()) block.appendChild(document.createTextNode('\u00A0'));
+          flattenTodos(fBody);
+          fBody.focus();
+          scheduleSave();
+          return;
+        }
+        const r = sel.getRangeAt(0);
+        const div = mkTodo();
+        r.deleteContents();
+        if (block) block.after(div);
+        else r.insertNode(div);
+        r.setStartAfter(div);
         r.collapse(true);
         sel.removeAllRanges();
         sel.addRange(r);
       } else {
-        fBody.appendChild(div);
+        fBody.appendChild(mkTodo());
       }
       flattenTodos(fBody);
       fBody.focus();
@@ -1006,28 +1104,78 @@
     // Colore testo
     const palette = $('palette');
     $('tool-color').addEventListener('click', e => { e.stopPropagation(); palette.hidden = !palette.hidden; $('linkrow').hidden = true; });
+    // il click sullo swatch non deve rubare la selezione nell'editor (come i bottoni toolbar)
+    palette.addEventListener('mousedown', e => e.preventDefault());
     palette.addEventListener('click', e => {
       const sw = e.target.closest('.swatch');
       if (!sw) return;
       fBody.focus();
-      if (sw.id === 'sw-reset') unwrapColor();
-      else document.execCommand('foreColor', false, sw.dataset.c);
+      if (sw.id === 'sw-reset') clearColor();
+      else {
+        document.execCommand('foreColor', false, sw.dataset.c);
+        normalizeEditorColors();
+      }
       scheduleSave();
     });
-    function unwrapColor() {
+    function isColoredEl(el) {
+      if (!el || el.nodeType !== 1) return false;
+      if (el.nodeName === 'FONT') return el.hasAttribute('color') || !!(el.style && el.style.color);
+      if (el.nodeName === 'SPAN') return !!(el.style && el.style.color) || el.hasAttribute('color');
+      return false;
+    }
+    function stripColorEl(el) {
+      if (!el || !el.parentNode) return;
+      if (el.nodeName === 'FONT') {
+        const parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+        return;
+      }
+      // SPAN: toglie solo il colore, conserva classi (todo-txt/box) e altri stili
+      el.style.color = '';
+      el.removeAttribute('color');
+      const st = (el.getAttribute('style') || '').replace(/;+/g, ';').trim();
+      if (!st || st === ';') el.removeAttribute('style');
+      if (!el.className && ![...el.attributes].length) {
+        const parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+      }
+    }
+    function clearColor() {
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
-      let node = sel.getRangeAt(0).commonAncestorContainer;
-      if (node.nodeType === 3) node = node.parentNode;
-      while (node && node !== fBody) {
-        if (node.nodeName === 'SPAN' && node.style.color) {
-          const parent = node.parentNode;
-          while (node.firstChild) parent.insertBefore(node.firstChild, node);
-          parent.removeChild(node);
-          break;
+      const range = sel.getRangeAt(0);
+      if (range.collapsed) {
+        // cursore dentro un testo colorato: risale tutti gli antenati fino all'editor
+        let node = range.startContainer;
+        if (node.nodeType === 3) node = node.parentNode;
+        while (node && node !== fBody) {
+          const next = node.parentNode;
+          if (isColoredEl(node)) stripColorEl(node);
+          node = next;
         }
-        node = node.parentNode;
+        return;
       }
+      // selezione estesa: toglie il colore da tutti gli elementi colorati intersecati
+      fBody.querySelectorAll('font[color], font[style], span').forEach(el => {
+        if (!isColoredEl(el)) return;
+        let hit = false;
+        try { hit = range.intersectsNode(el); }
+        catch (err) { try { hit = sel.containsNode(el, true); } catch (e2) {} }
+        if (hit) stripColorEl(el);
+      });
+    }
+    // execCommand('foreColor') crea <font color>: li converte in <span style="color">
+    // così anteprima/visualizzatore (che accettano solo span) restano coerenti.
+    function normalizeEditorColors() {
+      fBody.querySelectorAll('font[color], font[style]').forEach(f => {
+        const c = f.getAttribute('color') || (f.style && f.style.color);
+        const span = document.createElement('span');
+        if (c) span.style.color = c;
+        while (f.firstChild) span.appendChild(f.firstChild);
+        f.replaceWith(span);
+      });
     }
     // Link (stile My JW: titolo + url)
     const linkrow = $('linkrow');
