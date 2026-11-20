@@ -422,6 +422,7 @@
       modify:   { it: 'Modifica', de: 'Bearbeiten', fr: 'Modifier', en: 'Edit' },
       close:    { it: 'Chiudi', de: 'Schliessen', fr: 'Fermer', en: 'Close' },
       saved:    { it: 'Salvato ✓', de: 'Gespeichert ✓', fr: 'Enregistré ✓', en: 'Saved ✓' },
+      unsaved:  { it: 'Non salvato', de: 'Ungespeichert', fr: 'Non enregistré', en: 'Unsaved' },
       confirmDelete:{ it: 'Eliminare questo appunto?', de: 'Diese Notiz löschen?', fr: 'Supprimer cette note ?', en: 'Delete this note?' },
       confirmImport:{ it: 'Importare {n} appunti? Quelli attuali verranno sostituiti.', de: '{n} Notizen importieren? Die aktuellen werden ersetzt.', fr: 'Importer {n} notes ? Les actuelles seront remplacées.', en: 'Import {n} notes? Current ones will be replaced.' },
       invalidFile:{ it: 'File non valido.', de: 'Ungültige Datei.', fr: 'Fichier invalide.', en: 'Invalid file.' },
@@ -480,7 +481,7 @@
     const modal = $('modal'), fTitle = $('f-title'), fNumero = $('f-numero');
     const schedRows = $('schedRows');
     const telWrap = $('telWrap'), fBody = $('f-body'), fStatus = $('f-status');
-    let editId = null, editType = 'note', saveT = null;
+    let editId = null, editType = 'note';
 
     document.querySelectorAll('[data-i]').forEach(el => { el.outerHTML = svg(el.dataset.i); });
 
@@ -757,13 +758,13 @@
     $('ss-add').addEventListener('click', () => {
       if (simpleRows.querySelectorAll('.ssrow').length >= 7) return;
       simpleRows.appendChild(ssRowEl(null));
-      scheduleSave();
+      markDirty();
     });
     schedSimple.addEventListener('click', e => {
       const del = e.target.closest('.ss-del');
       if (del && simpleRows.querySelectorAll('.ssrow').length > 1) {
         del.closest('.ssrow').remove();
-        scheduleSave();
+        markDirty();
       }
     });
     modeSeg.addEventListener('click', e => {
@@ -934,18 +935,11 @@
       const noSched = !d.hours || !Object.keys(d.hours).length;
       return !d.title && !d.numero && !d.orario && noSched && !plainText(d.html).trim();
     }
-    function scheduleSave() {
-      fStatus.textContent = '';
-      clearTimeout(saveT);
-      saveT = setTimeout(() => {
-        if (!editId) return;
-        const a = appunti.find(x => x.id === editId);
-        if (!a) return;
-        Object.assign(a, collect(), { updated: Date.now() });
-        if (isEmpty(a)) appunti = appunti.filter(x => x.id !== editId);
-        save(); render();
-        fStatus.textContent = t('saved');
-      }, 500);
+    // Salvataggio solo alla chiusura: durante la digitazione segna solo "non salvato",
+    // così la pagina dietro non si aggiorna di continuo.
+    function markDirty() {
+      if (!editId) return;
+      fStatus.textContent = '● ' + t('unsaved');
     }
     function openEditor(type, id) {
       editType = type;
@@ -968,7 +962,6 @@
       setTimeout(() => (telWrap.hidden ? fTitle : fNumero).focus(), 50);
     }
     function closeEditor() {
-      clearTimeout(saveT);
       if (editId) {
         const a = appunti.find(x => x.id === editId);
         if (a) {
@@ -980,12 +973,21 @@
       editId = null;
       modal.hidden = true;
     }
+    // Rete di sicurezza: se la scheda si chiude con la nota aperta, salva senza ridisegnare
+    window.addEventListener('beforeunload', () => {
+      if (!editId) return;
+      const a = appunti.find(x => x.id === editId);
+      if (!a) return;
+      Object.assign(a, collect(), { updated: Date.now() });
+      if (isEmpty(a)) appunti = appunti.filter(x => x.id !== editId);
+      save();
+    });
     $('btn-add-note').onclick = () => openEditor('note');
     $('btn-add-tel').onclick = () => openEditor('tel');
     $('btn-close').onclick = closeEditor;
     modal.addEventListener('mousedown', e => { if (e.target === modal) closeEditor(); });
-    [fTitle, fNumero].forEach(el => el.addEventListener('input', scheduleSave));
-    fBody.addEventListener('input', scheduleSave);
+    [fTitle, fNumero].forEach(el => el.addEventListener('input', markDirty));
+    fBody.addEventListener('input', markDirty);
     // Enter / Backspace dentro le checkbox: comportamento da vera checklist
     fBody.addEventListener('keydown', e => {
       if (e.key !== 'Enter' && e.key !== 'Backspace') return;
@@ -1033,7 +1035,7 @@
           sel.removeAllRanges();
           sel.addRange(nr);
         }
-        scheduleSave();
+        markDirty();
       } else if (e.key === 'Backspace' && r.collapsed && txtEmpty) {
         // checkbox vuota + Backspace = esci dalla lista
         e.preventDefault();
@@ -1045,13 +1047,13 @@
         nr.collapse(true);
         sel.removeAllRanges();
         sel.addRange(nr);
-        scheduleSave();
+        markDirty();
       }
     });
-    schedRows.addEventListener('input', scheduleSave);
-    schedRows.addEventListener('change', scheduleSave);
-    schedSimple.addEventListener('input', scheduleSave);
-    schedSimple.addEventListener('change', scheduleSave);
+    schedRows.addEventListener('input', markDirty);
+    schedRows.addEventListener('change', markDirty);
+    schedSimple.addEventListener('input', markDirty);
+    schedSimple.addEventListener('change', markDirty);
     $('btn-del').onclick = () => {
       if (!editId) return;
       if (confirm(t('confirmDelete'))) {
@@ -1067,7 +1069,7 @@
     document.querySelectorAll('#toolbar [data-cmd]').forEach(b => b.addEventListener('click', () => {
       document.execCommand(b.dataset.cmd, false, null);
       fBody.focus();
-      scheduleSave();
+      markDirty();
     }));
     // Checkbox riga (stile My JW .todo)
     $('tool-todo').addEventListener('click', () => {
@@ -1110,7 +1112,7 @@
           existing.classList.remove('todo');
           flattenTodos(fBody);
           fBody.focus();
-          scheduleSave();
+          markDirty();
           return;
         }
         // riga normale con testo: convertila in checkbox invece di andare a capo
@@ -1130,7 +1132,7 @@
           if (!block.textContent.replace(/\u00A0/g, '').trim()) block.appendChild(document.createTextNode('\u00A0'));
           flattenTodos(fBody);
           fBody.focus();
-          scheduleSave();
+          markDirty();
           return;
         }
         const r = sel.getRangeAt(0);
@@ -1147,7 +1149,7 @@
       }
       flattenTodos(fBody);
       fBody.focus();
-      scheduleSave();
+      markDirty();
     });
     // Colore testo
     const palette = $('palette');
@@ -1163,7 +1165,7 @@
         document.execCommand('foreColor', false, sw.dataset.c);
         normalizeEditorColors();
       }
-      scheduleSave();
+      markDirty();
     });
     function isColoredEl(el) {
       if (!el || el.nodeType !== 1) return false;
@@ -1229,8 +1231,8 @@
     const linkrow = $('linkrow');
     $('tool-link').addEventListener('click', e => { e.stopPropagation(); linkrow.hidden = !linkrow.hidden; palette.hidden = true; if (!linkrow.hidden) $('link-url').focus(); });
     // Vista codice: commuta tra testo formattato e sorgente HTML
-    $('tool-source').addEventListener('click', e => { e.stopPropagation(); setSrcMode(!srcMode); scheduleSave(); });
-    fSrc.addEventListener('input', scheduleSave);
+    $('tool-source').addEventListener('click', e => { e.stopPropagation(); setSrcMode(!srcMode); });
+    fSrc.addEventListener('input', markDirty);
     $('link-ok').addEventListener('click', () => {
       const url = $('link-url').value.trim();
       if (!url) return;
@@ -1257,7 +1259,7 @@
       $('link-title').value = '';
       linkrow.hidden = true;
       fBody.focus();
-      scheduleSave();
+      markDirty();
     });
     document.addEventListener('click', e => {
       if (!e.target.closest('#toolbar') && !e.target.closest('.palette') && !e.target.closest('.linkrow')) {
