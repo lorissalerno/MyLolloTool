@@ -982,14 +982,30 @@ function navUI(ks){
   $('oggi').disabled=!pos;
 }
 function vai(){
+  if(vai._busy) return; vai._busy=true; setTimeout(()=>vai._busy=false,650);
   const cur=monday(oggiK());
   const ks=Object.keys(load()).sort(); const min=ks.length?monday(ks[0]):cur;
   const n=vista?kAdd(vista,-7):kAdd(cur,-7); vista=n<min?min:n;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const docEl=document.documentElement;
+  const oldH=docEl.scrollHeight;
+  const oldY=window.scrollY||docEl.scrollTop||0;
   render();
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches) window.scrollTo(0,0);
-  else window.scrollTo({top:0,behavior:'smooth'});
+  const weeks=$('out').querySelectorAll('.week');
+  // Anima solo la settimana appena aggiunta (la prima): le altre restano ferme, niente effetto ricarica
+  weeks.forEach((w,i)=>{ if(i>0) w.style.animation='none'; });
+  if(reduce){ window.scrollTo(0,0); return; }
+  const newH=docEl.scrollHeight, delta=newH-oldH;
+  // 1) compensa subito l'altezza aggiunta sopra: la vista resta ferma, niente salto
+  if(delta>0) window.scrollTo(0,oldY+delta);
+  // 2) scorre dolcemente verso la settimana precedente (in cima)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const nav=$('nav');
+    const y=nav?nav.getBoundingClientRect().top+(window.scrollY||docEl.scrollTop||0)-8:0;
+    window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+  }));
 }
-function tornaOggi(){vista=null;render();}
+function tornaOggi(){vista=null;render();const r=document.querySelector('.row.today');if(!r){window.scrollTo({top:0,behavior:'smooth'});return;}if(matchMedia('(prefers-reduced-motion: reduce)').matches){r.scrollIntoView({block:'center'});}else{r.scrollIntoView({behavior:'smooth',block:'center'});}}
 
 /* ===== PDF: scelta intervallo, un mese per pagina, sempre bianco ===== */
 function apriPdf(){ $('pmodal').hidden=false; requestAnimationFrame(()=>$('pdfOggi').focus()); }
