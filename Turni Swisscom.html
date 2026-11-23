@@ -998,11 +998,10 @@ function vai(){
   const newH=docEl.scrollHeight, delta=newH-oldH;
   // 1) compensa subito l'altezza aggiunta sopra: la vista resta ferma, niente salto
   if(delta>0) window.scrollTo(0,oldY+delta);
-  // 2) scorre dolcemente verso la settimana precedente (in cima)
+  // 2) scorre dolcemente fino in cima: testata e pulsanti restano fermi,
+  //    si sposta solo la settimana (quella precedente appare sotto la nav)
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    const nav=$('nav');
-    const y=nav?nav.getBoundingClientRect().top+(window.scrollY||docEl.scrollTop||0)-8:0;
-    window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
   }));
 }
 function tornaOggi(){vista=null;render();const r=document.querySelector('.row.today');if(!r){window.scrollTo({top:0,behavior:'smooth'});return;}if(matchMedia('(prefers-reduced-motion: reduce)').matches){r.scrollIntoView({block:'center'});}else{r.scrollIntoView({behavior:'smooth',block:'center'});}}
