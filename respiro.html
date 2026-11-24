@@ -23,17 +23,13 @@
   #breath i { position:absolute; inset:0; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle, rgba(232,238,247,.16), rgba(232,238,247,.02) 70%); transform:scale(.55); will-change:transform; }
   #breath span { position:relative; font-size:1.35rem; font-style:italic; }
 
-  #ui { position:fixed; left:0; right:0; bottom:0; padding:1rem 1rem calc(1.2rem + env(safe-area-inset-bottom, 0px)); display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; transition:opacity 1.6s ease; }
-  #ui.idle:not(:focus-within) { opacity:0; }
-  #ui button { font:inherit; font-size:1.1rem; color:var(--ink); background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:999px; padding:.45rem 1.1rem; cursor:pointer; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:background .3s, border-color .3s; }
-  #ui button:hover { background:rgba(255,255,255,.14); }
-  #ui button[aria-pressed="true"] { background:rgba(255,255,255,.2); border-color:var(--soft); }
-  #ui button:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+
   #panel { position:fixed; top:12px; right:12px; width:270px; max-height:calc(100% - 24px); overflow:auto; box-sizing:border-box; background:rgba(10,10,14,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:12px 14px; user-select:none; z-index:10; }
   #panel h1 { font-size:17px; margin:0; display:flex; justify-content:space-between; align-items:center; font-style:italic; font-weight:500; }
   #toggle { all:unset; cursor:pointer; font-size:20px; padding:0 6px; line-height:1; }
   #pbody { margin-top:8px; }
   #pbody.hidden { display:none; }
+  #panel .sep { margin:12px 0 4px; color:rgba(232,238,247,.5); font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-style:normal; font-family:system-ui, sans-serif; }
   #panel .row { margin:9px 0; font-style:normal; font-family:system-ui, sans-serif; font-size:12px; }
   #panel .row label { display:flex; justify-content:space-between; opacity:.88; margin-bottom:2px; }
   #panel input[type=range] { width:100%; accent-color:#8fd3c1; margin:2px 0; }
@@ -63,14 +59,6 @@
 </div>
 <button id="showPanel" title="Mostra pannello">&#9881;</button>
 
-<nav id="ui" aria-label="Controlli">
-  <button id="bBreath" aria-pressed="false">Respira</button>
-  <button id="bSound" aria-pressed="false">Suono</button>
-  <button id="bColor">Colori</button>
-  <button id="bClear">Svuota</button>
-  <button id="bSave">Salva immagine</button>
-</nav>
-
 <script>
 (() => {
   const cv = document.getElementById('c'), ctx = cv.getContext('2d');
@@ -89,18 +77,20 @@
   /* ---------- impostazioni persistenti (come le altre pagine antistress) ---------- */
   const SOUND_TYPES = ['drone', 'sea', 'rain', 'wind'];
   const DEFAULTS = {
-    brightness:.7, thick:1.6, trail:.05, speed:1, density:1,
+    brightness:.7, thick:1.6, trail:.025, speed:1, density:1,
     hoverR:170, repelR:260, repelF:7,
     palette:0, sound:false, soundType:'drone', volume:70, breath:false,
     collapsed:false, panelHidden:false
   };
   const STORE_KEY = 'respiro.impostazioni.v1';
   const SLIDERS = [
+    { sep:'secStrokes' },
     { key:'brightness', tk:'brightness', min:.1, max:1,   step:.05, dec:2 },
     { key:'thick',      tk:'thick',      min:.5, max:4,   step:.1,  dec:1 },
-    { key:'trail',      tk:'trail',      min:.01, max:.25, step:.01, dec:2 },
+    { key:'trail',      tk:'trail',      min:.005, max:.25, step:.005, dec:3 },
     { key:'speed',      tk:'speed',      min:.2, max:2.5, step:.1,  dec:1 },
     { key:'density',    tk:'density',    min:.3, max:1.6, step:.1,  dec:1 },
+    { sep:'secMouse' },
     { key:'hoverR',     tk:'hoverR',     min:60, max:350, step:10,  dec:0 },
     { key:'repelR',     tk:'repelR',     min:80, max:500, step:10,  dec:0 },
     { key:'repelF',     tk:'repelF',     min:1,  max:14,  step:.5,  dec:1 }
@@ -168,7 +158,7 @@
       const p = ps[Math.random() * ps.length | 0];
       spawn(p, ptr.x + (Math.random() - .5) * 60, ptr.y + (Math.random() - .5) * 60);
     }
-    wake(); dismissHint();
+    dismissHint();
   }
   cv.addEventListener('pointermove', move);
   cv.addEventListener('pointerdown', e => {
@@ -193,7 +183,7 @@
     ctx.fillStyle = `rgba(${bg},${cfg.trail})`;
     ctx.fillRect(0, 0, W, H);
 
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = 'source-over';
     ctx.lineWidth = cfg.thick; ctx.lineCap = 'round';
 
     if (ptr.down && ptr.on) {
@@ -341,47 +331,38 @@
   }
 
   /* ---------- interfaccia ---------- */
-  const ui = document.getElementById('ui'), hint = document.getElementById('hint'), toastEl = document.getElementById('toast');
-  let idleT, toastT;
-  function wake() { ui.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => ui.classList.add('idle'), 4000); }
+  const hint = document.getElementById('hint'), toastEl = document.getElementById('toast');
+  let toastT;
   function dismissHint() { hint.classList.add('gone'); }
   function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1800); }
   setTimeout(dismissHint, 9000);
   addEventListener('keydown', e => {
-    wake();
     if ((e.key === 'h' || e.key === 'H') && !/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName || '')) {
       cfg.panelHidden = !cfg.panelHidden; applyPanelHidden(); saveSettings();
     }
   });
 
-  const $ = id => document.getElementById(id);
   function setBreath(on) {
     breathOn = on; cfg.breath = on; bStart = performance.now();
     bEl.classList.toggle('on', breathOn);
-    $('bBreath').setAttribute('aria-pressed', breathOn);
     if (breathChk) breathChk.checked = breathOn;
     saveSettings();
   }
   function setSound(on) {
     soundOn = on; cfg.sound = on;
-    $('bSound').setAttribute('aria-pressed', on);
     if (soundChk) soundChk.checked = on;
     if (on) startAudio(); else if (ac) stopAudio();
     saveSettings();
   }
-  $('bBreath').onclick = () => { setBreath(!breathOn); wake(); };
-  $('bSound').onclick = () => { setSound(!soundOn); wake(); };
-  $('bColor').onclick = () => { setPal(pi + 1); wake(); };
-  $('bClear').onclick = () => { fillBg(); wake(); };
-  $('bSave').onclick = () => {
+  function savePng() {
     cv.toBlob(b => {
+      if (!b) { toast('PNG'); return; }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(b); a.download = 'respiro.png';
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       toast(tr('saved'));
     });
-    wake();
-  };
+  }
 
 
   /* ---------- lingua globale (dal menu laterale di index.html) ---------- */
@@ -416,7 +397,8 @@
                de: 'Interaktive Kunstleinwand: bewege Finger oder Maus, um mit Farbe zu malen',
                fr: 'Toile artistique interactive : bouge le doigt ou la souris pour dessiner avec la couleur',
                en: 'Interactive art canvas: move your finger or mouse to paint with color' },
-    navLab:  { it: 'Controlli', de: 'Steuerelemente', fr: 'Contrôles', en: 'Controls' },
+    secStrokes: { it: 'Tratti', de: 'Striche', fr: 'Traits', en: 'Strokes' },
+    secMouse: { it: 'Mouse', de: 'Maus', fr: 'Souris', en: 'Mouse' },
     brightness: { it: 'Luminosità tratti', de: 'Strich-Helligkeit', fr: 'Luminosité des traits', en: 'Stroke brightness' },
     thick:   { it: 'Spessore tratti', de: 'Strichstärke', fr: 'Épaisseur des traits', en: 'Stroke width' },
     trail:   { it: 'Scia', de: 'Schweif', fr: 'Traînée', en: 'Trail' },
@@ -426,6 +408,7 @@
     repelR:  { it: 'Raggio respinta', de: 'Abstoßungsradius', fr: 'Rayon de répulsion', en: 'Repulsion radius' },
     repelF:  { it: 'Forza respinta', de: 'Abstoßungskraft', fr: 'Force de répulsion', en: 'Repulsion force' },
     hide:    { it: 'Nascondi', de: 'Ausblenden', fr: 'Masquer', en: 'Hide' },
+    random:  { it: 'Casuale', de: 'Zufällig', fr: 'Aléatoire', en: 'Random' },
     defaults:{ it: 'Valori predefiniti', de: 'Standardwerte', fr: 'Valeurs par défaut', en: 'Defaults' },
     note:    { it: 'Le impostazioni vengono salvate da sole.',
                de: 'Die Einstellungen werden automatisch gespeichert.',
@@ -446,14 +429,8 @@
     langUpdaters.forEach(f => f());
     toggleBtn.title = tr('collapse');
     showPanelBtn.title = tr('showPanel');
-    $('bBreath').textContent = tr('breath');
-    $('bSound').textContent = tr('sound');
-    $('bColor').textContent = tr('colors');
-    $('bClear').textContent = tr('clear');
-    $('bSave').textContent = tr('save');
     hint.innerHTML = tr('hint');
     cv.setAttribute('aria-label', tr('canvasLab'));
-    ui.setAttribute('aria-label', tr('navLab'));
     if (breathOn && lastPhaseKey) bText.textContent = tr(lastPhaseKey);
   }
   addEventListener('message', e => {
@@ -471,8 +448,14 @@
   const showPanelBtn = document.getElementById('showPanel');
   const uiUpdaters = [], langUpdaters = [];
   const fmt = (v, dec) => Number(v).toFixed(dec);
+  function sep(key) {
+    const d = document.createElement('div'); d.className = 'sep';
+    d.setAttribute('data-tk', key); d.textContent = tr(key);
+    pbody.appendChild(d);
+  }
 
   SLIDERS.forEach(d => {
+    if (d.sep) { sep(d.sep); return; }
     const row = document.createElement('div'); row.className = 'row';
     const lab = document.createElement('label');
     const name = document.createElement('span'); name.setAttribute('data-tk', d.tk); name.textContent = tr(d.tk);
@@ -491,17 +474,21 @@
     row.appendChild(lab); row.appendChild(inp); pbody.appendChild(row);
   });
 
+  sep('colors');
   {
     const row = document.createElement('div'); row.className = 'row';
-    const lab = document.createElement('label'); lab.setAttribute('data-tk', 'colors'); lab.textContent = tr('colors');
     const sel = document.createElement('select'); palSel = sel;
     pal.forEach((p, i) => { const op = document.createElement('option'); op.value = String(i); op.textContent = tr(p.tk); sel.appendChild(op); });
     sel.value = String(cfg.palette);
-    langUpdaters.push(() => { [...sel.options].forEach((op, i) => { op.textContent = tr(pal[i].tk); }); });
+    sel.title = tr('colors');
+    langUpdaters.push(() => { [...sel.options].forEach((op, i) => { op.textContent = tr(pal[i].tk); }); sel.title = tr('colors'); });
     sel.addEventListener('change', () => setPal(parseInt(sel.value, 10)));
     uiUpdaters.push(() => { sel.value = String(cfg.palette); });
-    row.appendChild(lab); row.appendChild(sel); pbody.appendChild(row);
+    row.appendChild(sel); pbody.appendChild(row);
   }
+
+  sep('sound');
+  soundChk = addCheck('sound', () => soundOn, v => setSound(v));
 
   {
     const row = document.createElement('div'); row.className = 'row';
@@ -514,7 +501,7 @@
       cfg.soundType = SOUND_TYPES.includes(sel.value) ? sel.value : 'drone';
       saveSettings();
       if (soundOn) startAudio();
-      toast(tr('snd_' + cfg.soundType)); wake();
+      toast(tr('snd_' + cfg.soundType));
     });
     uiUpdaters.push(() => { sel.value = cfg.soundType; });
     row.appendChild(lab); row.appendChild(sel); pbody.appendChild(row);
@@ -548,17 +535,31 @@
     return c;
   }
   breathChk = addCheck('breath', () => breathOn, v => setBreath(v));
-  soundChk = addCheck('sound', () => soundOn, v => setSound(v));
 
   const btns = document.createElement('div'); btns.className = 'btns';
   function addBtn(labelKey, cls, fn) {
     const b = document.createElement('button'); b.setAttribute('data-tk', labelKey); b.textContent = tr(labelKey);
     if (cls) b.className = cls;
-    b.addEventListener('click', () => { fn(); wake(); });
+    b.addEventListener('click', fn);
     btns.appendChild(b); return b;
   }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function randomize() {
+    cfg.brightness = +rnd(.4, 1).toFixed(2);
+    cfg.thick = +rnd(.8, 3).toFixed(1);
+    cfg.trail = +rnd(.008, .09).toFixed(3);
+    cfg.speed = +rnd(.5, 2).toFixed(1);
+    cfg.density = +rnd(.5, 1.6).toFixed(1);
+    cfg.hoverR = Math.round(rnd(100, 350) / 10) * 10;
+    cfg.repelR = Math.round(rnd(120, 420) / 10) * 10;
+    cfg.repelF = +rnd(2, 12).toFixed(1);
+    setPal(Math.random() * pal.length | 0, true);
+    saveSettings(); refreshUI(); resize();
+    toast(tr('random'));
+  }
   addBtn('clear', '', () => { fillBg(); });
-  addBtn('save', '', () => $('bSave').click());
+  addBtn('save', '', savePng);
+  addBtn('random', '', randomize);
   addBtn('hide', '', () => { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
   addBtn('defaults', 'wide', () => {
     const keepHidden = cfg.panelHidden, keepCollapsed = cfg.collapsed;
@@ -584,16 +585,16 @@
     panel.style.display = h ? 'none' : '';
     showPanelBtn.style.display = h ? 'block' : 'none';
   }
-  showPanelBtn.addEventListener('click', () => { cfg.panelHidden = false; applyPanelHidden(); saveSettings(); wake(); });
+  showPanelBtn.addEventListener('click', () => { cfg.panelHidden = false; applyPanelHidden(); saveSettings(); });
   toggleBtn.addEventListener('click', () => { cfg.collapsed = !cfg.collapsed; applyCollapsed(); saveSettings(); });
   function refreshUI() { uiUpdaters.forEach(f => f()); applyCollapsed(); applyPanelHidden(); }
 
   addEventListener('resize', resize);
-  resize(); wake();
+  resize();
   applyLang(curLang);
   refreshUI();
   if (cfg.breath) setBreath(true);
-  if (cfg.sound) { soundOn = true; $('bSound').setAttribute('aria-pressed', 'true'); if (soundChk) soundChk.checked = true; }
+  if (cfg.sound) { soundOn = true; if (soundChk) soundChk.checked = true; }
   requestAnimationFrame(frame);
 })();
 </script>
