@@ -25,6 +25,8 @@
   #note{margin-top:8px;opacity:.55;font-size:11px;text-align:center}
   #hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:13px;opacity:.7;pointer-events:none;transition:opacity 1s;text-align:center;padding:0 10px}
   #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:16px}
+  #showPanel{position:fixed;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,10,40,.66);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10;user-select:none}
+  #showPanel:hover{background:rgba(11,95,255,.85)}
 </style>
 </head>
 <body>
@@ -33,7 +35,8 @@
   <h1><span>Simulazione di fluidi</span><button id="toggle" title="Mostra/nascondi">&minus;</button></h1>
   <div id="body"></div>
 </div>
-<div id="hint">Muovi il mouse o trascina per muovere il fluido &middot; Spazio = pausa &middot; R = reset</div>
+<div id="hint">Muovi il mouse o trascina per muovere il fluido &middot; Spazio = pausa &middot; R = reset &middot; H = nascondi pannello</div>
+<button id="showPanel" title="Mostra pannello">&#9881;</button>
 <div id="err"></div>
 
 <script>
@@ -54,7 +57,8 @@ var DEFAULTS = {
   simRes: 256,
   shading: true,
   autoJets: false,
-  collapsed: false
+  collapsed: false,
+  panelHidden: false
 };
 var STORE_KEY = 'simulazioneFluidi.impostazioni.v1';
 
@@ -106,6 +110,7 @@ function fatal(msg) {
   errBox.style.display = 'flex';
   errBox.textContent = msg;
   document.getElementById('panel').style.display = 'none';
+  document.getElementById('showPanel').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
 }
 var gl = canvas.getContext('webgl2', { alpha: false, depth: false, stencil: false, antialias: false, preserveDrawingBuffer: false });
@@ -539,6 +544,7 @@ var pauseBtn = addBtn('Pausa', '', togglePause);
 addBtn('Esplosione', '', function () { explosion(); hideHint(); });
 addBtn('Reset', 'alt', function () { clearAll(); });
 addBtn('Salva PNG', 'alt', function () { wantShot = true; });
+addBtn('Nascondi', 'alt', function () { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
 addBtn('Ripristina valori predefiniti', 'alt wide', function () {
   for (var k in DEFAULTS) cfg[k] = DEFAULTS[k];
   refreshUI(); saveSettings(); initFramebuffers();
@@ -556,8 +562,17 @@ function applyCollapsed() {
   body.classList.toggle('hidden', !!cfg.collapsed);
   toggleBtn.innerHTML = cfg.collapsed ? '+' : '&minus;';
 }
+var panel = document.getElementById('panel');
+var showPanelBtn = document.getElementById('showPanel');
+function applyPanelHidden() {
+  var h = !!cfg.panelHidden;
+  panel.style.display = h ? 'none' : '';
+  showPanelBtn.style.display = h ? 'block' : 'none';
+}
+showPanelBtn.addEventListener('click', function () { cfg.panelHidden = false; applyPanelHidden(); saveSettings(); });
+function togglePanelHidden() { cfg.panelHidden = !cfg.panelHidden; applyPanelHidden(); saveSettings(); }
 toggleBtn.addEventListener('click', function () { cfg.collapsed = !cfg.collapsed; applyCollapsed(); saveSettings(); });
-function refreshUI() { uiUpdaters.forEach(function (f) { f(); }); applyCollapsed(); }
+function refreshUI() { uiUpdaters.forEach(function (f) { f(); }); applyCollapsed(); applyPanelHidden(); }
 refreshUI();
 
 window.addEventListener('keydown', function (e) {
@@ -567,6 +582,7 @@ window.addEventListener('keydown', function (e) {
   }
   if (e.code === 'Space') { e.preventDefault(); togglePause(); }
   else if (e.key === 'r' || e.key === 'R') clearAll();
+  else if (e.key === 'h' || e.key === 'H') togglePanelHidden();
 });
 
 /* ---------- Ridimensionamento e ciclo principale ---------- */
