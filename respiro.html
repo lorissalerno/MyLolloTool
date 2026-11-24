@@ -11,8 +11,8 @@
   :root { --bg:#000000; --ink:#e8eef7; --soft:rgba(232,238,247,.62); --line:rgba(232,238,247,.22); }
   * { box-sizing:border-box; margin:0; }
   html, body { height:100%; background:var(--bg); overflow:hidden; transition:background 2s; }
-  body { font-family:"Cormorant Garamond", Georgia, "Times New Roman", serif; color:var(--ink); touch-action:none; -webkit-user-select:none; user-select:none; }
-  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+  body { font-family:"Cormorant Garamond", Georgia, "Times New Roman", serif; color:var(--ink); -webkit-user-select:none; user-select:none; }
+  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }
 
   #hint { position:fixed; inset:0; display:grid; place-items:center; text-align:center; padding:2rem; pointer-events:none; transition:opacity 2.5s ease; }
   #hint p { font-size:clamp(1.6rem, 4.6vw, 2.8rem); font-style:italic; line-height:1.35; max-width:22ch; text-shadow:0 0 30px rgba(0,0,0,.35); }
@@ -29,6 +29,23 @@
   #ui button:hover { background:rgba(255,255,255,.14); }
   #ui button[aria-pressed="true"] { background:rgba(255,255,255,.2); border-color:var(--soft); }
   #ui button:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  #panel { position:fixed; top:12px; right:12px; width:270px; max-height:calc(100% - 24px); overflow:auto; box-sizing:border-box; background:rgba(10,10,14,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:12px 14px; user-select:none; z-index:10; }
+  #panel h1 { font-size:17px; margin:0; display:flex; justify-content:space-between; align-items:center; font-style:italic; font-weight:500; }
+  #toggle { all:unset; cursor:pointer; font-size:20px; padding:0 6px; line-height:1; }
+  #pbody { margin-top:8px; }
+  #pbody.hidden { display:none; }
+  #panel .row { margin:9px 0; font-style:normal; font-family:system-ui, sans-serif; font-size:12px; }
+  #panel .row label { display:flex; justify-content:space-between; opacity:.88; margin-bottom:2px; }
+  #panel input[type=range] { width:100%; accent-color:#8fd3c1; margin:2px 0; }
+  #panel select { width:100%; background:#0a0a10; color:#e8eef7; border:1px solid rgba(255,255,255,.22); border-radius:6px; padding:5px; font:inherit; }
+  #panel .chk { display:flex; align-items:center; gap:8px; margin:8px 0; cursor:pointer; font-style:normal; font-family:system-ui, sans-serif; font-size:12px; }
+  #panel .btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+  #panel .btns button { background:rgba(255,255,255,.14); color:#e8eef7; border:1px solid rgba(255,255,255,.14); border-radius:8px; padding:8px 4px; font-family:system-ui, sans-serif; font-size:12px; cursor:pointer; }
+  #panel .btns button:hover { background:rgba(255,255,255,.24); }
+  #panel .btns button.wide { grid-column:1 / span 2; }
+  #pnote { margin-top:8px; opacity:.55; font-size:11px; text-align:center; font-style:normal; font-family:system-ui, sans-serif; }
+  #showPanel { position:fixed; top:12px; right:12px; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.25); background:rgba(10,10,14,.72); color:#e8eef7; font-size:18px; line-height:1; cursor:pointer; display:none; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:10; user-select:none; }
+  #showPanel:hover { background:rgba(255,255,255,.2); }
   #toast { position:fixed; top:calc(1.2rem + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%); font-style:italic; font-size:1.2rem; color:var(--soft); opacity:0; transition:opacity .8s; pointer-events:none; }
   #toast.show { opacity:1; }
 </style>
@@ -39,6 +56,12 @@
 <div id="hint"><p>Muovi il dito sullo schermo.<br>Non serve fare niente.</p></div>
 <div id="breath" aria-live="polite"><i></i><span>Inspira</span></div>
 <div id="toast"></div>
+
+<div id="panel">
+  <h1><span data-tk="title">Respiro</span><button id="toggle" title="Riduci/espandi">&minus;</button></h1>
+  <div id="pbody"></div>
+</div>
+<button id="showPanel" title="Mostra pannello">&#9881;</button>
 
 <nav id="ui" aria-label="Controlli">
   <button id="bBreath" aria-pressed="false">Respira</button>
@@ -62,7 +85,45 @@
     { tk:'inchiostro',bg:'#000000', cols:['#e8eef7','#9fb4d0','#6f87aa','#c9d6e8'] }
   ];
   const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
-  let pi = 0, bg = hex(pal[0].bg), cols = pal[0].cols.map(hex);
+
+  /* ---------- impostazioni persistenti (come le altre pagine antistress) ---------- */
+  const DEFAULTS = {
+    brightness:.7, thick:1.6, trail:.05, speed:1, density:1,
+    hoverR:170, repelR:260, repelF:7,
+    palette:0, sound:false, breath:false,
+    collapsed:false, panelHidden:false
+  };
+  const STORE_KEY = 'respiro.impostazioni.v1';
+  const SLIDERS = [
+    { key:'brightness', tk:'brightness', min:.1, max:1,   step:.05, dec:2 },
+    { key:'thick',      tk:'thick',      min:.5, max:4,   step:.1,  dec:1 },
+    { key:'trail',      tk:'trail',      min:.01, max:.25, step:.01, dec:2 },
+    { key:'speed',      tk:'speed',      min:.2, max:2.5, step:.1,  dec:1 },
+    { key:'density',    tk:'density',    min:.3, max:1.6, step:.1,  dec:1 },
+    { key:'hoverR',     tk:'hoverR',     min:60, max:350, step:10,  dec:0 },
+    { key:'repelR',     tk:'repelR',     min:80, max:500, step:10,  dec:0 },
+    { key:'repelF',     tk:'repelF',     min:1,  max:14,  step:.5,  dec:1 }
+  ];
+  function loadSettings() {
+    const s = { ...DEFAULTS };
+    try {
+      const o = JSON.parse(localStorage.getItem(STORE_KEY));
+      for (const k in DEFAULTS) {
+        if (o && k in o && typeof o[k] === typeof DEFAULTS[k]) {
+          if (typeof o[k] === 'number' && !isFinite(o[k])) continue;
+          s[k] = o[k];
+        }
+      }
+    } catch (e) {}
+    SLIDERS.forEach(d => { s[d.key] = Math.min(d.max, Math.max(d.min, s[d.key])); });
+    s.palette = (s.palette | 0) % pal.length; if (s.palette < 0) s.palette = 0;
+    return s;
+  }
+  function saveSettings() { try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); } catch (e) {} }
+  const cfg = loadSettings();
+  let pi = cfg.palette, bg = hex(pal[pi].bg), cols = pal[pi].cols.map(hex);
+  let palSel = null, breathChk = null, soundChk = null;
+  function syncPalSel() { if (palSel) palSel.value = String(cfg.palette); }
 
   let W, H, dpr, ps = [], ripples = [];
   const ptr = { x:0, y:0, on:false, down:false };
@@ -78,7 +139,7 @@
     cv.width = W * dpr; cv.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     fillBg();
-    const n = Math.min(1000, Math.floor(W * H / 1700));
+    const n = Math.min(1400, Math.floor(W * H / 1700 * cfg.density));
     ps = Array.from({ length:n }, () => spawn({}));
   }
   function spawn(p, x, y) {
@@ -89,15 +150,15 @@
     p.s = .6 + Math.random() * .7;
     return p;
   }
-  function setPal(i) {
-    pi = i % pal.length;
+  function setPal(i, silent) {
+    pi = ((i % pal.length) + pal.length) % pal.length;
+    cfg.palette = pi; saveSettings(); syncPalSel();
     bg = hex(pal[pi].bg); cols = pal[pi].cols.map(hex);
     root.style.setProperty('--bg', pal[pi].bg);
-    toast(tr(pal[pi].tk));
+    if (!silent) toast(tr(pal[pi].tk));
   }
 
-  /* ---------- puntatore ---------- */
-  const R = 170, R_PRESS = 260;
+  /* ---------- puntatore (raggi e forze dal pannello impostazioni) ---------- */
   function move(e) {
     ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true;
     for (let i = 0; i < 3; i++) {
@@ -112,6 +173,7 @@
     try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     move(e);
     ripples.push({ x:e.clientX, y:e.clientY, r:0, c:Math.random() * 4 | 0 });
+    if (soundOn && !ac) startAudio();
     bell();
   });
   const off = e => { ptr.down = false; if (e.pointerType !== 'mouse') ptr.on = false; };
@@ -123,14 +185,14 @@
   let last = performance.now(), t = 0;
   function frame(now) {
     const dt = Math.min(50, now - last); last = now;
-    t += dt * 0.00006 * SP;
+    t += dt * 0.00006 * SP * cfg.speed;
 
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = `rgba(${bg},0.05)`;
+    ctx.fillStyle = `rgba(${bg},${cfg.trail})`;
     ctx.fillRect(0, 0, W, H);
 
     ctx.globalCompositeOperation = 'lighter';
-    ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+    ctx.lineWidth = cfg.thick; ctx.lineCap = 'round';
 
     if (ptr.down && ptr.on) {
       for (let i = 0; i < 4; i++) {
@@ -145,22 +207,23 @@
       if (ptr.on) {
         const dx = p.x - ptr.x, dy = p.y - ptr.y, d = Math.hypot(dx, dy) + .001;
         if (ptr.down) {
-          if (d < R_PRESS) {
-            const f = 1 - d / R_PRESS, ff = f * f;
-            vx += (dx / d) * ff * 7;
-            vy += (dy / d) * ff * 7;
+          if (d < cfg.repelR) {
+            const f = 1 - d / cfg.repelR, ff = f * f;
+            vx += (dx / d) * ff * cfg.repelF;
+            vy += (dy / d) * ff * cfg.repelF;
           }
-        } else if (d < R) {
-          const f = 1 - d / R;
+        } else if (d < cfg.hoverR) {
+          const f = 1 - d / cfg.hoverR;
           vx += (-dy / d) * f * 2.4 + (dx / d) * f * .6;
           vy += ( dx / d) * f * 2.4 + (dy / d) * f * .6;
         }
       }
       p.px = p.x; p.py = p.y;
-      p.x += vx * p.s * 1.1 * SP; p.y += vy * p.s * 1.1 * SP;
+      const vv = SP * cfg.speed;
+      p.x += vx * p.s * 1.1 * vv; p.y += vy * p.s * 1.1 * vv;
       p.life--;
       if (p.life <= 0 || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) { spawn(p); continue; }
-      ctx.strokeStyle = `rgba(${cols[p.ci % cols.length]},.7)`;
+      ctx.strokeStyle = `rgba(${cols[p.ci % cols.length]},${cfg.brightness})`;
       ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
     }
 
@@ -220,7 +283,7 @@
     master.gain.linearRampToValueAtTime(0, ac.currentTime + 1.5);
   }
   function bell() {
-    if (!soundOn) return;
+    if (!soundOn || !ac) return;
     const f = [440, 493.88, 554.37, 659.25, 739.99, 880][Math.random() * 6 | 0];
     const o = ac.createOscillator(), g = ac.createGain();
     o.type = 'sine'; o.frequency.value = f;
@@ -238,21 +301,30 @@
   function dismissHint() { hint.classList.add('gone'); }
   function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1800); }
   setTimeout(dismissHint, 9000);
-  addEventListener('keydown', wake);
+  addEventListener('keydown', e => {
+    wake();
+    if ((e.key === 'h' || e.key === 'H') && !/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName || '')) {
+      cfg.panelHidden = !cfg.panelHidden; applyPanelHidden(); saveSettings();
+    }
+  });
 
   const $ = id => document.getElementById(id);
-  $('bBreath').onclick = e => {
-    breathOn = !breathOn; bStart = performance.now();
+  function setBreath(on) {
+    breathOn = on; cfg.breath = on; bStart = performance.now();
     bEl.classList.toggle('on', breathOn);
-    e.currentTarget.setAttribute('aria-pressed', breathOn);
-    wake();
-  };
-  $('bSound').onclick = e => {
-    soundOn = !soundOn;
-    soundOn ? startAudio() : stopAudio();
-    e.currentTarget.setAttribute('aria-pressed', soundOn);
-    wake();
-  };
+    $('bBreath').setAttribute('aria-pressed', breathOn);
+    if (breathChk) breathChk.checked = breathOn;
+    saveSettings();
+  }
+  function setSound(on) {
+    soundOn = on; cfg.sound = on;
+    $('bSound').setAttribute('aria-pressed', on);
+    if (soundChk) soundChk.checked = on;
+    if (on) startAudio(); else if (ac) stopAudio();
+    saveSettings();
+  }
+  $('bBreath').onclick = () => { setBreath(!breathOn); wake(); };
+  $('bSound').onclick = () => { setSound(!soundOn); wake(); };
   $('bColor').onclick = () => { setPal(pi + 1); wake(); };
   $('bClear').onclick = () => { fillBg(); ripples = []; wake(); };
   $('bSave').onclick = () => {
@@ -264,6 +336,7 @@
     });
     wake();
   };
+
 
   /* ---------- lingua globale (dal menu laterale di index.html) ---------- */
   const LANG_KEY = 'mylollotool-lang';
@@ -291,7 +364,23 @@
                de: 'Interaktive Kunstleinwand: bewege Finger oder Maus, um mit Farbe zu malen',
                fr: 'Toile artistique interactive : bouge le doigt ou la souris pour dessiner avec la couleur',
                en: 'Interactive art canvas: move your finger or mouse to paint with color' },
-    navLab:  { it: 'Controlli', de: 'Steuerelemente', fr: 'Contrôles', en: 'Controls' }
+    navLab:  { it: 'Controlli', de: 'Steuerelemente', fr: 'Contrôles', en: 'Controls' },
+    brightness: { it: 'Luminosità tratti', de: 'Strich-Helligkeit', fr: 'Luminosité des traits', en: 'Stroke brightness' },
+    thick:   { it: 'Spessore tratti', de: 'Strichstärke', fr: 'Épaisseur des traits', en: 'Stroke width' },
+    trail:   { it: 'Scia', de: 'Schweif', fr: 'Traînée', en: 'Trail' },
+    speed:   { it: 'Velocità', de: 'Geschwindigkeit', fr: 'Vitesse', en: 'Speed' },
+    density: { it: 'Densità', de: 'Dichte', fr: 'Densité', en: 'Density' },
+    hoverR:  { it: 'Raggio vortice', de: 'Wirbelradius', fr: 'Rayon du tourbillon', en: 'Vortex radius' },
+    repelR:  { it: 'Raggio respinta', de: 'Abstoßungsradius', fr: 'Rayon de répulsion', en: 'Repulsion radius' },
+    repelF:  { it: 'Forza respinta', de: 'Abstoßungskraft', fr: 'Force de répulsion', en: 'Repulsion force' },
+    hide:    { it: 'Nascondi', de: 'Ausblenden', fr: 'Masquer', en: 'Hide' },
+    defaults:{ it: 'Valori predefiniti', de: 'Standardwerte', fr: 'Valeurs par défaut', en: 'Defaults' },
+    note:    { it: 'Le impostazioni vengono salvate da sole.',
+               de: 'Die Einstellungen werden automatisch gespeichert.',
+               fr: 'Les réglages sont enregistrés automatiquement.',
+               en: 'Settings are saved automatically.' },
+    showPanel: { it: 'Mostra pannello', de: 'Bedienfeld anzeigen', fr: 'Afficher le panneau', en: 'Show panel' },
+    collapse: { it: 'Riduci/espandi', de: 'Ein-/ausklappen', fr: 'Réduire/déplier', en: 'Collapse/expand' }
   };
   let curLang = 'it';
   try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) curLang = g; } catch (e) {}
@@ -301,6 +390,10 @@
     document.documentElement.lang = curLang;
     try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
     document.title = tr('title');
+    document.querySelectorAll('[data-tk]').forEach(el => { el.textContent = tr(el.dataset.tk); });
+    langUpdaters.forEach(f => f());
+    toggleBtn.title = tr('collapse');
+    showPanelBtn.title = tr('showPanel');
     $('bBreath').textContent = tr('breath');
     $('bSound').textContent = tr('sound');
     $('bColor').textContent = tr('colors');
@@ -318,9 +411,102 @@
     if (e.key === LANG_KEY && LANGS.includes(e.newValue)) applyLang(e.newValue);
   });
 
+
+  /* ---------- pannello laterale impostazioni (come le altre pagine antistress) ---------- */
+  const pbody = document.getElementById('pbody');
+  const toggleBtn = document.getElementById('toggle');
+  const panel = document.getElementById('panel');
+  const showPanelBtn = document.getElementById('showPanel');
+  const uiUpdaters = [], langUpdaters = [];
+  const fmt = (v, dec) => Number(v).toFixed(dec);
+
+  SLIDERS.forEach(d => {
+    const row = document.createElement('div'); row.className = 'row';
+    const lab = document.createElement('label');
+    const name = document.createElement('span'); name.setAttribute('data-tk', d.tk); name.textContent = tr(d.tk);
+    const val = document.createElement('span');
+    lab.appendChild(name); lab.appendChild(val);
+    const inp = document.createElement('input');
+    inp.type = 'range'; inp.min = d.min; inp.max = d.max; inp.step = d.step;
+    inp.value = cfg[d.key]; val.textContent = fmt(cfg[d.key], d.dec);
+    inp.addEventListener('input', () => {
+      cfg[d.key] = parseFloat(inp.value);
+      val.textContent = fmt(cfg[d.key], d.dec);
+      saveSettings();
+    });
+    if (d.key === 'density') inp.addEventListener('change', resize);
+    uiUpdaters.push(() => { inp.value = cfg[d.key]; val.textContent = fmt(cfg[d.key], d.dec); });
+    row.appendChild(lab); row.appendChild(inp); pbody.appendChild(row);
+  });
+
+  {
+    const row = document.createElement('div'); row.className = 'row';
+    const lab = document.createElement('label'); lab.setAttribute('data-tk', 'colors'); lab.textContent = tr('colors');
+    const sel = document.createElement('select'); palSel = sel;
+    pal.forEach((p, i) => { const op = document.createElement('option'); op.value = String(i); op.textContent = tr(p.tk); sel.appendChild(op); });
+    sel.value = String(cfg.palette);
+    langUpdaters.push(() => { [...sel.options].forEach((op, i) => { op.textContent = tr(pal[i].tk); }); });
+    sel.addEventListener('change', () => setPal(parseInt(sel.value, 10)));
+    uiUpdaters.push(() => { sel.value = String(cfg.palette); });
+    row.appendChild(lab); row.appendChild(sel); pbody.appendChild(row);
+  }
+
+  function addCheck(labelKey, get, set) {
+    const l = document.createElement('label'); l.className = 'chk';
+    const c = document.createElement('input'); c.type = 'checkbox'; c.checked = get();
+    c.addEventListener('change', () => set(c.checked));
+    uiUpdaters.push(() => { c.checked = get(); });
+    const s = document.createElement('span'); s.setAttribute('data-tk', labelKey); s.textContent = tr(labelKey);
+    l.appendChild(c); l.appendChild(s); pbody.appendChild(l);
+    return c;
+  }
+  breathChk = addCheck('breath', () => breathOn, v => setBreath(v));
+  soundChk = addCheck('sound', () => soundOn, v => setSound(v));
+
+  const btns = document.createElement('div'); btns.className = 'btns';
+  function addBtn(labelKey, cls, fn) {
+    const b = document.createElement('button'); b.setAttribute('data-tk', labelKey); b.textContent = tr(labelKey);
+    if (cls) b.className = cls;
+    b.addEventListener('click', () => { fn(); wake(); });
+    btns.appendChild(b); return b;
+  }
+  addBtn('clear', '', () => { fillBg(); ripples = []; });
+  addBtn('save', '', () => $('bSave').click());
+  addBtn('hide', '', () => { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
+  addBtn('defaults', 'wide', () => {
+    const keepHidden = cfg.panelHidden, keepCollapsed = cfg.collapsed;
+    Object.assign(cfg, DEFAULTS);
+    cfg.panelHidden = keepHidden; cfg.collapsed = keepCollapsed;
+    setPal(cfg.palette, true);
+    setBreath(cfg.breath);
+    if (!cfg.sound && soundOn) setSound(false);
+    else { if (soundChk) soundChk.checked = soundOn; }
+    refreshUI(); resize(); saveSettings();
+  });
+  pbody.appendChild(btns);
+  const pnote = document.createElement('div'); pnote.id = 'pnote';
+  pnote.setAttribute('data-tk', 'note'); pnote.textContent = tr('note');
+  pbody.appendChild(pnote);
+
+  function applyCollapsed() {
+    pbody.classList.toggle('hidden', !!cfg.collapsed);
+    toggleBtn.innerHTML = cfg.collapsed ? '+' : '&minus;';
+  }
+  function applyPanelHidden() {
+    const h = !!cfg.panelHidden;
+    panel.style.display = h ? 'none' : '';
+    showPanelBtn.style.display = h ? 'block' : 'none';
+  }
+  showPanelBtn.addEventListener('click', () => { cfg.panelHidden = false; applyPanelHidden(); saveSettings(); wake(); });
+  toggleBtn.addEventListener('click', () => { cfg.collapsed = !cfg.collapsed; applyCollapsed(); saveSettings(); });
+  function refreshUI() { uiUpdaters.forEach(f => f()); applyCollapsed(); applyPanelHidden(); }
+
   addEventListener('resize', resize);
   resize(); wake();
   applyLang(curLang);
+  refreshUI();
+  if (cfg.breath) setBreath(true);
+  if (cfg.sound) { soundOn = true; $('bSound').setAttribute('aria-pressed', 'true'); if (soundChk) soundChk.checked = true; }
   requestAnimationFrame(frame);
 })();
 </script>
