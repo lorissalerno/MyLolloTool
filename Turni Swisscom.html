@@ -356,7 +356,9 @@ const isTrain=n=>/training/i.test(n);
 const isMeet=n=>/meeting/i.test(n);
 const isExtra=n=>/overtime|\[up\]/i.test(n);
 const isRecup=n=>/compensation\s*spl/i.test(n);
-const isVac=n=>/vacation|holiday|bank\s*holiday|corporate\s+volunteer|ferien|feiertag|vacanza|vacanze|ferie|festiv|férié|congedo/i.test(n);
+const isVac=n=>/vacation|corporate\s+volunteer|ferien|vacanza|vacanze|ferie|congedo/i.test(n);
+const isBank=n=>/bank\s*holiday|public\s*holiday|holiday|feiertag|festiv|férié/i.test(n);
+const isGreen=n=>isVac(n)||isBank(n);
 const cls=n=>isPause(n)?'pause':isOffice(n)?'off':isTrain(n)?'train':isMeet(n)?'meet':isExtra(n)?'extra':isRecup(n)?'recup':'shift';
 const visSe=t=>(t.segs||[]);
 const effSE=t=>{const v=visSe(t);return v.length?[v[0].s,Math.max(...v.map(x=>x.e))]:[t.s,t.e];};
@@ -371,6 +373,7 @@ function finalizza(days){
   const out={};
   for(const k in days){
     const d=days[k];
+    if(d.bank){out[k]={tipo:'vacanza',label:d.bank,segs:[],note:d.note||''};continue;}
     if(d.vac){out[k]={tipo:'vacanza',segs:[],note:d.note||''};continue;}
     const segs=d.segs.sort((a,b)=>a.s-b.s);
     if(segs.length){out[k]={tipo:'turno',segs,s:segs[0].s,e:Math.max(...segs.map(x=>x.e))};}
@@ -389,11 +392,12 @@ function parseICS(txt){
         const name=(ev.sum||'').trim(), desc=(ev.desc||'').trim();
         if(ev.allday){
           let k=ev.ds; const end=ev.de||kAdd(ev.ds,1);
-          for(;k<end;k=kAdd(k,1)){const d=get(k); if(isVac(name)) d.vac=true; else d.altro=name; if(desc) d.note=desc;}
+          for(;k<end;k=kAdd(k,1)){const d=get(k); if(isBank(name)){d.bank=d.bank||name;} else if(isVac(name)) d.vac=true; else d.altro=name; if(desc) d.note=desc;}
         }else if(ev.de){
           const a=zurich(ev.ds),b=zurich(ev.de);
           const e=b.k===a.k?b.m:24*60;
-          if(isVac(name)) get(a.k).vac=true;
+          if(isBank(name)){const d=get(a.k); d.bank=d.bank||name;}
+          else if(isVac(name)) get(a.k).vac=true;
           else get(a.k).segs.push({s:a.m,e,n:name,d:desc});
         }
       }
@@ -424,7 +428,8 @@ function parseTXT(txt){
   txt.split(/\r?\n/).forEach(r=>{
     const m=r.match(re); if(!m) return;
     const k=`${m[4]}-${m[3]}-${m[2]}`, info=m[5], d={segs:[]};
-    if(isVac(info)) d.vac=true;
+    if(isBank(info)) d.bank=info.trim();
+    else if(isVac(info)) d.vac=true;
     else{
       const tm=info.match(/Da (\d{1,2}):(\d{2}) a (\d{1,2}):(\d{2})\s*:?\s*(.*)/);
       if(tm){
@@ -861,7 +866,7 @@ function trackHTML(turn,a,b,c){
   for(let i=1;i<n;i++) h+=`<div class="gl" style="left:${i/n*100}%"></div>`;
   const P=m=>Math.min(100,Math.max(0,(m-a)/(b-a)*100));
   if(!turn) h+=`<div class="free">${t('free')}</div>`;
-  else if(turn.tipo==='vacanza') h+=`<div class="seg vac" style="left:0;width:100%"><span>${t('vac')}</span></div>`;
+  else if(turn.tipo==='vacanza') h+=`<div class="seg vac" style="left:0;width:100%"><span>${esc(turn.label||t('vac'))}</span></div>`;
   else if(turn.tipo==='altro') h+=`<div class="seg altro" style="left:0;width:100%" title="${esc(turn.label)}"><span>${esc(turn.label)}</span></div>`;
   else{
     const bs=blocchi(turn), groups=[]; let cur=null;
@@ -895,7 +900,7 @@ function mostraTurno(k){
     const righe=[]; vis.forEach(x=>{const l=righe[righe.length-1]; if(l&&l.c===mapC(x)&&l.e===x.s){l.e=x.e; if(isOffice(l.n)&&!isOffice(x.n)){l.n=x.n;l.d=x.d;} else if(x.d&&!l.d)l.d=x.d;} else righe.push({s:x.s,e:x.e,n:x.n,d:x.d,c:mapC(x)});});
     const freq={}; righe.forEach(r=>{if(r.d)freq[r.d]=(freq[r.d]||0)+1;});
     corpo+='<ul class="tlist">'+righe.map(x=>{const col={pause:'pause',train:'train',meet:'meet',extra:'extra',recup:'recup',off:'shift',shift:'shift'}[cls(x.n)]||'shift';return `<li class="triga"><span class="pall ${cls(x.n)}" style="background:var(--${col})"></span><span><span class="to">${hm(x.s)} – ${hm(x.e)}</span><span class="tn"> ${esc(x.n)}${x.d&&freq[x.d]<2?'<small>'+esc(x.d)+'</small>':''}</span></span><span class="du">${dur(x.e-x.s)}</span></li>`;}).join('')+'</ul>';
-  } else if(turn&&turn.tipo==='vacanza'){tipo=t('vacT');ico=IC.sun;corpo+=`<div class="ttot"><b>${t('vac')}</b><span class="tpill">${t('vacSub')}</span></div>`;}
+  } else if(turn&&turn.tipo==='vacanza'){const lbl=turn.label?esc(turn.label):t('vac');tipo=turn.label?esc(turn.label):t('vacT');ico=IC.sun;corpo+=`<div class="ttot"><b>${lbl}</b><span class="tpill">${t('vacSub')}</span></div>`;}
   else if(turn&&turn.tipo==='altro'){tipo=esc(turn.label);ico=IC.cal;}
   const note=turn?noteUniche(turn):[];
   if(note.length) corpo+=`<div class="tnota"><b>${t('notes')}</b>${note.map(n=>esc(n)).join('<br>')}</div>`;
