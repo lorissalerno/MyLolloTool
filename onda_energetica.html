@@ -25,6 +25,11 @@
   .sep{margin:12px 0 0;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
   #info{position:fixed;left:10px;bottom:8px;color:#444;font-size:11px;z-index:1;pointer-events:none}
   #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;color:#888;z-index:3;text-align:center}
+  /* Menù suoni: griglia di pastiglie, diversa dai menu a tendina delle altre pagine */
+  .snd-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .snd-grid button{margin-top:0;border-radius:20px;font-size:11px;padding:7px 4px}
+  .snd-grid button.on{background:#0cf;border-color:#0cf;color:#001318;font-weight:bold}
+  .snd-off-dim{opacity:.45}
 </style>
 </head>
 <body>
@@ -50,6 +55,11 @@
     <div id="controls"></div>
     <label class="chk"><input type="checkbox" id="follow"><span data-tk="follow">Segui il mouse</span></label>
     <label class="chk"><input type="checkbox" id="clickwave"><span data-tk="clickwave">Onda al click</span></label>
+    <div class="sep" data-tk="secSound">Suono elettronico</div>
+    <label class="chk"><input type="checkbox" id="sound"><span data-tk="sound">Attiva suono</span></label>
+    <div class="snd-grid" id="sndgrid"></div>
+    <label><span data-tk="volume">Volume</span><b id="v_volume"></b></label>
+    <input type="range" id="volume" min="0" max="100" step="1">
     <div class="row">
       <button id="random" data-tk="random">Casuale</button><button id="reset" data-tk="reset">Reset</button>
     </div>
@@ -106,10 +116,10 @@ const T = {
   full:  { it:'Schermo intero', de:'Vollbild', fr:'Plein écran', en:'Fullscreen' },
   png:   { it:'Salva PNG', de:'PNG speichern', fr:'Enregistrer PNG', en:'Save PNG' },
   png2:  { it:'Salva PNG 2×', de:'PNG 2× speichern', fr:'Enregistrer PNG 2×', en:'Save PNG 2×' },
-  hint:  { it:'H = nascondi pannello · Spazio = pausa · F = schermo intero',
-           de:'H = Panel ausblenden · Leertaste = Pause · F = Vollbild',
-           fr:'H = masquer le panneau · Espace = pause · F = plein écran',
-           en:'H = hide panel · Space = pause · F = fullscreen' },
+  hint:  { it:'H = nascondi pannello · Spazio = pausa · F = schermo intero · M = audio',
+           de:'H = Panel ausblenden · Leertaste = Pause · F = Vollbild · M = Ton',
+           fr:'H = masquer le panneau · Espace = pause · F = plein écran · M = audio',
+           en:'H = hide panel · Space = pause · F = fullscreen · M = sound' },
   errWebGL: { it:'WebGL non disponibile in questo browser.',
               de:'WebGL ist in diesem Browser nicht verfügbar.',
               fr:'WebGL non disponible dans ce navigateur.',
@@ -119,7 +129,14 @@ const T = {
   pFuoco:  { it:'Fuoco', de:'Feuer', fr:'Feu', en:'Fire' },
   pMatrix: { it:'Matrix', de:'Matrix', fr:'Matrix', en:'Matrix' },
   pOro:    { it:'Oro', de:'Gold', fr:'Or', en:'Gold' },
-  pGhiaccio: { it:'Ghiaccio', de:'Eis', fr:'Glace', en:'Ice' }
+  pGhiaccio: { it:'Ghiaccio', de:'Eis', fr:'Glace', en:'Ice' },
+  secSound: { it:'Suono elettronico', de:'Elektronischer Klang', fr:'Son électronique', en:'Electronic sound' },
+  sound:   { it:'Attiva suono', de:'Ton einschalten', fr:'Activer le son', en:'Enable sound' },
+  volume:  { it:'Volume', de:'Lautstärke', fr:'Volume', en:'Volume' },
+  sNebula: { it:'Nebulosa', de:'Nebel', fr:'Nébuleuse', en:'Nebula' },
+  sPulse:  { it:'Impulsi', de:'Impulse', fr:'Impulsions', en:'Pulses' },
+  sCrystals: { it:'Cristalli', de:'Kristalle', fr:'Cristaux', en:'Crystals' },
+  sOrbit:  { it:'Orbita', de:'Umlaufbahn', fr:'Orbite', en:'Orbit' }
 };
 let curLang = 'it';
 try { const _g = localStorage.getItem(LANG_KEY); if (LANGS.includes(_g)) curLang = _g; } catch(e) {}
@@ -158,7 +175,14 @@ const SLIDERS = [
   {id:'cdur',   tk:'cdur',   min:0.3,  max:4,    step:0.05,  def:1.5}
 ];
 const DEFAULTS = {color1:'#00e5ff', color2:'#ff00e6', follow:true, clickwave:true,
-                  quality:'1', adaptive:false, panelHidden:false};
+                  quality:'1', adaptive:false, panelHidden:false,
+                  sound:false, soundType:'nebula', volume:60};
+const SOUND_TYPES = [
+  {id:'nebula',   tk:'sNebula'},
+  {id:'pulse',    tk:'sPulse'},
+  {id:'cristalli',tk:'sCrystals'},
+  {id:'orbita',   tk:'sOrbit'}
+];
 SLIDERS.forEach(s=>{ if(s.id) DEFAULTS[s.id]=s.def; });
 
 const PRESETS = {
@@ -187,15 +211,31 @@ Object.keys(PRESETS).forEach(key=>{
   b.onclick=()=>{ S.color1=PRESETS[key].color1; S.color2=PRESETS[key].color2; applyToUI(); save(); };
   presetsDiv.appendChild(b);
 });
+// Menù suoni: pastiglie selezionabili (stile diverso dal tendina di Respiro)
+const sndGrid=$('sndgrid');
+SOUND_TYPES.forEach(st=>{
+  const b=document.createElement('button'); b.setAttribute('data-tk',st.tk); b.textContent=t(st.tk); b.dataset.snd=st.id;
+  b.onclick=()=>{ S.soundType=st.id; if(S.sound) startAudio(); paintSnd(); save(); };
+  sndGrid.appendChild(b);
+});
+function paintSnd(){
+  sndGrid.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.snd===S.soundType));
+  sndGrid.classList.toggle('snd-off-dim', !S.sound);
+}
 
 let S = Object.assign({}, DEFAULTS);
 try{ const raw=localStorage.getItem(STORE_KEY); if(raw) Object.assign(S, JSON.parse(raw)); }catch(e){}
+if(!SOUND_TYPES.some(s=>s.id===S.soundType)) S.soundType='nebula';
+S.volume=Math.min(100,Math.max(0,parseInt(S.volume,10)||0));
 
 function fmt(v,step){ return step>=1 ? String(Math.round(v)) : Number(v).toFixed(step<0.01?3:2); }
 function applyToUI(){
   SLIDERS.forEach(s=>{ if(!s.id) return; $(s.id).value=S[s.id]; $('v_'+s.id).textContent=fmt(S[s.id],s.step); });
   $('color1').value=S.color1; $('color2').value=S.color2;
   $('follow').checked=!!S.follow; $('clickwave').checked=!!S.clickwave;
+  $('sound').checked=!!S.sound;
+  $('volume').value=S.volume; $('v_volume').textContent=S.volume+'%';
+  paintSnd();
   $('quality').value=String(S.quality); $('adaptive').checked=!!S.adaptive;
   $('panel').classList.toggle('hidden', !!S.panelHidden);
   $('arrow').textContent = S.panelHidden ? '▸' : '▾';
@@ -208,6 +248,141 @@ SLIDERS.forEach(s=>{ if(!s.id) return;
 ['color1','color2'].forEach(id=>$(id).addEventListener('input',e=>{ S[id]=e.target.value; save(); }));
 ['follow','clickwave','adaptive'].forEach(id=>$(id).addEventListener('change',e=>{ S[id]=e.target.checked; if(id==='adaptive'){adaptScale=1; resize();} save(); }));
 $('quality').addEventListener('change',e=>{ S.quality=e.target.value; adaptScale=1; resize(); save(); });
+$('sound').addEventListener('change',e=>setSound(e.target.checked));
+$('volume').addEventListener('input',e=>{
+  S.volume=Math.min(100,Math.max(0,parseInt(e.target.value,10)||0));
+  $('v_volume').textContent=S.volume+'%';
+  if(ac&&soundOn) master.gain.setTargetAtTime(volGain(),ac.currentTime,0.2);
+  save();
+});
+
+// ---------- Suono elettronico rilassante (generato, nessun file esterno) ----------
+// Stili diversi da Respiro (bordone/mare/pioggia/vento): qui solo elettronica soft.
+let ac=null, master=null, echoIn=null, noiseBuf=null, padFilter=null;
+let soundOn=false, schedTimer=null, schedStep=0, liveNodes=[];
+const midi = m => 440*Math.pow(2,(m-69)/12);
+function track(n){ liveNodes.push(n); return n; }
+function volGain(){ return (S.volume/100)*0.5; }
+function ensureAudio(){
+  if(!ac){
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
+    echoIn=ac.createGain(); echoIn.connect(master);
+    const dly=ac.createDelay(2); dly.delayTime.value=0.42;
+    const fb=ac.createGain(); fb.gain.value=0.35;
+    const damp=ac.createBiquadFilter(); damp.type='lowpass'; damp.frequency.value=1800;
+    const wet=ac.createGain(); wet.gain.value=0.35;
+    echoIn.connect(dly); dly.connect(damp); damp.connect(fb); fb.connect(dly); dly.connect(wet); wet.connect(master);
+    const len=ac.sampleRate*2; noiseBuf=ac.createBuffer(1,len,ac.sampleRate);
+    const ch=noiseBuf.getChannelData(0); for(let i=0;i<len;i++) ch[i]=Math.random()*2-1;
+  }
+  if(ac.state==='suspended') ac.resume();
+}
+function playTone(freq,o){
+  o=o||{};
+  const type=o.type||'sine', peak=o.peak||0.1, att=o.att||0.05, dur=o.dur||1.5, dest=o.dest||echoIn;
+  const osc=ac.createOscillator(); osc.type=type; osc.frequency.value=freq; osc.detune.value=o.detune||0;
+  const g=ac.createGain(); const n=ac.currentTime;
+  g.gain.setValueAtTime(0.0001,n);
+  g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002),n+att);
+  g.gain.exponentialRampToValueAtTime(0.0001,n+dur);
+  osc.connect(g); g.connect(dest); osc.start(); osc.stop(n+dur+0.1);
+  track(osc); track(g);
+}
+function bell(freq,peak,dur){
+  peak=peak||0.09; dur=dur||2.8;
+  const n=ac.currentTime;
+  const o1=ac.createOscillator(); o1.type='sine'; o1.frequency.value=freq;
+  const o2=ac.createOscillator(); o2.type='sine'; o2.frequency.value=freq*2.99;
+  const g2=ac.createGain(); g2.gain.value=0.22;
+  const g=ac.createGain();
+  g.gain.setValueAtTime(0.0001,n);
+  g.gain.exponentialRampToValueAtTime(peak,n+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,n+dur);
+  o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(echoIn);
+  o1.start(); o2.start(); o1.stop(n+dur+0.1); o2.stop(n+dur+0.1);
+  track(o1); track(o2); track(g); track(g2);
+}
+function lfo(freq,amount,param){
+  const o=ac.createOscillator(); o.frequency.value=freq;
+  const g=ac.createGain(); g.gain.value=amount;
+  o.connect(g); g.connect(param); o.start();
+  track(o); track(g);
+}
+const PAD_PROG=[[45,52,57,60,64],[41,48,53,57,60],[48,55,59,62,67],[43,50,55,59,62]];
+const PENTA=[69,72,74,76,79,81,84];
+const ROOTS=[33,33,29,31];
+function nebulaStep(){
+  const chord=PAD_PROG[schedStep%PAD_PROG.length]; schedStep++;
+  chord.forEach(mn=>{ [-6,6].forEach(dt=>playTone(midi(mn),{type:'sawtooth',peak:0.028,att:1.8,dur:5.4,detune:dt,dest:padFilter})); });
+}
+function pulseStep(){
+  const s=schedStep++;
+  if(s%4===0) playTone(midi(ROOTS[(s>>2)%ROOTS.length]),{type:'sine',peak:0.16,att:0.01,dur:0.5});
+  if(Math.random()<0.6) playTone(midi(PENTA[Math.random()*PENTA.length|0]),{type:'triangle',peak:0.06,att:0.01,dur:1.2});
+}
+function cristalliStep(){
+  schedStep++;
+  if(Math.random()<0.75) bell(midi([81,84,86,88,91,93][Math.random()*6|0]));
+}
+function orbitaShimmer(){
+  schedStep++;
+  playTone(midi([76,79,81,84][Math.random()*4|0]),{type:'sine',peak:0.05,att:0.8,dur:4});
+}
+function startDrone(){
+  [55,82.41,110].forEach((f,i)=>{
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=f;
+    const g=ac.createGain(); g.gain.value=i<2?0.05:0.025;
+    o.connect(g); g.connect(master); o.start();
+    track(o); track(g);
+    lfo(0.06+i*0.03, g.gain.value*0.5, g.gain);
+  });
+  const src=ac.createBufferSource(); src.buffer=noiseBuf; src.loop=true; src.start();
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=240;
+  const g=ac.createGain(); g.gain.value=0.045;
+  src.connect(lp); lp.connect(g); g.connect(master);
+  track(src); track(lp); track(g);
+  lfo(0.05,120,lp.frequency); lfo(0.04,0.02,g.gain);
+}
+function stopVoices(){
+  if(schedTimer){ clearInterval(schedTimer); schedTimer=null; }
+  liveNodes.forEach(n=>{ try{ if(n.stop) n.stop(); }catch(e){} try{ n.disconnect(); }catch(e){} });
+  liveNodes=[]; padFilter=null;
+}
+function startAudio(){
+  ensureAudio();
+  stopVoices();
+  soundOn=true;
+  master.gain.setTargetAtTime(volGain(),ac.currentTime,1.0);
+  schedStep=0;
+  const type=S.soundType;
+  if(type==='nebula'){
+    padFilter=ac.createBiquadFilter(); padFilter.type='lowpass'; padFilter.frequency.value=700;
+    padFilter.connect(echoIn); track(padFilter);
+    lfo(0.07,250,padFilter.frequency);
+    nebulaStep(); schedTimer=setInterval(nebulaStep,4200);
+  }else if(type==='pulse'){
+    pulseStep(); schedTimer=setInterval(pulseStep,300);
+  }else if(type==='cristalli'){
+    cristalliStep(); schedTimer=setInterval(cristalliStep,800);
+  }else{
+    startDrone(); schedTimer=setInterval(orbitaShimmer,6000);
+  }
+}
+let stopGen=0;
+function stopAudio(){
+  soundOn=false;
+  if(!ac) return;
+  const gen=++stopGen;
+  master.gain.setTargetAtTime(0,ac.currentTime,0.4);
+  setTimeout(()=>{ if(gen===stopGen && !soundOn) stopVoices(); },2000);
+}
+function setSound(on){
+  S.sound=!!on;
+  $('sound').checked=S.sound; paintSnd();
+  if(S.sound) startAudio(); else stopAudio();
+  save();
+}
 $('toggle').onclick=()=>{ S.panelHidden=!S.panelHidden; applyToUI(); save(); };
 
 function hsl2hex(h,s,l){
@@ -226,7 +401,7 @@ $('random').onclick=()=>{
   SLIDERS.forEach(s=>{ if(!s.id) return; const r=RANDOM_RANGES[s.id]; S[s.id]=snap(rnd(r[0],r[1]), s); });
   applyToUI(); save();
 };
-$('reset').onclick=()=>{ const keep={panelHidden:S.panelHidden}; S=Object.assign({},DEFAULTS,keep); applyToUI(); adaptScale=1; resize(); save(); };
+$('reset').onclick=()=>{ const keep={panelHidden:S.panelHidden,sound:S.sound,soundType:S.soundType,volume:S.volume}; S=Object.assign({},DEFAULTS,keep); applyToUI(); adaptScale=1; resize(); save(); };
 
 let paused=false;
 function paintPause(){ $('pause').textContent = paused ? t('resume') : t('pause'); }
@@ -237,6 +412,8 @@ $('full').onclick=toggleFull;
 window.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT' && e.target.type!=='range' && e.target.type!=='checkbox') return;
   const k=e.key.toLowerCase();
+  if(k==='m'){ setSound(!S.sound); return; }
+  if(S.sound && !soundOn) startAudio();
   if(k==='h'){ $('panel').classList.toggle('off'); }
   else if(k===' '){ e.preventDefault(); togglePause(); }
   else if(k==='f'){ toggleFull(); }
@@ -386,6 +563,7 @@ window.addEventListener('blur',()=>{inside=false;});
 const clicks=new Float32Array(32); let ci=0;
 canvas.addEventListener('pointerdown',e=>{
   setPos(e);
+  if(S.sound && !soundOn) startAudio();
   if(!S.clickwave || S.cforce<=0) return;
   clicks[ci*4]=e.clientX*PX; clicks[ci*4+1]=(innerHeight-e.clientY)*PX;
   clicks[ci*4+2]=clk; clicks[ci*4+3]=S.cforce;
