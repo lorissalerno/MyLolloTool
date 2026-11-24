@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onda Energetica HD</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+  canvas{position:fixed;inset:0;width:100%;height:100%;background:#000;display:block;cursor:crosshair;touch-action:none}
+  #panel{position:fixed;top:12px;right:12px;width:250px;max-height:calc(100% - 24px);overflow:auto;padding:12px;
+    background:rgba(0,0,0,.82);border:1px solid #2a2a2a;border-radius:10px;color:#bbb;font-size:12px;z-index:2;transition:opacity .3s}
+  #panel.hidden .body{display:none}
+  #panel.off{opacity:0;pointer-events:none}
+  h3{margin:0;font-size:13px;display:flex;justify-content:space-between;cursor:pointer;color:#fff;user-select:none}
+  .body{margin-top:8px}
+  label{display:flex;justify-content:space-between;margin:8px 0 2px}
+  label b{color:#777;font-weight:normal}
+  input[type=range]{width:100%;accent-color:#0cf}
+  input[type=color]{width:100%;height:26px;border:0;background:none;padding:0}
+  select{width:100%;background:#111;color:#ddd;border:1px solid #3a3a3a;border-radius:6px;padding:4px}
+  .row{display:flex;gap:6px;flex-wrap:wrap}
+  button{flex:1;min-width:60px;margin-top:8px;padding:6px;background:#111;color:#ddd;border:1px solid #3a3a3a;border-radius:6px;cursor:pointer;font-size:12px}
+  button:hover{background:#222}
+  .chk{display:flex;align-items:center;gap:6px;justify-content:flex-start;margin-top:8px}
+  .sep{margin:12px 0 0;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  #info{position:fixed;left:10px;bottom:8px;color:#444;font-size:11px;z-index:1;pointer-events:none}
+  #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;color:#888;z-index:3;text-align:center}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="err"></div>
+<div id="info"></div>
+<div id="panel">
+  <h3 id="toggle"><span data-tk="title">Onda energetica HD</span><span id="arrow">▾</span></h3>
+  <div class="body">
+    <div class="row" id="presets"></div>
+    <div class="row">
+      <div style="flex:1"><label data-tk="color1">Colore 1</label><input type="color" id="color1"></div>
+      <div style="flex:1"><label data-tk="color2">Colore 2</label><input type="color" id="color2"></div>
+    </div>
+    <div class="sep" data-tk="secQuality">Qualità</div>
+    <label data-tk="qualityRes">Risoluzione</label>
+    <select id="quality">
+      <option value="1" data-tk="resNative">Nativa schermo (1×)</option>
+      <option value="1.5" data-tk="res15">Supersampling 1,5×</option>
+      <option value="2" data-tk="res2x">Supersampling 2× (massima)</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="adaptive"><span data-tk="adaptive">Riduci risoluzione se lento</span></label>
+    <div id="controls"></div>
+    <label class="chk"><input type="checkbox" id="follow"><span data-tk="follow">Segui il mouse</span></label>
+    <label class="chk"><input type="checkbox" id="clickwave"><span data-tk="clickwave">Onda al click</span></label>
+    <div class="row">
+      <button id="random" data-tk="random">Casuale</button><button id="reset" data-tk="reset">Reset</button>
+    </div>
+    <div class="row">
+      <button id="pause">Pausa</button><button id="full" data-tk="full">Schermo intero</button>
+    </div>
+    <div class="row">
+      <button id="png" data-tk="png">Salva PNG</button><button id="png2" data-tk="png2">Salva PNG 2×</button>
+    </div>
+    <div style="margin-top:8px;color:#555;font-size:11px" data-tk="hint">H = nascondi pannello · Spazio = pausa · F = schermo intero</div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const STORE_KEY = 'ondaEnergeticaHD_settings_v1';
+
+/* ---------- Lingua (chiave globale, come le altre pagine antistress) ---------- */
+const LANG_KEY = 'mylollotool-lang';
+const LANGS = ['it','de','fr','en'];
+const T = {
+  title:   { it:'Onda energetica HD', de:'Energiewelle HD', fr:'Vague d’énergie HD', en:'Energy wave HD' },
+  color1:  { it:'Colore 1', de:'Farbe 1', fr:'Couleur 1', en:'Color 1' },
+  color2:  { it:'Colore 2', de:'Farbe 2', fr:'Couleur 2', en:'Color 2' },
+  secQuality: { it:'Qualità', de:'Qualität', fr:'Qualité', en:'Quality' },
+  qualityRes: { it:'Risoluzione', de:'Auflösung', fr:'Résolution', en:'Resolution' },
+  resNative:  { it:'Nativa schermo (1×)', de:'Native Anzeige (1×)', fr:'Écran natif (1×)', en:'Native display (1×)' },
+  res15:   { it:'Supersampling 1,5×', de:'Supersampling 1,5×', fr:'Suréchantillonnage 1,5×', en:'Supersampling 1.5×' },
+  res2x:   { it:'Supersampling 2× (massima)', de:'Supersampling 2× (maximal)', fr:'Suréchantillonnage 2× (maximal)', en:'Supersampling 2× (maximum)' },
+  adaptive:{ it:'Riduci risoluzione se lento', de:'Auflösung bei Ruckeln senken', fr:'Réduire la résolution si lent', en:'Lower resolution if slow' },
+  secWave: { it:'Onda', de:'Welle', fr:'Vague', en:'Wave' },
+  amp:   { it:'Ampiezza', de:'Amplitude', fr:'Amplitude', en:'Amplitude' },
+  freq:  { it:'Frequenza', de:'Frequenz', fr:'Fréquence', en:'Frequency' },
+  speed: { it:'Velocità', de:'Geschwindigkeit', fr:'Vitesse', en:'Speed' },
+  width: { it:'Spessore', de:'Linienstärke', fr:'Épaisseur', en:'Thickness' },
+  lines: { it:'Numero linee', de:'Linienanzahl', fr:'Nombre de lignes', en:'Line count' },
+  spread:{ it:'Dispersione', de:'Streuung', fr:'Dispersion', en:'Spread' },
+  glow:  { it:'Glow', de:'Glühen', fr:'Halo', en:'Glow' },
+  focus: { it:'Concentrazione centro', de:'Mittenkonzentration', fr:'Concentration au centre', en:'Center focus' },
+  turb:  { it:'Turbolenza', de:'Turbulenz', fr:'Turbulence', en:'Turbulence' },
+  secMouse: { it:'Mouse', de:'Maus', fr:'Souris', en:'Mouse' },
+  adh:   { it:'Aderenza mouse', de:'Maushaftung', fr:'Adhérence souris', en:'Mouse adhesion' },
+  radius:{ it:'Raggio influenza mouse', de:'Maus-Einflussradius', fr:'Rayon d’influence souris', en:'Mouse influence radius' },
+  cforce:{ it:'Forza onda click', de:'Klickwellen-Stärke', fr:'Force de la vague au clic', en:'Click wave strength' },
+  cspeed:{ it:'Velocità onda click', de:'Klickwellen-Tempo', fr:'Vitesse de la vague au clic', en:'Click wave speed' },
+  cdur:  { it:'Durata onda click', de:'Klickwellen-Dauer', fr:'Durée de la vague au clic', en:'Click wave duration' },
+  follow:{ it:'Segui il mouse', de:'Maus folgen', fr:'Suivre la souris', en:'Follow mouse' },
+  clickwave:{ it:'Onda al click', de:'Welle bei Klick', fr:'Vague au clic', en:'Wave on click' },
+  random:{ it:'Casuale', de:'Zufällig', fr:'Aléatoire', en:'Random' },
+  reset: { it:'Reset', de:'Zurücksetzen', fr:'Réinitialiser', en:'Reset' },
+  pause: { it:'Pausa', de:'Pause', fr:'Pause', en:'Pause' },
+  resume:{ it:'Riprendi', de:'Fortsetzen', fr:'Reprendre', en:'Resume' },
+  full:  { it:'Schermo intero', de:'Vollbild', fr:'Plein écran', en:'Fullscreen' },
+  png:   { it:'Salva PNG', de:'PNG speichern', fr:'Enregistrer PNG', en:'Save PNG' },
+  png2:  { it:'Salva PNG 2×', de:'PNG 2× speichern', fr:'Enregistrer PNG 2×', en:'Save PNG 2×' },
+  hint:  { it:'H = nascondi pannello · Spazio = pausa · F = schermo intero',
+           de:'H = Panel ausblenden · Leertaste = Pause · F = Vollbild',
+           fr:'H = masquer le panneau · Espace = pause · F = plein écran',
+           en:'H = hide panel · Space = pause · F = fullscreen' },
+  errWebGL: { it:'WebGL non disponibile in questo browser.',
+              de:'WebGL ist in diesem Browser nicht verfügbar.',
+              fr:'WebGL non disponible dans ce navigateur.',
+              en:'WebGL is not available in this browser.' },
+  errShader: { it:'Errore shader: ', de:'Shader-Fehler: ', fr:'Erreur de shader : ', en:'Shader error: ' },
+  pPlasma: { it:'Plasma', de:'Plasma', fr:'Plasma', en:'Plasma' },
+  pFuoco:  { it:'Fuoco', de:'Feuer', fr:'Feu', en:'Fire' },
+  pMatrix: { it:'Matrix', de:'Matrix', fr:'Matrix', en:'Matrix' },
+  pOro:    { it:'Oro', de:'Gold', fr:'Or', en:'Gold' },
+  pGhiaccio: { it:'Ghiaccio', de:'Eis', fr:'Glace', en:'Ice' }
+};
+let curLang = 'it';
+try { const _g = localStorage.getItem(LANG_KEY); if (LANGS.includes(_g)) curLang = _g; } catch(e) {}
+function t(k){ const e = T[k]; return (!e ? k : (e[curLang] || e.it || k)); }
+function applyLang(l){
+  if (LANGS.includes(l)) curLang = l;
+  document.documentElement.lang = curLang;
+  try { localStorage.setItem(LANG_KEY, curLang); } catch(e) {}
+  document.title = t('title');
+  document.querySelectorAll('[data-tk]').forEach(n=>{ n.textContent = t(n.getAttribute('data-tk')); });
+  paintPause();
+}
+window.addEventListener('message', e=>{
+  if (e && e.data && e.data.type === LANG_KEY && LANGS.includes(e.data.lang)) applyLang(e.data.lang);
+});
+window.addEventListener('storage', e=>{
+  if (e.key === LANG_KEY && LANGS.includes(e.newValue)) applyLang(e.newValue);
+});
+
+const SLIDERS = [
+  {sepTk:'secWave'},
+  {id:'amp',    tk:'amp',    min:0,    max:0.45, step:0.005, def:0.16},
+  {id:'freq',   tk:'freq',   min:0.2,  max:6,    step:0.1,   def:1.6},
+  {id:'speed',  tk:'speed',  min:0,    max:4,    step:0.05,  def:1.0},
+  {id:'width',  tk:'width',  min:0.5,  max:8,    step:0.1,   def:1.6},
+  {id:'lines',  tk:'lines',  min:1,    max:40,   step:1,     def:14},
+  {id:'spread', tk:'spread', min:0,    max:1,    step:0.01,  def:0.35},
+  {id:'glow',   tk:'glow',   min:0,    max:2,    step:0.01,  def:0.9},
+  {id:'focus',  tk:'focus',  min:0,    max:1,    step:0.01,  def:0.6},
+  {id:'turb',   tk:'turb',   min:0,    max:1,    step:0.01,  def:0.2},
+  {sepTk:'secMouse'},
+  {id:'adh',    tk:'adh',    min:0,    max:1,    step:0.01,  def:1.0},
+  {id:'radius', tk:'radius', min:0.05, max:0.8,  step:0.01,  def:0.25},
+  {id:'cforce', tk:'cforce', min:0,    max:1,    step:0.01,  def:0.35},
+  {id:'cspeed', tk:'cspeed', min:0.2,  max:3,    step:0.05,  def:1.0},
+  {id:'cdur',   tk:'cdur',   min:0.3,  max:4,    step:0.05,  def:1.5}
+];
+const DEFAULTS = {color1:'#00e5ff', color2:'#ff00e6', follow:true, clickwave:true,
+                  quality:'1', adaptive:false, panelHidden:false};
+SLIDERS.forEach(s=>{ if(s.id) DEFAULTS[s.id]=s.def; });
+
+const PRESETS = {
+  plasma:  {tk:'pPlasma',   color1:'#00e5ff', color2:'#ff00e6'},
+  fuoco:   {tk:'pFuoco',    color1:'#ff3c00', color2:'#ffd000'},
+  matrix:  {tk:'pMatrix',   color1:'#00ff41', color2:'#00a3ff'},
+  oro:     {tk:'pOro',      color1:'#ffcc33', color2:'#ff7a00'},
+  ghiaccio:{tk:'pGhiaccio', color1:'#e0f7ff', color2:'#3a8bff'}
+};
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const controls = $('controls');
+SLIDERS.forEach(s=>{
+  if(s.sepTk){ const d=document.createElement('div'); d.className='sep'; d.setAttribute('data-tk',s.sepTk); d.textContent=t(s.sepTk); controls.appendChild(d); return; }
+  const l=document.createElement('label');
+  const name=document.createElement('span'); name.setAttribute('data-tk',s.tk); name.textContent=t(s.tk);
+  const val=document.createElement('b'); val.id='v_'+s.id;
+  l.appendChild(name); l.appendChild(val);
+  const r=document.createElement('input'); r.type='range'; r.id=s.id; r.min=s.min; r.max=s.max; r.step=s.step;
+  controls.appendChild(l); controls.appendChild(r);
+});
+const presetsDiv=$('presets');
+Object.keys(PRESETS).forEach(key=>{
+  const b=document.createElement('button'); b.setAttribute('data-tk',PRESETS[key].tk); b.textContent=t(PRESETS[key].tk);
+  b.onclick=()=>{ S.color1=PRESETS[key].color1; S.color2=PRESETS[key].color2; applyToUI(); save(); };
+  presetsDiv.appendChild(b);
+});
+
+let S = Object.assign({}, DEFAULTS);
+try{ const raw=localStorage.getItem(STORE_KEY); if(raw) Object.assign(S, JSON.parse(raw)); }catch(e){}
+
+function fmt(v,step){ return step>=1 ? String(Math.round(v)) : Number(v).toFixed(step<0.01?3:2); }
+function applyToUI(){
+  SLIDERS.forEach(s=>{ if(!s.id) return; $(s.id).value=S[s.id]; $('v_'+s.id).textContent=fmt(S[s.id],s.step); });
+  $('color1').value=S.color1; $('color2').value=S.color2;
+  $('follow').checked=!!S.follow; $('clickwave').checked=!!S.clickwave;
+  $('quality').value=String(S.quality); $('adaptive').checked=!!S.adaptive;
+  $('panel').classList.toggle('hidden', !!S.panelHidden);
+  $('arrow').textContent = S.panelHidden ? '▸' : '▾';
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){} }
+
+SLIDERS.forEach(s=>{ if(!s.id) return;
+  $(s.id).addEventListener('input', e=>{ S[s.id]=parseFloat(e.target.value); $('v_'+s.id).textContent=fmt(S[s.id],s.step); save(); });
+});
+['color1','color2'].forEach(id=>$(id).addEventListener('input',e=>{ S[id]=e.target.value; save(); }));
+['follow','clickwave','adaptive'].forEach(id=>$(id).addEventListener('change',e=>{ S[id]=e.target.checked; if(id==='adaptive'){adaptScale=1; resize();} save(); }));
+$('quality').addEventListener('change',e=>{ S.quality=e.target.value; adaptScale=1; resize(); save(); });
+$('toggle').onclick=()=>{ S.panelHidden=!S.panelHidden; applyToUI(); save(); };
+
+function hsl2hex(h,s,l){
+  s/=100; l/=100; const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return '#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function rnd(a,b){ return a+Math.random()*(b-a); }
+function snap(v,s){ const st=s.step; v=Math.round(v/st)*st; return Math.min(s.max,Math.max(s.min,parseFloat(v.toFixed(4)))); }
+const RANDOM_RANGES = { amp:[0.06,0.3], freq:[0.6,4], speed:[0.3,2.5], width:[0.8,4], lines:[3,30], spread:[0.1,0.8],
+  glow:[0.3,1.6], focus:[0,1], turb:[0,0.6], adh:[0.5,1], radius:[0.1,0.5], cforce:[0.15,0.6], cspeed:[0.5,2], cdur:[0.8,3] };
+$('random').onclick=()=>{
+  const h=Math.random()*360, off=rnd(40,180)*(Math.random()<0.5?-1:1);
+  S.color1=hsl2hex(h, rnd(80,100), rnd(50,62));
+  S.color2=hsl2hex((h+off+360)%360, rnd(80,100), rnd(50,62));
+  SLIDERS.forEach(s=>{ if(!s.id) return; const r=RANDOM_RANGES[s.id]; S[s.id]=snap(rnd(r[0],r[1]), s); });
+  applyToUI(); save();
+};
+$('reset').onclick=()=>{ const keep={panelHidden:S.panelHidden}; S=Object.assign({},DEFAULTS,keep); applyToUI(); adaptScale=1; resize(); save(); };
+
+let paused=false;
+function paintPause(){ $('pause').textContent = paused ? t('resume') : t('pause'); }
+function togglePause(){ paused=!paused; paintPause(); }
+$('pause').onclick=togglePause;
+function toggleFull(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+$('full').onclick=toggleFull;
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT' && e.target.type!=='range' && e.target.type!=='checkbox') return;
+  const k=e.key.toLowerCase();
+  if(k==='h'){ $('panel').classList.toggle('off'); }
+  else if(k===' '){ e.preventDefault(); togglePause(); }
+  else if(k==='f'){ toggleFull(); }
+});
+window.addEventListener('beforeunload', save);
+window.addEventListener('pagehide', save);
+applyToUI();
+applyLang(curLang);
+
+// ---------- WebGL ----------
+const canvas=$('c');
+const gl=canvas.getContext('webgl',{antialias:false,alpha:false,depth:false,stencil:false,premultipliedAlpha:false,powerPreference:'high-performance'});
+if(!gl){ $('err').textContent=t('errWebGL'); $('err').style.display='flex'; return; }
+
+const VS='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FS=`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 R; uniform float T; uniform float CLK; uniform vec2 M; uniform float MA;
+uniform vec3 C1; uniform vec3 C2;
+uniform float AMP,FREQ,WID,SPREAD,GLOW,FOCUS,TURB,ADH,RAD,PX,CSPD,CDUR;
+uniform int N;
+uniform vec4 CL[8];
+
+float clickDisp(float x){
+  float s=0.;
+  for(int k=0;k<8;k++){
+    vec4 c=CL[k];
+    if(c.w<=0.) continue;
+    float age=CLK-c.z;
+    if(age<0.) continue;
+    float front=age*CSPD*R.x*0.45;
+    float wd=R.x*0.07+front*0.2;
+    float dd=abs(x-c.x)-front;
+    float pulse=exp(-dd*dd/(wd*wd));
+    float env=exp(-age/CDUR)*(1.-exp(-age*10.));
+    float dir=c.y>=R.y*0.5?1.:-1.;
+    s+=pulse*env*c.w*dir;
+  }
+  return s*R.y*0.12;
+}
+
+float lineY(float x,float t,float cd,float mw){
+  float u=x/R.x;
+  float sn=sin(3.14159265*u);
+  float env=mix(1.,sn*sn,FOCUS);
+  float ph=u*FREQ*6.2831853+T+t*1.3;
+  float a=AMP*R.y;
+  float y=a*(0.75*sin(ph)+0.25*sin(ph*1.73-T*0.7+t*2.1));
+  y+=TURB*a*0.35*sin(u*23.+T*2.7+t*9.)*sin(u*7.-T*1.3+t*4.);
+  y*=1.-0.35*abs(2.*t);
+  y+=t*SPREAD*R.y*0.5;
+  y*=env;
+  y+=R.y*0.5+cd*(1.-0.4*abs(2.*t));
+  return mix(y,M.y,mw);
+}
+
+void main(){
+  vec2 p=gl_FragCoord.xy;
+  float x=p.x;
+  float cd0=clickDisp(x), cd1=clickDisp(x+1.);
+  float rr=RAD*R.x;
+  float mx0=(x-M.x)/rr, mx1=(x+1.-M.x)/rr;
+  float mw0=MA*ADH*exp(-mx0*mx0), mw1=MA*ADH*exp(-mx1*mx1);
+  float w=WID*PX;
+  float gr=(3.+GLOW*10.)*PX;
+  float nf=float(N);
+  float gnorm=1./sqrt(nf);
+  vec3 col=vec3(0.);
+  for(int i=0;i<40;i++){
+    if(i>=N) break;
+    float fi=float(i);
+    float k=N>1? fi/(nf-1.) : 0.5;
+    float tt=k-0.5;
+    float y0=lineY(x,tt,cd0,mw0);
+    float y1=lineY(x+1.,tt,cd1,mw1);
+    float dy=y1-y0;
+    float d=abs(p.y-y0)/sqrt(1.+dy*dy);
+    float hw=w*0.5;
+    float core=1.-smoothstep(hw-0.7,hw+0.7,d);
+    core*=min(1.,w);
+    float g=GLOW*(0.55*exp(-d/gr)+0.18*exp(-d/(gr*5.)))*gnorm;
+    vec3 lc=mix(C1,C2,k);
+    col+=lc*(core*0.9+g)+vec3(core*0.28);
+  }
+  vec3 mc=mix(C1,C2,0.5);
+  float dm=length(p-M);
+  col+=MA*(mc*(exp(-dm/(5.*PX))*0.7+exp(-dm/(28.*PX))*0.12)+vec3(exp(-dm/(1.6*PX))*0.6));
+  for(int k=0;k<8;k++){
+    vec4 c=CL[k];
+    if(c.w<=0.) continue;
+    float age=CLK-c.z;
+    if(age<0.) continue;
+    float front=age*CSPD*R.x*0.45;
+    float dr=(length(p-c.xy)-front)/(1.5*PX+front*0.01);
+    float fade=exp(-age/(CDUR*0.5))*(1.-exp(-age*10.));
+    float ring=exp(-dr*dr)*fade*c.w*0.3;
+    float fl=exp(-length(p-c.xy)/(35.*PX))*exp(-age*5.)*c.w*0.5;
+    col+=mc*(ring+fl);
+  }
+  col=1.-exp(-col*1.25);
+  float n=fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);
+  col+=(n-0.5)/255.*step(0.004,max(col.r,max(col.g,col.b)));
+  gl_FragColor=vec4(max(col,0.),1.);
+}`;
+
+function sh(type,src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); $('err').textContent=t('errShader')+gl.getShaderInfoLog(s); $('err').style.display='flex'; } return s; }
+const prog=gl.createProgram();
+gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+gl.linkProgram(prog); gl.useProgram(prog);
+const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(prog,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+const U={}; ['R','T','CLK','M','MA','C1','C2','AMP','FREQ','WID','SPREAD','GLOW','FOCUS','TURB','ADH','RAD','PX','CSPD','CDUR','N','CL']
+  .forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+
+const maxDims=gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+const maxRB=gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+const MAXD=Math.min(maxDims[0],maxDims[1],maxRB,8192);
+let adaptScale=1, PX=1;
+function setSize(scaleMul){
+  const dpr=window.devicePixelRatio||1;
+  let sc=dpr*parseFloat(S.quality||1)*adaptScale*(scaleMul||1);
+  let w=Math.round(innerWidth*sc), h=Math.round(innerHeight*sc);
+  const lim=Math.min(1, MAXD/w, MAXD/h);
+  w=Math.max(1,Math.floor(w*lim)); h=Math.max(1,Math.floor(h*lim));
+  canvas.width=w; canvas.height=h; PX=w/innerWidth;
+  gl.viewport(0,0,w,h);
+}
+function resize(){ setSize(1); }
+window.addEventListener('resize',resize);
+resize();
+
+// ---------- Mouse ----------
+let mx=-9999,my=-9999,inside=false,ma=0;
+function setPos(e){ mx=e.clientX; my=e.clientY; inside=true; }
+window.addEventListener('pointermove',e=>{
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():null;
+  setPos(evs&&evs.length?evs[evs.length-1]:e);
+},{passive:true});
+document.documentElement.addEventListener('pointerleave',()=>{inside=false;});
+window.addEventListener('blur',()=>{inside=false;});
+const clicks=new Float32Array(32); let ci=0;
+canvas.addEventListener('pointerdown',e=>{
+  setPos(e);
+  if(!S.clickwave || S.cforce<=0) return;
+  clicks[ci*4]=e.clientX*PX; clicks[ci*4+1]=(innerHeight-e.clientY)*PX;
+  clicks[ci*4+2]=clk; clicks[ci*4+3]=S.cforce;
+  ci=(ci+1)%8;
+});
+
+// ---------- Loop ----------
+function hex(h){ return [1,3,5].map(i=>parseInt(h.substr(i,2),16)/255); }
+let Tt=0, clk=0, last=performance.now(), fpsT=0, fpsN=0, fps=60, lowCount=0, highCount=0;
+function render(){
+  gl.uniform2f(U.R,canvas.width,canvas.height);
+  gl.uniform1f(U.T,Tt); gl.uniform1f(U.CLK,clk);
+  gl.uniform2f(U.M,mx*PX,(innerHeight-my)*PX);
+  gl.uniform1f(U.MA,ma);
+  gl.uniform3fv(U.C1,hex(S.color1)); gl.uniform3fv(U.C2,hex(S.color2));
+  gl.uniform1f(U.AMP,S.amp); gl.uniform1f(U.FREQ,S.freq); gl.uniform1f(U.WID,S.width);
+  gl.uniform1f(U.SPREAD,S.spread); gl.uniform1f(U.GLOW,S.glow); gl.uniform1f(U.FOCUS,S.focus);
+  gl.uniform1f(U.TURB,S.turb); gl.uniform1f(U.ADH,S.adh); gl.uniform1f(U.RAD,S.radius);
+  gl.uniform1f(U.PX,PX); gl.uniform1f(U.CSPD,S.cspeed); gl.uniform1f(U.CDUR,S.cdur);
+  gl.uniform1i(U.N,Math.round(S.lines));
+  gl.uniform4fv(U.CL,clicks);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
+function frame(now){
+  let dt=(now-last)/1000; last=now; if(dt>0.1) dt=0.1;
+  if(!paused){ Tt+=dt*S.speed; clk+=dt; }
+  const target=(S.follow&&inside)?1:0;
+  ma+=(target-ma)*(1-Math.exp(-dt*8));
+  render();
+  fpsT+=dt; fpsN++;
+  if(fpsT>=0.5){
+    fps=fpsN/fpsT; fpsT=0; fpsN=0;
+    if(S.adaptive){
+      if(fps<45){ if(++lowCount>=2 && adaptScale>0.5){ adaptScale=Math.max(0.5,adaptScale*0.85); resize(); lowCount=0; } }
+      else { lowCount=0; if(fps>58 && adaptScale<1 && ++highCount>=6){ adaptScale=Math.min(1,adaptScale/0.9); resize(); highCount=0; } }
+    }
+    $('info').textContent=canvas.width+'×'+canvas.height+' · '+Math.round(fps)+' fps'+(adaptScale<1?' · ridotta '+Math.round(adaptScale*100)+'%':'');
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---------- PNG ----------
+function savePNG(mult){
+  setSize(mult); render();
+  const w=canvas.width,h=canvas.height;
+  canvas.toBlob(b=>{
+    const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+    a.download='onda_energetica_'+w+'x'+h+'.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  },'image/png');
+  resize(); render();
+}
+$('png').onclick=()=>savePNG(1);
+$('png2').onclick=()=>savePNG(2);
+})();
+</script>
+</body>
+</html>
