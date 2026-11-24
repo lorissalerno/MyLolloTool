@@ -32,7 +32,7 @@
 <body>
 <canvas id="c"></canvas>
 <div id="panel">
-  <h1><span>Simulazione di fluidi</span><button id="toggle" title="Mostra/nascondi">&minus;</button></h1>
+  <h1><span data-tk="title">Simulazione di fluidi</span><button id="toggle" title="Mostra/nascondi">&minus;</button></h1>
   <div id="body"></div>
 </div>
 <div id="hint">Muovi il mouse o trascina per muovere il fluido &middot; Spazio = pausa &middot; R = reset &middot; H = nascondi pannello</div>
@@ -63,16 +63,16 @@ var DEFAULTS = {
 var STORE_KEY = 'simulazioneFluidi.impostazioni.v1';
 
 var SLIDERS = [
-  { key: 'densityDissipation',  label: 'Dissipazione colore',            min: 0,    max: 4,     step: 0.05, dec: 2 },
-  { key: 'velocityDissipation', label: 'Dissipazione velocit\u00e0 (attrito)', min: 0, max: 4,   step: 0.05, dec: 2 },
-  { key: 'pressure',            label: 'Pressione',                      min: 0,    max: 1,     step: 0.01, dec: 2 },
-  { key: 'pressureIterations',  label: 'Iterazioni pressione',           min: 1,    max: 50,    step: 1,    dec: 0 },
-  { key: 'curl',                label: 'Vorticit\u00e0 (turbolenza)',    min: 0,    max: 50,    step: 1,    dec: 0 },
-  { key: 'splatRadius',         label: 'Raggio pennello',                min: 0.01, max: 1,     step: 0.01, dec: 2 },
-  { key: 'splatForce',          label: 'Forza',                          min: 100,  max: 10000, step: 100,  dec: 0 }
+  { key: 'densityDissipation',  tk: 'ddColor',    min: 0,    max: 4,     step: 0.05, dec: 2 },
+  { key: 'velocityDissipation', tk: 'ddVel',      min: 0,    max: 4,     step: 0.05, dec: 2 },
+  { key: 'pressure',            tk: 'pressure',   min: 0,    max: 1,     step: 0.01, dec: 2 },
+  { key: 'pressureIterations',  tk: 'pressureIt', min: 1,    max: 50,    step: 1,    dec: 0 },
+  { key: 'curl',                tk: 'curl',       min: 0,    max: 50,    step: 1,    dec: 0 },
+  { key: 'splatRadius',         tk: 'splatR',     min: 0.01, max: 1,     step: 0.01, dec: 2 },
+  { key: 'splatForce',          tk: 'splatF',      min: 100,  max: 10000, step: 100,  dec: 0 }
 ];
 var PALETTES = [
-  ['rainbow', 'Arcobaleno'], ['swisscom', 'Swisscom (blu)'], ['fire', 'Fuoco'], ['ice', 'Ghiaccio']
+  ['rainbow', 'palRainbow'], ['swisscom', 'palSwisscom'], ['fire', 'palFire'], ['ice', 'palIce']
 ];
 var DYE_RESOLUTIONS = [256, 512, 1024, 2048];
 var SIM_RESOLUTIONS = [64, 128, 256];
@@ -103,6 +103,77 @@ function saveSettings() {
 }
 var cfg = loadSettings();
 
+/* ---------- Lingua (chiave globale, come le altre pagine) ---------- */
+var LANG_KEY = 'mylollotool-lang';
+var LANGS = ['it', 'de', 'fr', 'en'];
+var T = {
+  title:      { it: 'Simulazione di fluidi', de: 'Fluid-Simulation', fr: 'Simulation de fluides', en: 'Fluid simulation' },
+  ddColor:    { it: 'Dissipazione colore', de: 'Farbdissipation', fr: 'Dissipation couleur', en: 'Color dissipation' },
+  ddVel:      { it: 'Dissipazione velocità (attrito)', de: 'Geschwindigkeitsdissipation (Reibung)', fr: 'Dissipation vitesse (frottement)', en: 'Velocity dissipation (friction)' },
+  pressure:   { it: 'Pressione', de: 'Druck', fr: 'Pression', en: 'Pressure' },
+  pressureIt: { it: 'Iterazioni pressione', de: 'Druckiterationen', fr: 'Itérations de pression', en: 'Pressure iterations' },
+  curl:       { it: 'Vorticità (turbolenza)', de: 'Wirbelstärke (Turbulenz)', fr: 'Vorticité (turbulence)', en: 'Vorticity (turbulence)' },
+  splatR:     { it: 'Raggio pennello', de: 'Pinselradius', fr: 'Rayon du pinceau', en: 'Brush radius' },
+  splatF:     { it: 'Forza', de: 'Stärke', fr: 'Force', en: 'Strength' },
+  palette:    { it: 'Palette', de: 'Palette', fr: 'Palette', en: 'Palette' },
+  palRainbow: { it: 'Arcobaleno', de: 'Regenbogen', fr: 'Arc-en-ciel', en: 'Rainbow' },
+  palSwisscom:{ it: 'Swisscom (blu)', de: 'Swisscom (blau)', fr: 'Swisscom (bleu)', en: 'Swisscom (blue)' },
+  palFire:    { it: 'Fuoco', de: 'Feuer', fr: 'Feu', en: 'Fire' },
+  palIce:     { it: 'Ghiaccio', de: 'Eis', fr: 'Glace', en: 'Ice' },
+  dyeRes:     { it: 'Risoluzione colore', de: 'Farbauflösung', fr: 'Résolution couleur', en: 'Color resolution' },
+  simRes:     { it: 'Risoluzione simulazione', de: 'Simulationsauflösung', fr: 'Résolution simulation', en: 'Simulation resolution' },
+  shading:    { it: 'Effetto rilievo', de: 'Reliefeffekt', fr: 'Effet relief', en: 'Emboss effect' },
+  autoJets:   { it: 'Getti automatici', de: 'Automatische Strahlen', fr: 'Jets automatiques', en: 'Auto jets' },
+  pause:      { it: 'Pausa', de: 'Pause', fr: 'Pause', en: 'Pause' },
+  resume:     { it: 'Riprendi', de: 'Fortsetzen', fr: 'Reprendre', en: 'Resume' },
+  explosion:  { it: 'Esplosione', de: 'Explosion', fr: 'Explosion', en: 'Explosion' },
+  reset:      { it: 'Reset', de: 'Zurücksetzen', fr: 'Réinitialiser', en: 'Reset' },
+  savePng:    { it: 'Salva PNG', de: 'PNG speichern', fr: 'Enregistrer PNG', en: 'Save PNG' },
+  defaults:   { it: 'Ripristina valori predefiniti', de: 'Standardwerte wiederherstellen', fr: 'Restaurer les valeurs par défaut', en: 'Restore defaults' },
+  hide:       { it: 'Nascondi', de: 'Ausblenden', fr: 'Masquer', en: 'Hide' },
+  note:       { it: 'Le impostazioni vengono salvate automaticamente.', de: 'Die Einstellungen werden automatisch gespeichert.', fr: 'Les réglages sont enregistrés automatiquement.', en: 'Settings are saved automatically.' },
+  hint:       { it: 'Muovi il mouse o trascina per muovere il fluido · Spazio = pausa · R = reset · H = nascondi pannello',
+                de: 'Maus bewegen oder ziehen, um das Fluid zu bewegen · Leertaste = Pause · R = Zurücksetzen · H = Bedienfeld ausblenden',
+                fr: 'Bouge la souris ou glisse pour déplacer le fluide · Espace = pause · R = réinitialiser · H = masquer le panneau',
+                en: 'Move the mouse or drag to move the fluid · Space = pause · R = reset · H = hide panel' },
+  showPanel:  { it: 'Mostra pannello', de: 'Bedienfeld anzeigen', fr: 'Afficher le panneau', en: 'Show panel' },
+  errWebGL2:  { it: 'Questo browser non supporta WebGL2: la simulazione non può partire.',
+                de: 'Dieser Browser unterstützt kein WebGL2: Die Simulation kann nicht starten.',
+                fr: 'Ce navigateur ne prend pas en charge WebGL2 : la simulation ne peut pas démarrer.',
+                en: 'This browser does not support WebGL2: the simulation cannot start.' },
+  errFloat:   { it: 'Questo dispositivo non supporta le texture a virgola mobile (EXT_color_buffer_float).',
+                de: 'Dieses Gerät unterstützt keine Fließkomma-Texturen (EXT_color_buffer_float).',
+                fr: 'Cet appareil ne prend pas en charge les textures à virgule flottante (EXT_color_buffer_float).',
+                en: 'This device does not support floating-point textures (EXT_color_buffer_float).' },
+  errRender:  { it: 'Questo dispositivo non può renderizzare su texture a 16 bit.',
+                de: 'Dieses Gerät kann nicht auf 16-Bit-Texturen rendern.',
+                fr: 'Cet appareil ne peut pas rendre sur des textures 16 bits.',
+                en: 'This device cannot render to 16-bit textures.' }
+};
+var curLang = 'it';
+try { var _g = localStorage.getItem(LANG_KEY); if (LANGS.indexOf(_g) >= 0) curLang = _g; } catch (e) {}
+function t(k) { var e = T[k]; return (!e ? k : (e[curLang] || e.it || k)); }
+var langUpdaters = [];
+var uiReady = false;
+function applyLang(l) {
+  if (!uiReady) return;
+  if (LANGS.indexOf(l) >= 0) curLang = l;
+  document.documentElement.lang = curLang;
+  try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
+  document.title = t('title');
+  var nodes = document.querySelectorAll('[data-tk]');
+  for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t(nodes[i].getAttribute('data-tk'));
+  langUpdaters.forEach(function (f) { f(); });
+  hint.textContent = t('hint');
+  showPanelBtn.title = t('showPanel');
+}
+window.addEventListener('message', function (e) {
+  if (e && e.data && e.data.type === LANG_KEY && LANGS.indexOf(e.data.lang) >= 0) applyLang(e.data.lang);
+});
+window.addEventListener('storage', function (e) {
+  if (e.key === LANG_KEY && LANGS.indexOf(e.newValue) >= 0) applyLang(e.newValue);
+});
+
 /* ---------- WebGL ---------- */
 var canvas = document.getElementById('c');
 var errBox = document.getElementById('err');
@@ -114,10 +185,10 @@ function fatal(msg) {
   document.getElementById('hint').style.display = 'none';
 }
 var gl = canvas.getContext('webgl2', { alpha: false, depth: false, stencil: false, antialias: false, preserveDrawingBuffer: false });
-if (!gl) { fatal('Questo browser non supporta WebGL2: la simulazione non pu\u00f2 partire.'); return; }
+if (!gl) { fatal(t('errWebGL2')); return; }
 var extCBF = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
 gl.getExtension('OES_texture_float_linear');
-if (!extCBF) { fatal('Questo dispositivo non supporta le texture a virgola mobile (EXT_color_buffer_float).'); return; }
+if (!extCBF) { fatal(t('errFloat')); return; }
 
 function supportsRT(internal, format) {
   var t = gl.createTexture();
@@ -137,7 +208,7 @@ function supportsRT(internal, format) {
 var FMT_RGBA = { i: gl.RGBA16F, f: gl.RGBA };
 var FMT_RG = supportsRT(gl.RG16F, gl.RG) ? { i: gl.RG16F, f: gl.RG } : FMT_RGBA;
 var FMT_R = supportsRT(gl.R16F, gl.RED) ? { i: gl.R16F, f: gl.RED } : FMT_RGBA;
-if (!supportsRT(FMT_RGBA.i, FMT_RGBA.f)) { fatal('Questo dispositivo non pu\u00f2 renderizzare su texture a 16 bit.'); return; }
+if (!supportsRT(FMT_RGBA.i, FMT_RGBA.f)) { fatal(t('errRender')); return; }
 
 function compile(type, src) {
   var s = gl.createShader(type);
@@ -492,7 +563,7 @@ function fmt(v, dec) { return Number(v).toFixed(dec); }
 SLIDERS.forEach(function (d) {
   var row = document.createElement('div'); row.className = 'row';
   var lab = document.createElement('label');
-  var name = document.createElement('span'); name.textContent = d.label;
+  var name = document.createElement('span'); name.setAttribute('data-tk', d.tk); name.textContent = t(d.tk);
   var val = document.createElement('span');
   lab.appendChild(name); lab.appendChild(val);
   var inp = document.createElement('input');
@@ -506,12 +577,15 @@ SLIDERS.forEach(function (d) {
   row.appendChild(lab); row.appendChild(inp); body.appendChild(row);
 });
 
-function addSelect(label, key, options, isNumber, onChange) {
+function addSelect(labelKey, key, options, isNumber, onChange, translate) {
   var row = document.createElement('div'); row.className = 'row';
-  var lab = document.createElement('label'); lab.textContent = label;
+  var lab = document.createElement('label'); lab.setAttribute('data-tk', labelKey); lab.textContent = t(labelKey);
   var sel = document.createElement('select');
   options.forEach(function (o) {
-    var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+    var op = document.createElement('option'); op.value = o[0]; op.textContent = translate ? t(o[1]) : o[1]; sel.appendChild(op);
+  });
+  if (translate) langUpdaters.push(function () {
+    for (var i = 0; i < sel.options.length; i++) sel.options[i].textContent = t(options[i][1]);
   });
   sel.addEventListener('change', function () {
     cfg[key] = isNumber ? parseInt(sel.value, 10) : sel.value;
@@ -521,42 +595,45 @@ function addSelect(label, key, options, isNumber, onChange) {
   uiUpdaters.push(function () { sel.value = String(cfg[key]); });
   row.appendChild(lab); row.appendChild(sel); body.appendChild(row);
 }
-addSelect('Palette', 'palette', PALETTES, false);
-addSelect('Risoluzione colore', 'dyeRes', DYE_RESOLUTIONS.map(function (v) { return [v, v]; }), true, initFramebuffers);
-addSelect('Risoluzione simulazione', 'simRes', SIM_RESOLUTIONS.map(function (v) { return [v, v]; }), true, initFramebuffers);
+addSelect('palette', 'palette', PALETTES, false, null, true);
+addSelect('dyeRes', 'dyeRes', DYE_RESOLUTIONS.map(function (v) { return [v, v]; }), true, initFramebuffers);
+addSelect('simRes', 'simRes', SIM_RESOLUTIONS.map(function (v) { return [v, v]; }), true, initFramebuffers);
 
-function addCheck(label, key) {
+function addCheck(labelKey, key) {
   var l = document.createElement('label'); l.className = 'chk';
   var c = document.createElement('input'); c.type = 'checkbox';
   c.addEventListener('change', function () { cfg[key] = c.checked; saveSettings(); });
   uiUpdaters.push(function () { c.checked = !!cfg[key]; });
-  l.appendChild(c); l.appendChild(document.createTextNode(label)); body.appendChild(l);
+  var s = document.createElement('span'); s.setAttribute('data-tk', labelKey); s.textContent = t(labelKey);
+  l.appendChild(c); l.appendChild(s); body.appendChild(l);
 }
-addCheck('Effetto rilievo', 'shading');
-addCheck('Getti automatici', 'autoJets');
+addCheck('shading', 'shading');
+addCheck('autoJets', 'autoJets');
 
 var btns = document.createElement('div'); btns.className = 'btns';
-function addBtn(label, cls, fn) {
-  var b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls;
+function addBtn(labelKey, cls, fn) {
+  var b = document.createElement('button'); b.setAttribute('data-tk', labelKey); b.textContent = t(labelKey); if (cls) b.className = cls;
   b.addEventListener('click', fn); btns.appendChild(b); return b;
 }
-var pauseBtn = addBtn('Pausa', '', togglePause);
-addBtn('Esplosione', '', function () { explosion(); hideHint(); });
-addBtn('Reset', 'alt', function () { clearAll(); });
-addBtn('Salva PNG', 'alt', function () { wantShot = true; });
-addBtn('Nascondi', 'alt', function () { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
-addBtn('Ripristina valori predefiniti', 'alt wide', function () {
+var pauseBtn = addBtn('pause', '', togglePause);
+langUpdaters.push(function () { pauseBtn.textContent = t(paused ? 'resume' : 'pause'); });
+addBtn('explosion', '', function () { explosion(); hideHint(); });
+addBtn('reset', 'alt', function () { clearAll(); });
+addBtn('savePng', 'alt', function () { wantShot = true; });
+addBtn('hide', 'alt', function () { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
+addBtn('defaults', 'alt wide', function () {
   for (var k in DEFAULTS) cfg[k] = DEFAULTS[k];
   refreshUI(); saveSettings(); initFramebuffers();
 });
 body.appendChild(btns);
 var note = document.createElement('div'); note.id = 'note';
-note.textContent = 'Le impostazioni vengono salvate automaticamente.';
+note.setAttribute('data-tk', 'note');
+note.textContent = t('note');
 body.appendChild(note);
 
 function togglePause() {
   paused = !paused;
-  pauseBtn.textContent = paused ? 'Riprendi' : 'Pausa';
+  pauseBtn.textContent = t(paused ? 'resume' : 'pause');
 }
 function applyCollapsed() {
   body.classList.toggle('hidden', !!cfg.collapsed);
@@ -574,6 +651,8 @@ function togglePanelHidden() { cfg.panelHidden = !cfg.panelHidden; applyPanelHid
 toggleBtn.addEventListener('click', function () { cfg.collapsed = !cfg.collapsed; applyCollapsed(); saveSettings(); });
 function refreshUI() { uiUpdaters.forEach(function (f) { f(); }); applyCollapsed(); applyPanelHidden(); }
 refreshUI();
+uiReady = true;
+applyLang(curLang);
 
 window.addEventListener('keydown', function (e) {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
