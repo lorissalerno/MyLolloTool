@@ -149,8 +149,10 @@ html[data-theme="white"] #stot small.has{color:#2B6CB0}
 @media (max-width:480px){#toasts{left:14px}.toast{max-width:none}}
 .nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .nav[hidden]{display:none}
-/* Barra superiore fissa: titolo + pulsanti restano inchiodati, scorrono solo le settimane sotto */
-.topbar{position:sticky;top:0;z-index:60;background:var(--bg);padding-bottom:12px}
+/* Barra superiore fissa: titolo + pulsanti restano inchiodati, scorrono solo le settimane sotto.
+   margin-top negativo + padding-top compensano il padding-top di .wrap (14px): senza,
+   allo stick la testata salta verso l'alto di 14px */
+.topbar{position:sticky;top:0;z-index:60;background:var(--bg);margin-top:-14px;padding-top:14px;padding-bottom:12px}
 .topbar.stuck{box-shadow:0 8px 18px rgba(0,0,0,.22)}
 .topbar .nav{margin-bottom:0}
 #prev{flex:1;min-width:0;height:38px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);color:var(--muted);border:1px solid var(--line);border-radius:4px;font-size:13px;font-weight:600;padding:0 14px}
