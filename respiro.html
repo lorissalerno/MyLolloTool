@@ -87,10 +87,11 @@
   const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
 
   /* ---------- impostazioni persistenti (come le altre pagine antistress) ---------- */
+  const SOUND_TYPES = ['drone', 'sea', 'rain', 'wind'];
   const DEFAULTS = {
     brightness:.7, thick:1.6, trail:.05, speed:1, density:1,
     hoverR:170, repelR:260, repelF:7,
-    palette:0, sound:false, breath:false,
+    palette:0, sound:false, soundType:'drone', volume:70, breath:false,
     collapsed:false, panelHidden:false
   };
   const STORE_KEY = 'respiro.impostazioni.v1';
@@ -117,6 +118,8 @@
     } catch (e) {}
     SLIDERS.forEach(d => { s[d.key] = Math.min(d.max, Math.max(d.min, s[d.key])); });
     s.palette = (s.palette | 0) % pal.length; if (s.palette < 0) s.palette = 0;
+    if (!SOUND_TYPES.includes(s.soundType)) s.soundType = 'drone';
+    s.volume = Math.min(100, Math.max(0, s.volume | 0));
     return s;
   }
   function saveSettings() { try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); } catch (e) {} }
@@ -125,7 +128,7 @@
   let palSel = null, breathChk = null, soundChk = null;
   function syncPalSel() { if (palSel) palSel.value = String(cfg.palette); }
 
-  let W, H, dpr, ps = [], ripples = [];
+  let W, H, dpr, ps = [];
   const ptr = { x:0, y:0, on:false, down:false };
 
   function fillBg() {
@@ -172,7 +175,6 @@
     ptr.down = true;
     try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     move(e);
-    ripples.push({ x:e.clientX, y:e.clientY, r:0, c:Math.random() * 4 | 0 });
     if (soundOn && !ac) startAudio();
     bell();
   });
@@ -227,16 +229,6 @@
       ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
     }
 
-    for (let i = ripples.length - 1; i >= 0; i--) {
-      const rp = ripples[i];
-      rp.r += dt * .09 * SP;
-      const k = 1 - rp.r / 260;
-      if (k <= 0) { ripples.splice(i, 1); continue; }
-      ctx.strokeStyle = `rgba(${cols[rp.c % cols.length]},${k * .8})`;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2); ctx.stroke();
-    }
-
     breathe(now);
     requestAnimationFrame(frame);
   }
@@ -257,30 +249,84 @@
   }
 
   /* ---------- suono (generato, nessun file esterno) ---------- */
-  let ac, master, soundOn = false;
-  function startAudio() {
+  let ac, master, soundOn = false, audioGen = 0;
+  let ambNodes = [];
+  let noiseBuf = null;
+  const volGain = () => (cfg.volume | 0) / 100;
+  function ensureAudio() {
     if (!ac) {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       master = ac.createGain(); master.gain.value = 0;
-      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
-      master.connect(lp); lp.connect(ac.destination);
+      master.connect(ac.destination);
+      const len = ac.sampleRate * 2;
+      noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ac.state === 'suspended') ac.resume();
+  }
+  function track(n) { ambNodes.push(n); return n; }
+  function stopAmbience() {
+    ambNodes.forEach(n => { try { if (n.stop) n.stop(); } catch (e) {} try { n.disconnect(); } catch (e) {} });
+    ambNodes = [];
+  }
+  function lfo(freq, amount, param) {
+    const o = ac.createOscillator(); o.frequency.value = freq;
+    const g = ac.createGain(); g.gain.value = amount;
+    o.connect(g); g.connect(param); o.start();
+    track(o); track(g);
+  }
+  function noiseSrc() {
+    const s = ac.createBufferSource(); s.buffer = noiseBuf; s.loop = true; s.start();
+    return track(s);
+  }
+  function filt(type, freq, q) {
+    const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq;
+    if (q) f.Q.value = q;
+    return track(f);
+  }
+  function ambGain(v) {
+    const g = ac.createGain(); g.gain.value = v;
+    return track(g);
+  }
+  function buildAmbience(type) {
+    stopAmbience();
+    if (type === 'sea') {
+      const lp = filt('lowpass', 520), g = ambGain(.38);
+      noiseSrc().connect(lp); lp.connect(g); g.connect(master);
+      lfo(.1, 260, lp.frequency); lfo(.07, .18, g.gain);
+    } else if (type === 'rain') {
+      const hp = filt('highpass', 1600), g = ambGain(.15);
+      noiseSrc().connect(hp); hp.connect(g); g.connect(master);
+      const lp = filt('lowpass', 350), g2 = ambGain(.1);
+      noiseSrc().connect(lp); lp.connect(g2); g2.connect(master);
+      lfo(.06, .05, g2.gain);
+    } else if (type === 'wind') {
+      const bp = filt('bandpass', 450, .7), g = ambGain(.3);
+      noiseSrc().connect(bp); bp.connect(g); g.connect(master);
+      lfo(.06, 260, bp.frequency); lfo(.13, 120, bp.frequency); lfo(.045, .12, g.gain);
+    } else {
+      const lp = filt('lowpass', 700);
+      lp.connect(master);
       [110, 164.81, 220, 277.18, 329.63].forEach((f, i) => {
         const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f;
         const g = ac.createGain(); g.gain.value = .5 / (i + 1.5);
-        const l = ac.createOscillator(); l.frequency.value = .05 + i * .03;
-        const lg = ac.createGain(); lg.gain.value = g.gain.value * .6;
-        l.connect(lg); lg.connect(g.gain);
-        o.connect(g); g.connect(master);
-        o.start(); l.start();
+        o.connect(g); g.connect(lp); o.start();
+        track(o); track(g);
+        lfo(.05 + i * .03, g.gain.value * .6, g.gain);
       });
     }
-    ac.resume();
-    master.gain.cancelScheduledValues(ac.currentTime);
-    master.gain.linearRampToValueAtTime(.18, ac.currentTime + 3);
+  }
+  function startAudio() {
+    ensureAudio(); audioGen++;
+    buildAmbience(cfg.soundType);
+    master.gain.setTargetAtTime(volGain(), ac.currentTime, 1.0);
   }
   function stopAudio() {
-    master.gain.cancelScheduledValues(ac.currentTime);
-    master.gain.linearRampToValueAtTime(0, ac.currentTime + 1.5);
+    if (!ac) return;
+    const gen = ++audioGen;
+    master.gain.setTargetAtTime(0, ac.currentTime, .4);
+    setTimeout(() => { if (gen === audioGen && !soundOn) stopAmbience(); }, 2000);
   }
   function bell() {
     if (!soundOn || !ac) return;
@@ -290,7 +336,7 @@
     g.gain.setValueAtTime(.0001, ac.currentTime);
     g.gain.exponentialRampToValueAtTime(.12, ac.currentTime + .03);
     g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + 3.2);
-    o.connect(g); g.connect(ac.destination);
+    o.connect(g); g.connect(master);
     o.start(); o.stop(ac.currentTime + 3.3);
   }
 
@@ -326,7 +372,7 @@
   $('bBreath').onclick = () => { setBreath(!breathOn); wake(); };
   $('bSound').onclick = () => { setSound(!soundOn); wake(); };
   $('bColor').onclick = () => { setPal(pi + 1); wake(); };
-  $('bClear').onclick = () => { fillBg(); ripples = []; wake(); };
+  $('bClear').onclick = () => { fillBg(); wake(); };
   $('bSave').onclick = () => {
     cv.toBlob(b => {
       const a = document.createElement('a');
@@ -349,6 +395,12 @@
                en: 'Move your finger across the screen.<br>You don’t need to do anything.' },
     breath:  { it: 'Respira', de: 'Atmen', fr: 'Respirer', en: 'Breathe' },
     sound:   { it: 'Suono', de: 'Klang', fr: 'Son', en: 'Sound' },
+    soundType:{ it: 'Tipo di suono', de: 'Klangart', fr: 'Type de son', en: 'Sound type' },
+    volume:  { it: 'Volume', de: 'Lautstärke', fr: 'Volume', en: 'Volume' },
+    snd_drone:{ it: 'Bordone', de: 'Bordun', fr: 'Bourdon', en: 'Drone' },
+    snd_sea: { it: 'Mare', de: 'Meer', fr: 'Mer', en: 'Sea' },
+    snd_rain:{ it: 'Pioggia', de: 'Regen', fr: 'Pluie', en: 'Rain' },
+    snd_wind:{ it: 'Vento', de: 'Wind', fr: 'Vent', en: 'Wind' },
     colors:  { it: 'Colori', de: 'Farben', fr: 'Couleurs', en: 'Colors' },
     clear:   { it: 'Svuota', de: 'Leeren', fr: 'Effacer', en: 'Clear' },
     save:    { it: 'Salva immagine', de: 'Bild speichern', fr: 'Enregistrer l’image', en: 'Save image' },
@@ -451,6 +503,41 @@
     row.appendChild(lab); row.appendChild(sel); pbody.appendChild(row);
   }
 
+  {
+    const row = document.createElement('div'); row.className = 'row';
+    const lab = document.createElement('label'); lab.setAttribute('data-tk', 'soundType'); lab.textContent = tr('soundType');
+    const sel = document.createElement('select');
+    SOUND_TYPES.forEach(k => { const op = document.createElement('option'); op.value = k; op.textContent = tr('snd_' + k); sel.appendChild(op); });
+    sel.value = cfg.soundType;
+    langUpdaters.push(() => { [...sel.options].forEach(op => { op.textContent = tr('snd_' + op.value); }); });
+    sel.addEventListener('change', () => {
+      cfg.soundType = SOUND_TYPES.includes(sel.value) ? sel.value : 'drone';
+      saveSettings();
+      if (soundOn) startAudio();
+      toast(tr('snd_' + cfg.soundType)); wake();
+    });
+    uiUpdaters.push(() => { sel.value = cfg.soundType; });
+    row.appendChild(lab); row.appendChild(sel); pbody.appendChild(row);
+  }
+
+  {
+    const row = document.createElement('div'); row.className = 'row';
+    const lab = document.createElement('label');
+    const name = document.createElement('span'); name.setAttribute('data-tk', 'volume'); name.textContent = tr('volume');
+    const val = document.createElement('span'); val.textContent = String(cfg.volume | 0);
+    lab.appendChild(name); lab.appendChild(val);
+    const inp = document.createElement('input');
+    inp.type = 'range'; inp.min = 0; inp.max = 100; inp.step = 1; inp.value = cfg.volume;
+    inp.addEventListener('input', () => {
+      cfg.volume = Math.min(100, Math.max(0, parseInt(inp.value, 10) || 0));
+      val.textContent = String(cfg.volume);
+      if (ac && soundOn) master.gain.setTargetAtTime(volGain(), ac.currentTime, .2);
+      saveSettings();
+    });
+    uiUpdaters.push(() => { inp.value = cfg.volume; val.textContent = String(cfg.volume); });
+    row.appendChild(lab); row.appendChild(inp); pbody.appendChild(row);
+  }
+
   function addCheck(labelKey, get, set) {
     const l = document.createElement('label'); l.className = 'chk';
     const c = document.createElement('input'); c.type = 'checkbox'; c.checked = get();
@@ -470,7 +557,7 @@
     b.addEventListener('click', () => { fn(); wake(); });
     btns.appendChild(b); return b;
   }
-  addBtn('clear', '', () => { fillBg(); ripples = []; });
+  addBtn('clear', '', () => { fillBg(); });
   addBtn('save', '', () => $('bSave').click());
   addBtn('hide', '', () => { cfg.panelHidden = true; applyPanelHidden(); saveSettings(); });
   addBtn('defaults', 'wide', () => {
