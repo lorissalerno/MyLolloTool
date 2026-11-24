@@ -356,7 +356,7 @@ const isTrain=n=>/training/i.test(n);
 const isMeet=n=>/meeting/i.test(n);
 const isExtra=n=>/overtime|\[up\]/i.test(n);
 const isRecup=n=>/compensation\s*spl/i.test(n);
-const isVac=n=>/vacation|corporate\s+volunteer|ferien|vacanza/i.test(n);
+const isVac=n=>/vacation|holiday|bank\s*holiday|corporate\s+volunteer|ferien|feiertag|vacanza|vacanze|ferie|festiv|férié|congedo/i.test(n);
 const cls=n=>isPause(n)?'pause':isOffice(n)?'off':isTrain(n)?'train':isMeet(n)?'meet':isExtra(n)?'extra':isRecup(n)?'recup':'shift';
 const visSe=t=>(t.segs||[]);
 const effSE=t=>{const v=visSe(t);return v.length?[v[0].s,Math.max(...v.map(x=>x.e))]:[t.s,t.e];};
