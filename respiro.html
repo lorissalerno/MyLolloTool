@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Respiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0f1d33; --ink:#e8eef7; --soft:rgba(232,238,247,.62); --line:rgba(232,238,247,.22); }
+  * { box-sizing:border-box; margin:0; }
+  html, body { height:100%; background:var(--bg); overflow:hidden; transition:background 2s; }
+  body { font-family:"Cormorant Garamond", Georgia, "Times New Roman", serif; color:var(--ink); touch-action:none; -webkit-user-select:none; user-select:none; }
+  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+
+  #hint { position:fixed; inset:0; display:grid; place-items:center; text-align:center; padding:2rem; pointer-events:none; transition:opacity 2.5s ease; }
+  #hint p { font-size:clamp(1.6rem, 4.6vw, 2.8rem); font-style:italic; line-height:1.35; max-width:22ch; text-shadow:0 0 30px rgba(0,0,0,.35); }
+  #hint.gone { opacity:0; }
+
+  #breath { position:fixed; left:50%; bottom:calc(6.5rem + env(safe-area-inset-bottom, 0px)); width:150px; height:150px; margin-left:-75px; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity 1.2s; }
+  #breath.on { opacity:1; }
+  #breath i { position:absolute; inset:0; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle, rgba(232,238,247,.16), rgba(232,238,247,.02) 70%); transform:scale(.55); will-change:transform; }
+  #breath span { position:relative; font-size:1.35rem; font-style:italic; }
+
+  #ui { position:fixed; left:0; right:0; bottom:0; padding:1rem 1rem calc(1.2rem + env(safe-area-inset-bottom, 0px)); display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; transition:opacity 1.6s ease; }
+  #ui.idle:not(:focus-within) { opacity:0; }
+  #ui button { font:inherit; font-size:1.1rem; color:var(--ink); background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:999px; padding:.45rem 1.1rem; cursor:pointer; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:background .3s, border-color .3s; }
+  #ui button:hover { background:rgba(255,255,255,.14); }
+  #ui button[aria-pressed="true"] { background:rgba(255,255,255,.2); border-color:var(--soft); }
+  #ui button:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  #toast { position:fixed; top:calc(1.2rem + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%); font-style:italic; font-size:1.2rem; color:var(--soft); opacity:0; transition:opacity .8s; pointer-events:none; }
+  #toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Tela artistica interattiva: muovi il dito o il mouse per disegnare con il colore"></canvas>
+
+<div id="hint"><p>Muovi il dito sullo schermo.<br>Non serve fare niente.</p></div>
+<div id="breath" aria-live="polite"><i></i><span>Inspira</span></div>
+<div id="toast"></div>
+
+<nav id="ui" aria-label="Controlli">
+  <button id="bBreath" aria-pressed="false">Respira</button>
+  <button id="bSound" aria-pressed="false">Suono</button>
+  <button id="bColor">Colori</button>
+  <button id="bClear">Svuota</button>
+  <button id="bSave">Salva immagine</button>
+</nav>
+
+<script>
+(() => {
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const root = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SP = reduce ? 0.45 : 1;
+
+  const pal = [
+    { name:'Laguna',    bg:'#0f1d33', cols:['#8fd3c1','#b8a9d9','#f3c58b','#7fb2e5'] },
+    { name:'Aurora',    bg:'#0d2a2a', cols:['#a8e6a1','#5fd0c8','#c7a6f2','#f5e6a1'] },
+    { name:'Tramonto',  bg:'#2a1a33', cols:['#f2a38c','#f7c6a0','#d78fc2','#8e9be0'] },
+    { name:'Inchiostro',bg:'#14161c', cols:['#e8eef7','#9fb4d0','#6f87aa','#c9d6e8'] }
+  ];
+  const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
+  let pi = 0, bg = hex(pal[0].bg), cols = pal[0].cols.map(hex);
+
+  let W, H, dpr, ps = [], ripples = [];
+  const ptr = { x:0, y:0, on:false };
+
+  function fillBg() {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = pal[pi].bg;
+    ctx.fillRect(0, 0, W, H);
+  }
+  function resize() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fillBg();
+    const n = Math.min(1000, Math.floor(W * H / 1700));
+    ps = Array.from({ length:n }, () => spawn({}));
+  }
+  function spawn(p, x, y) {
+    p.x = x ?? Math.random() * W; p.y = y ?? Math.random() * H;
+    p.px = p.x; p.py = p.y;
+    p.life = 220 + Math.random() * 420;
+    p.ci = Math.random() * 4 | 0;
+    p.s = .6 + Math.random() * .7;
+    return p;
+  }
+  function setPal(i) {
+    pi = i % pal.length;
+    bg = hex(pal[pi].bg); cols = pal[pi].cols.map(hex);
+    root.style.setProperty('--bg', pal[pi].bg);
+    toast(pal[pi].name);
+  }
+
+  /* ---------- puntatore ---------- */
+  const R = 170;
+  function move(e) {
+    ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true;
+    for (let i = 0; i < 3; i++) {
+      const p = ps[Math.random() * ps.length | 0];
+      spawn(p, ptr.x + (Math.random() - .5) * 60, ptr.y + (Math.random() - .5) * 60);
+    }
+    wake(); dismissHint();
+  }
+  cv.addEventListener('pointermove', move);
+  cv.addEventListener('pointerdown', e => {
+    move(e);
+    ripples.push({ x:e.clientX, y:e.clientY, r:0, c:Math.random() * 4 | 0 });
+    bell();
+  });
+  const off = e => { if (e.pointerType !== 'mouse') ptr.on = false; };
+  cv.addEventListener('pointerup', off);
+  cv.addEventListener('pointercancel', off);
+  cv.addEventListener('pointerleave', () => ptr.on = false);
+
+  /* ---------- ciclo di disegno ---------- */
+  let last = performance.now(), t = 0;
+  function frame(now) {
+    const dt = Math.min(50, now - last); last = now;
+    t += dt * 0.00006 * SP;
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `rgba(${bg},0.05)`;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+
+    for (const p of ps) {
+      const a = (Math.sin(p.x * .0035 + t * 7) + Math.sin(p.y * .0042 - t * 5) + Math.sin((p.x - p.y) * .0028 + t * 3)) * 1.7;
+      let vx = Math.cos(a), vy = Math.sin(a);
+      if (ptr.on) {
+        const dx = p.x - ptr.x, dy = p.y - ptr.y, d = Math.hypot(dx, dy) + .001;
+        if (d < R) {
+          const f = 1 - d / R;
+          vx += (-dy / d) * f * 2.4 + (dx / d) * f * .6;
+          vy += ( dx / d) * f * 2.4 + (dy / d) * f * .6;
+        }
+      }
+      p.px = p.x; p.py = p.y;
+      p.x += vx * p.s * 1.1 * SP; p.y += vy * p.s * 1.1 * SP;
+      p.life--;
+      if (p.life <= 0 || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) { spawn(p); continue; }
+      ctx.strokeStyle = `rgba(${cols[p.ci % cols.length]},.3)`;
+      ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const rp = ripples[i];
+      rp.r += dt * .09 * SP;
+      const k = 1 - rp.r / 260;
+      if (k <= 0) { ripples.splice(i, 1); continue; }
+      ctx.strokeStyle = `rgba(${cols[rp.c % cols.length]},${k * .55})`;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    breathe(now);
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- respirazione 4 - 4 - 6 ---------- */
+  const bEl = document.getElementById('breath'), bCircle = bEl.querySelector('i'), bText = bEl.querySelector('span');
+  let breathOn = false, bStart = 0, lastPhase = '';
+  const ease = x => .5 - Math.cos(Math.PI * x) / 2;
+  function breathe(now) {
+    if (!breathOn) return;
+    const s = ((now - bStart) / 1000) % 14;
+    let scale, label;
+    if (s < 4)      { scale = .55 + .45 * ease(s / 4);        label = 'Inspira'; }
+    else if (s < 8) { scale = 1;                              label = 'Trattieni'; }
+    else            { scale = 1 - .45 * ease((s - 8) / 6);    label = 'Espira'; }
+    bCircle.style.transform = `scale(${scale})`;
+    if (label !== lastPhase) { bText.textContent = label; lastPhase = label; }
+  }
+
+  /* ---------- suono (generato, nessun file esterno) ---------- */
+  let ac, master, soundOn = false;
+  function startAudio() {
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
+      master.connect(lp); lp.connect(ac.destination);
+      [110, 164.81, 220, 277.18, 329.63].forEach((f, i) => {
+        const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.value = .5 / (i + 1.5);
+        const l = ac.createOscillator(); l.frequency.value = .05 + i * .03;
+        const lg = ac.createGain(); lg.gain.value = g.gain.value * .6;
+        l.connect(lg); lg.connect(g.gain);
+        o.connect(g); g.connect(master);
+        o.start(); l.start();
+      });
+    }
+    ac.resume();
+    master.gain.cancelScheduledValues(ac.currentTime);
+    master.gain.linearRampToValueAtTime(.18, ac.currentTime + 3);
+  }
+  function stopAudio() {
+    master.gain.cancelScheduledValues(ac.currentTime);
+    master.gain.linearRampToValueAtTime(0, ac.currentTime + 1.5);
+  }
+  function bell() {
+    if (!soundOn) return;
+    const f = [440, 493.88, 554.37, 659.25, 739.99, 880][Math.random() * 6 | 0];
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.12, ac.currentTime + .03);
+    g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + 3.2);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + 3.3);
+  }
+
+  /* ---------- interfaccia ---------- */
+  const ui = document.getElementById('ui'), hint = document.getElementById('hint'), toastEl = document.getElementById('toast');
+  let idleT, toastT;
+  function wake() { ui.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => ui.classList.add('idle'), 4000); }
+  function dismissHint() { hint.classList.add('gone'); }
+  function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1800); }
+  setTimeout(dismissHint, 9000);
+  addEventListener('keydown', wake);
+
+  const $ = id => document.getElementById(id);
+  $('bBreath').onclick = e => {
+    breathOn = !breathOn; bStart = performance.now();
+    bEl.classList.toggle('on', breathOn);
+    e.currentTarget.setAttribute('aria-pressed', breathOn);
+    wake();
+  };
+  $('bSound').onclick = e => {
+    soundOn = !soundOn;
+    soundOn ? startAudio() : stopAudio();
+    e.currentTarget.setAttribute('aria-pressed', soundOn);
+    wake();
+  };
+  $('bColor').onclick = () => { setPal(pi + 1); wake(); };
+  $('bClear').onclick = () => { fillBg(); ripples = []; wake(); };
+  $('bSave').onclick = () => {
+    cv.toBlob(b => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = 'respiro.png';
+      a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast('Immagine salvata');
+    });
+    wake();
+  };
+
+  addEventListener('resize', resize);
+  resize(); wake();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
