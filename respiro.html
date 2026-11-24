@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#0f1d33; --ink:#e8eef7; --soft:rgba(232,238,247,.62); --line:rgba(232,238,247,.22); }
+  :root { --bg:#000000; --ink:#e8eef7; --soft:rgba(232,238,247,.62); --line:rgba(232,238,247,.22); }
   * { box-sizing:border-box; margin:0; }
   html, body { height:100%; background:var(--bg); overflow:hidden; transition:background 2s; }
   body { font-family:"Cormorant Garamond", Georgia, "Times New Roman", serif; color:var(--ink); touch-action:none; -webkit-user-select:none; user-select:none; }
@@ -56,16 +56,16 @@
   const SP = reduce ? 0.45 : 1;
 
   const pal = [
-    { tk:'laguna',    bg:'#0f1d33', cols:['#8fd3c1','#b8a9d9','#f3c58b','#7fb2e5'] },
-    { tk:'aurora',    bg:'#0d2a2a', cols:['#a8e6a1','#5fd0c8','#c7a6f2','#f5e6a1'] },
-    { tk:'tramonto',  bg:'#2a1a33', cols:['#f2a38c','#f7c6a0','#d78fc2','#8e9be0'] },
-    { tk:'inchiostro',bg:'#14161c', cols:['#e8eef7','#9fb4d0','#6f87aa','#c9d6e8'] }
+    { tk:'laguna',    bg:'#000000', cols:['#8fd3c1','#b8a9d9','#f3c58b','#7fb2e5'] },
+    { tk:'aurora',    bg:'#000000', cols:['#a8e6a1','#5fd0c8','#c7a6f2','#f5e6a1'] },
+    { tk:'tramonto',  bg:'#000000', cols:['#f2a38c','#f7c6a0','#d78fc2','#8e9be0'] },
+    { tk:'inchiostro',bg:'#000000', cols:['#e8eef7','#9fb4d0','#6f87aa','#c9d6e8'] }
   ];
   const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
   let pi = 0, bg = hex(pal[0].bg), cols = pal[0].cols.map(hex);
 
   let W, H, dpr, ps = [], ripples = [];
-  const ptr = { x:0, y:0, on:false };
+  const ptr = { x:0, y:0, on:false, down:false };
 
   function fillBg() {
     ctx.globalCompositeOperation = 'source-over';
@@ -97,7 +97,7 @@
   }
 
   /* ---------- puntatore ---------- */
-  const R = 170;
+  const R = 170, R_PRESS = 260;
   function move(e) {
     ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true;
     for (let i = 0; i < 3; i++) {
@@ -108,14 +108,16 @@
   }
   cv.addEventListener('pointermove', move);
   cv.addEventListener('pointerdown', e => {
+    ptr.down = true;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     move(e);
     ripples.push({ x:e.clientX, y:e.clientY, r:0, c:Math.random() * 4 | 0 });
     bell();
   });
-  const off = e => { if (e.pointerType !== 'mouse') ptr.on = false; };
+  const off = e => { ptr.down = false; if (e.pointerType !== 'mouse') ptr.on = false; };
   cv.addEventListener('pointerup', off);
   cv.addEventListener('pointercancel', off);
-  cv.addEventListener('pointerleave', () => ptr.on = false);
+  cv.addEventListener('pointerleave', () => { ptr.down = false; ptr.on = false; });
 
   /* ---------- ciclo di disegno ---------- */
   let last = performance.now(), t = 0;
@@ -128,14 +130,27 @@
     ctx.fillRect(0, 0, W, H);
 
     ctx.globalCompositeOperation = 'lighter';
-    ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+    ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+
+    if (ptr.down && ptr.on) {
+      for (let i = 0; i < 4; i++) {
+        const p = ps[Math.random() * ps.length | 0];
+        spawn(p, ptr.x + (Math.random() - .5) * 70, ptr.y + (Math.random() - .5) * 70);
+      }
+    }
 
     for (const p of ps) {
       const a = (Math.sin(p.x * .0035 + t * 7) + Math.sin(p.y * .0042 - t * 5) + Math.sin((p.x - p.y) * .0028 + t * 3)) * 1.7;
       let vx = Math.cos(a), vy = Math.sin(a);
       if (ptr.on) {
         const dx = p.x - ptr.x, dy = p.y - ptr.y, d = Math.hypot(dx, dy) + .001;
-        if (d < R) {
+        if (ptr.down) {
+          if (d < R_PRESS) {
+            const f = 1 - d / R_PRESS, ff = f * f;
+            vx += (dx / d) * ff * 7;
+            vy += (dy / d) * ff * 7;
+          }
+        } else if (d < R) {
           const f = 1 - d / R;
           vx += (-dy / d) * f * 2.4 + (dx / d) * f * .6;
           vy += ( dx / d) * f * 2.4 + (dy / d) * f * .6;
@@ -145,7 +160,7 @@
       p.x += vx * p.s * 1.1 * SP; p.y += vy * p.s * 1.1 * SP;
       p.life--;
       if (p.life <= 0 || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) { spawn(p); continue; }
-      ctx.strokeStyle = `rgba(${cols[p.ci % cols.length]},.3)`;
+      ctx.strokeStyle = `rgba(${cols[p.ci % cols.length]},.7)`;
       ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
     }
 
@@ -154,7 +169,7 @@
       rp.r += dt * .09 * SP;
       const k = 1 - rp.r / 260;
       if (k <= 0) { ripples.splice(i, 1); continue; }
-      ctx.strokeStyle = `rgba(${cols[rp.c % cols.length]},${k * .55})`;
+      ctx.strokeStyle = `rgba(${cols[rp.c % cols.length]},${k * .8})`;
       ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2); ctx.stroke();
     }
