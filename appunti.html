@@ -599,10 +599,15 @@
               node.removeChild(ch);
               return;
             }
+            // NB: leggere lo stato PRIMA di togliere gli attributi, altrimenti
+            // il "visto" si perde e il visualizzatore mostra sempre box vuoti
+            // mentre la card (☑) resta corretta.
+            const wasChecked = !!(ch.checked || ch.hasAttribute('checked'));
             [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
             ch.setAttribute('type', 'checkbox');
             ch.setAttribute('data-idx', di);
-            if (ch.checked || ch.hasAttribute('checked')) ch.setAttribute('checked', '');
+            if (wasChecked) ch.setAttribute('checked', '');
+            try { ch.checked = wasChecked; } catch (e) {}
             return;
           }
           if (ch.tagName === 'A') {
