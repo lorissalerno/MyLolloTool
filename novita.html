@@ -61,6 +61,7 @@
     <section class="entry">
       <div class="entry-head"><strong>v1.08</strong><time>26/11/2026</time></div>
       <ul>
+        <li><span class="tag">Menu</span><span data-t="e108c">Menu: la voce Antistress ora è visibile di default (prima nascosta), anche per chi aveva già il menu salvato; si può sempre nascondere con la matita.</span></li>
         <li><span class="tag">Antistress</span><span data-t="e108b">Suoni rilassanti: ora i suoni sono veri file audio scaricati da Mixkit e salvati nella pagina (niente più suoni creati dal browser), si sentono uguali ovunque.</span></li>
         <li><span class="tag">Antistress</span><span data-t="e108a">Suoni rilassanti: pagina semplificata, solo interruttore e volume per ogni suono; grafica a linee che seguono bassi e acuti; suoni veri registrati (pioggia, mare, vento, ruscello, fuoco, uccelli, grilli, tuono) al posto di quelli sintetici.</span></li>
       </ul>
@@ -177,6 +178,10 @@
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const T = {
+      e108c: { it: 'Menu: la voce Antistress ora è visibile di default (prima nascosta), anche per chi aveva già il menu salvato; si può sempre nascondere con la matita.',
+               de: 'Menü: Der Eintrag Antistress ist jetzt standardmäßig sichtbar (vorher ausgeblendet), auch für gespeicherte Menüs; jederzeit mit dem Stift ausblendbar.',
+               fr: 'Menu : l’entrée Antistress est maintenant visible par défaut (avant masquée), même avec un menu enregistré ; masquable avec le crayon.',
+               en: 'Menu: the Antistress entry is now visible by default (previously hidden), even with a saved menu; can still be hidden with the pencil.' },
       e108b: { it: 'Suoni rilassanti: ora i suoni sono veri file audio scaricati da Mixkit e salvati nella pagina (niente più suoni creati dal browser), si sentono uguali ovunque.',
                de: 'Entspannende Klänge: Die Klänge sind jetzt echte, von Mixkit geladene Audiodateien auf der Seite (nichts mehr aus dem Browser erzeugt), überall gleich.',
                fr: 'Sons relaxants : les sons sont maintenant de vrais fichiers audio téléchargés de Mixkit et enregistrés dans la page (plus rien créé par le navigateur), identiques partout.',

@@ -321,7 +321,7 @@
         icon: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4H8"/><path d="M2 14h1M21 14h1M9 13v2M15 13v2"/>' },
       { id: 'antistress', label: 'Antistress', src: 'antistress.html',
         i18n: { de: 'Antistress', fr: 'Antistress', en: 'Antistress' },
-        icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>', defaultHidden: true },
+        icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>' },
     ];
     const MENU_ICONS = {
       eye: '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -340,6 +340,18 @@
           if (s && byId.has(s.id)) { byId.get(s.id).hidden = s.hidden === true; ordered.push(byId.get(s.id)); byId.delete(s.id); }
         });
         byId.forEach(s => ordered.push(s)); // nuove voci in coda
+        // Migrazione una-tantum (26/11/2026): Antistress ora visibile di default,
+        // la mostro anche a chi aveva il menu salvato con la voce nascosta.
+        let migrated = false;
+        try { migrated = localStorage.getItem('mylollotool-menu-antistress-visible') === '1'; } catch (e) {}
+        if (!migrated) {
+          const a = ordered.find(s => s.id === 'antistress');
+          if (a) a.hidden = false;
+          try {
+            localStorage.setItem('mylollotool-menu-antistress-visible', '1');
+            localStorage.setItem(MENU_KEY, JSON.stringify(ordered));
+          } catch (e) {}
+        }
         return ordered;
       }
       return state;
