@@ -65,22 +65,23 @@
     padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .ghostbtn:hover { border-color: var(--accent); color: var(--accent-ink); }
 
-  /* Righe suono: interruttore + volume, basta */
-  .row { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--border); }
-  .row:first-of-type { border-top: none; }
-  .row .ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; flex: none;
+  /* Suoni in due colonne strette */
+  #list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 12px; }
+  .row { display: flex; gap: 10px; align-items: center; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 12px; min-width: 0; }
+  .row .ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; flex: none;
     background: linear-gradient(135deg, color-mix(in srgb, var(--teal) 16%, transparent), color-mix(in srgb, var(--accent) 12%, transparent));
     color: var(--teal); transition: box-shadow .25s, transform .25s; }
-  .row .ic svg { width: 24px; height: 24px; stroke-width: 1.7; }
+  .row .ic svg { width: 22px; height: 22px; stroke-width: 1.7; }
   .row.on .ic { box-shadow: 0 0 16px -2px color-mix(in srgb, var(--teal) 60%, transparent); transform: scale(1.04); }
   .row .txt { flex: 1; min-width: 0; }
-  .row .txt b { display: block; font-size: 15px; }
+  .row .txt b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .txt small { display: block; font-size: 11px; color: var(--muted); line-height: 1.4; }
   .row .txt small.warn { color: #B45309; }
   body.dark .row .txt small.warn { color: #FBBF24; }
-  .row .ctl { display: flex; align-items: center; gap: 10px; flex: none; }
-  .row input[type=range] { width: 110px; }
-  @media (max-width: 480px) { .row input[type=range] { width: 84px; } }
+  .row .ctl { display: flex; align-items: center; gap: 8px; flex: none; }
+  .row input[type=range] { width: 84px; }
+  @media (max-width: 480px) { .row input[type=range] { width: 96px; } }
   .row input[type=range]:disabled { opacity: .35; }
 
   /* Interruttore */
