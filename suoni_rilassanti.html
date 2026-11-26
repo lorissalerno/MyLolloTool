@@ -120,26 +120,23 @@
 (() => {
   'use strict';
 
-  /* ============ Suoni: registrazioni vere (Wikimedia Commons, CORS *) ============
-     Audio via Special:FilePath (reindirizza al file diretto). Se la rete
-     non è disponibile, parte da solo un dolce rumore di riserva generato qui. */
-  const CDN = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
+  /* Suoni veri: registrazioni Mixkit (licenza gratuita, file MP3 in audio/). */
   const SOUNDS = {
-    pioggia:  { file: 'Rain (1).ogg',                  page: 'https://commons.wikimedia.org/wiki/File:Rain_(1).ogg',
+    pioggia:  { file: 'audio/pioggia.mp3',  page: 'https://mixkit.co/free-sound-effects/rain/',
                 icon: '<line x1="8" y1="15" x2="8.5" y2="19"/><line x1="12" y1="13" x2="12.5" y2="17"/><line x1="16" y1="15" x2="16.5" y2="19"/><path d="M20 13.5A8 8 0 0 0 4 13.5"/>', def: 65 },
-    mare:     { file: 'Oceanwavescrushing.ogg',         page: 'https://commons.wikimedia.org/wiki/File:Oceanwavescrushing.ogg',
+    mare:     { file: 'audio/mare.mp3',      page: 'https://mixkit.co/free-sound-effects/sea/',
                 icon: '<path d="M2 12q2.5-6 5 0t5 0t5 0t5 0"/><path d="M2 17q2.5-6 5 0t5 0t5 0t5 0"/>', def: 70 },
-    vento:    { file: 'Vento fisterra.ogg',             page: 'https://commons.wikimedia.org/wiki/File:Vento_fisterra.ogg',
+    vento:    { file: 'audio/vento.mp3',     page: 'https://mixkit.co/free-sound-effects/wind/',
                 icon: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/>', def: 55 },
-    ruscello: { file: 'Flowing-water-100019.ogg',       page: 'https://commons.wikimedia.org/wiki/File:Flowing-water-100019.ogg',
+    ruscello: { file: 'audio/ruscello.mp3',  page: 'https://mixkit.co/free-sound-effects/water/',
                 icon: '<path d="M6 3v6a6 6 0 0 0 12 0V3"/><path d="M6 3c0 3 6 3 6 6M12 3c0 3 6 3 6 6"/>', def: 60 },
-    fuoco:    { file: 'Campfire sound ambience.ogg',    page: 'https://commons.wikimedia.org/wiki/File:Campfire_sound_ambience.ogg',
+    fuoco:    { file: 'audio/fuoco.mp3',     page: 'https://mixkit.co/free-sound-effects/fire/',
                 icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>', def: 60 },
-    uccelli:  { file: 'Birdsong morning 01.ogg',        page: 'https://commons.wikimedia.org/wiki/File:Birdsong_morning_01.ogg',
+    uccelli:  { file: 'audio/uccelli.mp3',   page: 'https://mixkit.co/free-sound-effects/bird/',
                 icon: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="M20 7a4 4 0 0 1 1 2.9"/>', def: 50 },
-    grilli:   { file: 'Grasshoppers.ogg',               page: 'https://commons.wikimedia.org/wiki/File:Grasshoppers.ogg',
+    grilli:   { file: 'audio/grilli.mp3',    page: 'https://mixkit.co/free-sound-effects/insect/',
                 icon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>', def: 45 },
-    tuono:    { file: 'Thunder.ogg',                    page: 'https://commons.wikimedia.org/wiki/File:Thunder.ogg',
+    tuono:    { file: 'audio/tuono.mp3',     page: 'https://mixkit.co/free-sound-effects/thunder/',
                 icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', def: 50 },
   };
   const ORDER = ['pioggia', 'mare', 'vento', 'ruscello', 'fuoco', 'uccelli', 'grilli', 'tuono'];
@@ -160,14 +157,14 @@
     on: { it: 'acceso', de: 'an', fr: 'allumé', en: 'on' },
     off: { it: 'spento', de: 'aus', fr: 'éteint', en: 'off' },
     loading: { it: 'caricamento…', de: 'lädt…', fr: 'chargement…', en: 'loading…' },
-    synth: { it: 'senza rete: versione di riserva', de: 'offline: Ersatzversion', fr: 'hors ligne : version de secours', en: 'offline: fallback version' },
+    err: { it: 'file non caricato, riprova', de: 'Datei nicht geladen, erneut versuchen', fr: 'fichier non chargé, réessaie', en: 'file not loaded, try again' },
     tapToStart: { it: 'Tocca un interruttore per iniziare', de: 'Tippe auf einen Schalter, um zu starten', fr: 'Touche un interrupteur pour commencer', en: 'Flip a switch to start' },
     active: { it: '{n} in riproduzione', de: '{n} laufen', fr: '{n} en écoute', en: '{n} playing' },
     silent: { it: 'Tutto spento', de: 'Alles aus', fr: 'Tout éteint', en: 'All off' },
-    credit: { it: 'Registrazioni vere da Wikimedia Commons (pioggia, onde, vento, ruscello, falò, uccelli, cavallette, tuono). Senza rete suona una dolce riserva generata dal browser.',
-             de: 'Echte Aufnahmen von Wikimedia Commons (Regen, Wellen, Wind, Bach, Lagerfeuer, Vögel, Grashüpfer, Donner). Ohne Netz spielt eine sanfte Ersatzversion aus dem Browser.',
-             fr: 'Vrais enregistrements de Wikimedia Commons (pluie, vagues, vent, ruisseau, feu, oiseaux, sauterelles, tonnerre). Hors ligne, une douce version de secours générée par le navigateur.',
-             en: 'Real recordings from Wikimedia Commons (rain, waves, wind, stream, campfire, birds, grasshoppers, thunder). Offline, a gentle browser-made fallback plays.' },
+    credit: { it: 'Registrazioni vere di Mixkit (licenza gratuita): pioggia, onde, vento, ruscello, falò, uccelli, grilli e tuono, salvate in questa pagina.',
+             de: 'Echte Aufnahmen von Mixkit (kostenlose Lizenz): Regen, Wellen, Wind, Bach, Lagerfeuer, Vögel, Grillen und Donner, auf dieser Seite gespeichert.',
+             fr: 'Vrais enregistrements de Mixkit (licence gratuite) : pluie, vagues, vent, ruisseau, feu, oiseaux, grillons et tonnerre, enregistrés dans cette page.',
+             en: 'Real Mixkit recordings (free license): rain, waves, wind, stream, campfire, birds, crickets and thunder, stored in this page.' },
     nPioggia: { it: 'Pioggia', de: 'Regen', fr: 'Pluie', en: 'Rain' },
     nMare: { it: 'Mare', de: 'Meer', fr: 'Mer', en: 'Sea' },
     nVento: { it: 'Vento', de: 'Wind', fr: 'Vent', en: 'Wind' },
@@ -224,11 +221,11 @@
   }
 
   /* ================= Motore audio ================= */
-  let AC = null, master = null, analyser = null, noiseBuf = null;
+  let AC = null, master = null, analyser = null;
   const bufs = {};      // type -> AudioBuffer (registrazione vera)
   const loading = {};   // type -> Promise
   const live = {};      // type -> { stop() }
-  const synthOn = {};   // type -> true se sta usando la riserva
+  const errOn = {};     // type -> true se il file non si è caricato
 
   function ensureCtx() {
     if (!AC) {
@@ -240,10 +237,6 @@
       analyser.smoothingTimeConstant = 0.75;
       master.connect(analyser);
       analyser.connect(AC.destination);
-      const len = AC.sampleRate * 2;
-      noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
-      const d = noiseBuf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       master.gain.value = (st.master / 100) * 0.9;
     }
     if (AC.state === 'suspended') AC.resume();
@@ -253,7 +246,7 @@
   function loadReal(type) {
     if (bufs[type]) return Promise.resolve(bufs[type]);
     if (loading[type]) return loading[type];
-    loading[type] = fetch(CDN + encodeURIComponent(SOUNDS[type].file))
+    loading[type] = fetch(SOUNDS[type].file)
       .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.arrayBuffer(); })
       .then(ab => ensureCtx().decodeAudioData(ab))
       .then(b => { bufs[type] = b; delete loading[type]; return b; })
@@ -280,52 +273,15 @@
     }, gain: g };
   }
 
-  /* Riserva senza rete: dolce rumore filtrato, uguale per tutti ma intonato */
-  const SYNTH = {
-    pioggia:  { type: 'highpass', f: 4200, v: 0.20 },
-    mare:     { type: 'lowpass',  f: 480,  v: 0.45, lfo: 0.09 },
-    vento:    { type: 'bandpass', f: 520,  v: 0.35, lfo: 0.07 },
-    ruscello: { type: 'bandpass', f: 2100, v: 0.22 },
-    fuoco:    { type: 'lowpass',  f: 360,  v: 0.20 },
-    uccelli:  { type: 'bandpass', f: 3000, v: 0.10, lfo: 0.6 },
-    grilli:   { type: 'highpass', f: 5000, v: 0.08, lfo: 1.7 },
-    tuono:    { type: 'lowpass',  f: 130,  v: 0.40, lfo: 0.05 },
-  };
-  function startSynth(type) {
-    const c = SYNTH[type];
-    const flt = AC.createBiquadFilter(); flt.type = c.type; flt.frequency.value = c.f; flt.Q.value = 0.7;
-    const g = AC.createGain(); g.gain.value = 0;
-    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-    src.connect(flt); flt.connect(g); g.connect(master); src.start();
-    let lfo = null;
-    if (c.lfo) {
-      lfo = AC.createOscillator(); lfo.frequency.value = c.lfo;
-      const lg = AC.createGain(); lg.gain.value = c.v * 0.45;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    }
-    g.gain.setTargetAtTime((st.s[type].vol / 100) * c.v, AC.currentTime, 0.8);
-    synthOn[type] = true; paintRow(type);
-    live[type] = { stop(fast) {
-      try {
-        g.gain.setTargetAtTime(0, AC.currentTime, 0.2);
-        setTimeout(() => {
-          try { src.stop(); } catch (e) {}
-          try { if (lfo) lfo.stop(); } catch (e) {}
-          try { g.disconnect(); flt.disconnect(); } catch (e) {}
-        }, 700);
-      } catch (e) {}
-      delete live[type];
-    }, gain: g };
-  }
-
   function stopType(type, fast) {
     if (live[type]) live[type].stop(fast);
-    if (synthOn[type]) { delete synthOn[type]; paintRow(type); }
+    if (errOn[type]) { delete errOn[type]; paintRow(type); }
   }
 
   function turnOn(type) {
     ensureCtx();
     stopType(type, true);
+    if (errOn[type]) delete errOn[type];
     paintRow(type, true);
     loadReal(type).then(() => {
       if (!st.s[type].on) return; // nel frattempo è stato spento
@@ -335,16 +291,17 @@
       paintStatus();
     }).catch(() => {
       if (!st.s[type].on) { paintRow(type); return; }
-      startSynth(type); // senza rete: riserva
+      st.s[type].on = false; // file non caricato: spengo e segnalo
+      errOn[type] = true;
+      paintRow(type);
       paintStatus();
+      save();
     });
   }
 
   function refreshVol(type) {
     if (!AC || !live[type]) return;
-    const base = live[type].gain;
-    if (synthOn[type]) base.gain.setTargetAtTime((st.s[type].vol / 100) * SYNTH[type].v, AC.currentTime, 0.15);
-    else base.gain.setTargetAtTime((st.s[type].vol / 100) * 0.9, AC.currentTime, 0.15);
+    live[type].gain.gain.setTargetAtTime((st.s[type].vol / 100) * 0.9, AC.currentTime, 0.15);
   }
 
   /* ================= Grafica: tante linee su/giù (bassi ↔ acuti) ================= */
@@ -429,7 +386,7 @@
     let note = sndDesc(type);
     let warn = false;
     if (isLoading) { note = tr('loading'); }
-    else if (synthOn[type]) { note = tr('synth'); warn = true; }
+    else if (errOn[type]) { note = tr('err'); warn = true; }
     const sm = row.querySelector('small');
     sm.textContent = note;
     sm.classList.toggle('warn', warn);
