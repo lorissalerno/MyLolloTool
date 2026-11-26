@@ -170,12 +170,12 @@
                 de: 'Farben, die unter den Fingern fließen: ziehen zum Bewegen, Explosion zum Staunen',
                 fr: 'Des couleurs sous les doigts : glisse pour bouger le fluide, Explosion pour t’émerveiller',
                 en: 'Colors under your fingers: drag to move the fluid, Explosion to be amazed' } },
-      { id: 'respiro', file: 'respiro.html', icon: 'breath',
-        nome: { it: 'Respiro', de: 'Atempause', fr: 'Respiration', en: 'Breathe' },
-        desc: { it: 'Disegna con la luce, segui il respiro guidato e scegli il tuo suono ambientale',
-                de: 'Male mit Licht, folge der Atemübung und wähle deinen Umgebungsklang',
-                fr: 'Dessine avec la lumière, suis la respiration guidée et choisis ton son d’ambiance',
-                en: 'Paint with light, follow the guided breathing and choose your ambient sound' } },
+      { id: 'respiro', file: 'respiro.html', icon: 'light',
+        nome: { it: 'Tela di luce', de: 'Lichtleinwand', fr: 'Toile de lumière', en: 'Light canvas' },
+        desc: { it: 'Tratti di luce che seguono il dito: tocca per respingere la luce, con respiro guidato e suono ambientale a scelta',
+                de: 'Lichtstriche folgen dem Finger: tippen stößt das Licht ab, mit Atemübung und Umgebungsklang nach Wahl',
+                fr: 'Traits de lumière qui suivent le doigt : touche pour repousser la lumière, avec respiration guidée et son d’ambiance au choix',
+                en: 'Light strokes follow your finger: tap to push the light away, with guided breathing and ambient sound on demand' } },
       { id: 'onda', file: 'onda_energetica.html', icon: 'wave',
         nome: { it: 'Onda energetica', de: 'Energiewelle', fr: 'Vague d’énergie', en: 'Energy wave' },
         desc: { it: 'Linee luminose che seguono il mouse: tocca per creare onde di energia, con suoni elettronici rilassanti',
@@ -193,6 +193,7 @@
     const ICONE = {
       drop:      ['Goccia', '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>'],
       breath:    ['Respiro', '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'],
+      light:     ['Luce', '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>'],
       wave:      ['Onda', '<path d="M2 12q2.5-6 5 0t5 0t5 0t5 0"/>'],
       sound:     ['Suono', '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'],
     };
@@ -273,22 +274,28 @@
         });
         x.restore();
       } else if (p.id === 'respiro') {
-        // respiro guidato: alone che si apre e si chiude
-        const cyc = (time % 10) / 10; // 4-4-2 ~ respiro
-        const open = cyc < 0.4 ? cyc / 0.4 : cyc < 0.8 ? 1 - (cyc - 0.4) / 0.4 : 0;
-        const R = Math.min(W, H) * (0.12 + 0.26 * open);
-        const g = x.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, R * 1.6);
-        g.addColorStop(0, `rgba(${teal},.5)`);
-        g.addColorStop(0.55, `rgba(${teal},.18)`);
-        g.addColorStop(1, `rgba(${teal},0)`);
-        x.fillStyle = g;
-        x.beginPath(); x.arc(W / 2, H / 2, R * 1.6, 0, 6.29); x.fill();
-        x.strokeStyle = `rgba(${teal},.75)`;
-        x.lineWidth = 2;
-        x.beginPath(); x.arc(W / 2, H / 2, R, 0, 6.29); x.stroke();
-        x.strokeStyle = `rgba(${teal},.3)`;
-        x.lineWidth = 1.5;
-        x.beginPath(); x.arc(W / 2, H / 2, R * 0.55, 0, 6.29); x.stroke();
+        // tela di luce: scie colorate come nella pagina vera
+        x.lineCap = 'round';
+        const cols = ['143,211,193', '184,169,217', '243,197,139', '127,178,229'];
+        if (!p.seeds) {
+          p.seeds = Array.from({ length: 26 }, (_, i) => ({
+            ox: Math.random() * 1000, oy: Math.random() * 1000,
+            len: 0.5 + Math.random() * 0.9, sp: 0.25 + Math.random() * 0.5, ci: i % cols.length
+          }));
+        }
+        p.seeds.forEach(s => {
+          x.strokeStyle = `rgba(${cols[s.ci]},.8)`;
+          x.lineWidth = 1.6;
+          x.beginPath();
+          let px = (s.ox + time * 22 * s.sp) % (W + 60), py = (s.oy + time * 12 * s.sp) % (H + 60);
+          px -= 30; py -= 30;
+          for (let k = 0; k <= 8; k++) {
+            const qx = px + Math.sin((py * 0.02) + time * 0.9 + s.ox) * 22 * s.len - k * 7 * s.len;
+            const qy = py + Math.cos((px * 0.02) - time * 0.7 + s.oy) * 16 * s.len - k * 5 * s.len;
+            if (k === 0) x.moveTo(qx, qy); else x.lineTo(qx, qy);
+          }
+          x.stroke();
+        });
       } else if (p.id === 'onda') {
         // linee luminose che ondeggiano
         const cols = [teal, dark ? '125,160,255' : '59,130,246', dark ? '200,150,255' : '139,92,246'];

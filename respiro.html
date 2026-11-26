@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Respiro</title>
+<title>Tela di luce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
 <div id="toast"></div>
 
 <div id="panel">
-  <h1><span data-tk="title">Respiro</span><button id="toggle" title="Riduci/espandi">&minus;</button></h1>
+  <h1><span data-tk="title">Tela di luce</span><button id="toggle" title="Riduci/espandi">&minus;</button></h1>
   <div id="pbody"></div>
 </div>
 <button id="showPanel" title="Mostra pannello">&#9881;</button>
@@ -358,7 +358,7 @@
     cv.toBlob(b => {
       if (!b) { toast('PNG'); return; }
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(b); a.download = 'respiro.png';
+      a.href = URL.createObjectURL(b); a.download = 'tela-di-luce.png';
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       toast(tr('saved'));
     });
@@ -369,7 +369,7 @@
   const LANG_KEY = 'mylollotool-lang';
   const LANGS = ['it', 'de', 'fr', 'en'];
   const T = {
-    title:   { it: 'Respiro', de: 'Atempause', fr: 'Respiration', en: 'Breathe' },
+    title:   { it: 'Tela di luce', de: 'Lichtleinwand', fr: 'Toile de lumière', en: 'Light canvas' },
     hint:    { it: 'Muovi il dito sullo schermo.<br>Non serve fare niente.',
                de: 'Bewege den Finger über den Bildschirm.<br>Du musst nichts tun.',
                fr: 'Bouge le doigt sur l’écran.<br>Tu n’as rien à faire.',
