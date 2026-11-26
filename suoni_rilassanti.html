@@ -44,7 +44,11 @@
   .card h2 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
   .card h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-  #viz { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+  #viz { width: 100%; height: 140px; display: block; border-radius: 10px; border: 1px solid var(--border);
+    background:
+      radial-gradient(at 18% 115%, color-mix(in srgb, var(--teal) 24%, transparent) 0, transparent 55%),
+      radial-gradient(at 85% -10%, color-mix(in srgb, #3B82F6 16%, transparent) 0, transparent 52%),
+      var(--surface-2); }
   .listen-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
   .listen-row .grow { flex: 1; min-width: 160px; }
   .listen-row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
@@ -59,8 +63,11 @@
   /* Righe suono: interruttore + volume, basta */
   .row { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--border); }
   .row:first-of-type { border-top: none; }
-  .row .ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; flex: none;
-    background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal); }
+  .row .ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--teal) 16%, transparent), color-mix(in srgb, var(--accent) 12%, transparent));
+    color: var(--teal); transition: box-shadow .25s, transform .25s; }
+  .row .ic svg { width: 24px; height: 24px; stroke-width: 1.7; }
+  .row.on .ic { box-shadow: 0 0 16px -2px color-mix(in srgb, var(--teal) 60%, transparent); transform: scale(1.04); }
   .row .txt { flex: 1; min-width: 0; }
   .row .txt b { display: block; font-size: 15px; }
   .row .txt small { display: block; font-size: 11px; color: var(--muted); line-height: 1.4; }
@@ -79,6 +86,7 @@
   .sw[aria-checked="true"] { background: color-mix(in srgb, var(--teal) 30%, transparent); border-color: var(--teal); }
   .sw[aria-checked="true"]::after { transform: translateX(22px); background: var(--teal); }
   .sw.loading::after { background: var(--accent); animation: pulse 1s infinite; }
+  .sw:focus-visible, .ghostbtn:focus-visible, .row input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   @keyframes pulse { 50% { opacity: .4; } }
 
   .credit { font-size: 11px; color: var(--faint); line-height: 1.6; margin-top: 10px; }
@@ -98,7 +106,7 @@
 
   <div class="card">
     <h2><span data-tk="listening">In ascolto</span></h2>
-    <canvas id="viz" width="900" height="120" aria-hidden="true"></canvas>
+    <canvas id="viz" width="900" height="140" aria-hidden="true"></canvas>
     <div class="listen-row">
       <div class="grow">
         <label><span data-tk="master">Volume generale</span><output id="masterVal">70</output></label>
@@ -123,21 +131,21 @@
   /* Suoni veri: registrazioni Mixkit (licenza gratuita, file MP3 in audio/). */
   const SOUNDS = {
     pioggia:  { file: 'audio/pioggia.mp3',  page: 'https://mixkit.co/free-sound-effects/rain/',
-                icon: '<line x1="8" y1="15" x2="8.5" y2="19"/><line x1="12" y1="13" x2="12.5" y2="17"/><line x1="16" y1="15" x2="16.5" y2="19"/><path d="M20 13.5A8 8 0 0 0 4 13.5"/>', def: 65 },
+                icon: '<path d="M6.8 13.5h10.7a3.6 3.6 0 0 0 .7-7.1 5.3 5.3 0 0 0-10.3-1.3A3.7 3.7 0 0 0 6.8 13.5z"/><path d="M9.2 16.3l-1.1 3M13.5 16.3l-1.1 3M17.8 16.3l-1.1 3"/>', def: 65 },
     mare:     { file: 'audio/mare.mp3',      page: 'https://mixkit.co/free-sound-effects/sea/',
-                icon: '<path d="M2 12q2.5-6 5 0t5 0t5 0t5 0"/><path d="M2 17q2.5-6 5 0t5 0t5 0t5 0"/>', def: 70 },
+                icon: '<path d="M2 9.5c2-2.6 4-2.6 6 0s4 2.6 6 0 4-2.6 6 0"/><path d="M2 15c2-2.6 4-2.6 6 0s4 2.6 6 0 4-2.6 6 0"/><path d="M7.5 5.8c.9-1.1 2.2-1.1 3.1 0"/>', def: 70 },
     vento:    { file: 'audio/vento.mp3',     page: 'https://mixkit.co/free-sound-effects/wind/',
-                icon: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/>', def: 55 },
+                icon: '<path d="M3 8h9.5a2.5 2.5 0 1 0-2.4-3.2"/><path d="M3 12.5h14.5a2.5 2.5 0 1 1-2.4 3.2"/><path d="M3 17h7"/><path d="M18.6 5.2c.9 1.5.6 3.2-.9 4"/>', def: 55 },
     ruscello: { file: 'audio/ruscello.mp3',  page: 'https://mixkit.co/free-sound-effects/water/',
-                icon: '<path d="M6 3v6a6 6 0 0 0 12 0V3"/><path d="M6 3c0 3 6 3 6 6M12 3c0 3 6 3 6 6"/>', def: 60 },
+                icon: '<path d="M9 3c-2.5 3-2.5 5 0 8s2.5 5 0 8"/><path d="M15 3c-2.5 3-2.5 5 0 8s2.5 5 0 8"/><path d="M12 10.2c.9 1.1 1.4 2 1.4 2.8a1.4 1.4 0 1 1-2.8 0c0-.8.5-1.7 1.4-2.8z"/>', def: 60 },
     fuoco:    { file: 'audio/fuoco.mp3',     page: 'https://mixkit.co/free-sound-effects/fire/',
-                icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>', def: 60 },
+                icon: '<path d="M12 3c1 2.8-.3 4.5-1.7 6C8.9 10.5 8 12 8 14a4 4 0 0 0 8 0c0-1.2-.5-2.2-1-3.2-.3.7-.8 1.2-1.4 1.5.4-3.4-.6-6.6-1.6-9.3z"/><path d="M12 13.2c.6 1-1 1.7-1 2.8a2 2 0 0 0 4 0c0-.8-.4-1.4-.9-2-.2.4-.5.7-.9.8.1-1-.5-1.2-1.2-1.6z"/>', def: 60 },
     uccelli:  { file: 'audio/uccelli.mp3',   page: 'https://mixkit.co/free-sound-effects/bird/',
-                icon: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="M20 7a4 4 0 0 1 1 2.9"/>', def: 50 },
+                icon: '<path d="M2.5 15.5c3-4.2 6-4.2 9 0 3-4.2 6-4.2 9 0"/><path d="M12.5 7c1.8-2.6 3.7-2.6 5.5 0"/>', def: 50 },
     grilli:   { file: 'audio/grilli.mp3',    page: 'https://mixkit.co/free-sound-effects/insect/',
-                icon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>', def: 45 },
+                icon: '<ellipse cx="12" cy="14.5" rx="3" ry="4.2"/><circle cx="12" cy="7.6" r="1.7"/><path d="M10.7 6.4C9.4 4.7 8 4 6.4 3.8M13.3 6.4c1.3-1.7 2.7-2.4 4.3-2.6"/><path d="M9.1 13.5L5.2 12.2M9.1 16.2l-4.3 1.1M14.9 13.5l3.9-1.3M14.9 16.2l4.3 1.1"/><path d="M9.8 18.2L7.4 21M14.2 18.2l2.4 2.8"/>', def: 45 },
     tuono:    { file: 'audio/tuono.mp3',     page: 'https://mixkit.co/free-sound-effects/thunder/',
-                icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', def: 50 },
+                icon: '<path d="M7 9.5a3.5 3.5 0 0 1-.5-6.9A5 5 0 0 1 16 1.9a3.4 3.4 0 0 1 1 6.6H7z"/><path d="M13 9.5L9 15.5h3L11 21l5-6.8h-3l1-4.7z"/>', def: 50 },
   };
   const ORDER = ['pioggia', 'mare', 'vento', 'ruscello', 'fuoco', 'uccelli', 'grilli', 'tuono'];
 
@@ -304,56 +312,87 @@
     live[type].gain.gain.setTargetAtTime((st.s[type].vol / 100) * 0.9, AC.currentTime, 0.15);
   }
 
-  /* ================= Grafica: tante linee su/giù (bassi ↔ acuti) ================= */
+  /* ================= Grafica: aurora che respira con bassi/medi/acuti ================= */
   const viz = document.getElementById('viz');
   const vx = viz.getContext('2d');
-  const N = 72;
-  const smooth = new Array(N).fill(0);
   const freq = new Uint8Array(128);
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let phase = 0;
+  const eB = { v: 0 }, eM = { v: 0 }, eT = { v: 0 };
+  const dots = Array.from({ length: 34 }, () => ({
+    x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 1.6,
+    s: 0.0004 + Math.random() * 0.0012, tw: Math.random() * 6.28,
+  }));
   function anyOn() { return ORDER.some(t => st.s[t].on); }
+  function bandAvg(lo, hi) {
+    let s = 0;
+    for (let i = lo; i <= hi; i++) s += freq[i];
+    return s / ((hi - lo + 1) * 255);
+  }
   function drawViz() {
-    requestAnimationFrame(drawViz);
-    const W = viz.width, H = viz.height, mid = H / 2;
+    if (!REDUCED) requestAnimationFrame(drawViz);
+    const W = viz.width, H = viz.height;
     vx.clearRect(0, 0, W, H);
     const dark = document.body.classList.contains('dark');
-    let hasAudio = false;
+    let live = false;
     try {
       if (analyser && anyOn() && AC && AC.state === 'running') {
         analyser.getByteFrequencyData(freq);
-        hasAudio = true;
+        live = true;
       }
     } catch (e) {}
-    phase += 0.03;
+    if (!REDUCED) phase += 0.016;
+    const tgt = live ? [bandAvg(2, 9), bandAvg(10, 38), bandAvg(39, 95)] : [0.05, 0.05, 0.05];
+    eB.v += (tgt[0] - eB.v) * 0.12;
+    eM.v += (tgt[1] - eM.v) * 0.10;
+    eT.v += (tgt[2] - eT.v) * 0.14;
+    const lvl = (eB.v + eM.v + eT.v) / 3;
     const col = dark ? '94,234,212' : '13,148,136';
-    vx.lineWidth = 2;
+    const crest = dark ? '190,255,246' : '10,110,100';
+    const glow = (anyOn() && live) ? 1 : 0.35;
     vx.lineCap = 'round';
-    for (let i = 0; i < N; i++) {
-      let v;
-      if (hasAudio) {
-        // sinistra = bassi, destra = acuti
-        const bin = Math.floor((i / N) * 90) + 2;
-        v = freq[bin] / 255;
-      } else {
-        v = 0.06 + 0.05 * Math.sin(phase + i * 0.35) * Math.sin(phase * 0.6 + i * 0.11);
-      }
-      smooth[i] += (v - smooth[i]) * (hasAudio ? 0.35 : 0.08);
-      const h = Math.max(3, smooth[i] * (H - 14));
-      const x = 8 + (i / (N - 1)) * (W - 16);
-      const a = anyOn() ? 0.9 : 0.35;
-      vx.strokeStyle = `rgba(${col},${a})`;
+    const layers = [
+      { y: 0.68, a: 10 + eB.v * 46, k1: 0.008, k2: 0.021, s1: 0.7, s2: 1.3, al: 0.20, lw: 1.4 },
+      { y: 0.59, a: 8 + eM.v * 38, k1: 0.011, k2: 0.027, s1: 0.9, s2: 1.1, al: 0.28, lw: 1.4 },
+      { y: 0.50, a: 6 + eT.v * 30, k1: 0.014, k2: 0.033, s1: 1.1, s2: 0.9, al: 0.36, lw: 2 },
+    ];
+    layers.forEach((L, li) => {
+      const baseY = H * L.y;
+      const p1 = phase * L.s1 + li * 2.1, p2 = phase * L.s2 + li * 1.3;
+      const yAt = x => baseY + L.a * Math.sin(x * L.k1 + p1) + L.a * 0.45 * Math.sin(x * L.k2 + p2);
       vx.beginPath();
-      vx.moveTo(x, mid - h / 2);
-      vx.lineTo(x, mid + h / 2);
+      vx.moveTo(-4, yAt(-4));
+      for (let x = 5; x <= W + 4; x += 9) vx.lineTo(x, yAt(x));
+      vx.lineTo(W + 4, H + 4);
+      vx.lineTo(-4, H + 4);
+      vx.closePath();
+      const g = vx.createLinearGradient(0, baseY - L.a * 1.6, 0, H);
+      g.addColorStop(0, `rgba(${col},${L.al * glow + 0.06})`);
+      g.addColorStop(1, `rgba(${col},0)`);
+      vx.fillStyle = g;
+      vx.fill();
+      vx.beginPath();
+      vx.moveTo(-4, yAt(-4));
+      for (let x = 5; x <= W + 4; x += 9) vx.lineTo(x, yAt(x));
+      vx.strokeStyle = `rgba(${crest},${(0.35 + li * 0.2) * glow + 0.1})`;
+      vx.lineWidth = L.lw;
       vx.stroke();
-    }
-    // linea centrale d'ascolto
-    vx.strokeStyle = `rgba(${col},${anyOn() ? 0.25 : 0.15})`;
-    vx.lineWidth = 1;
-    vx.beginPath();
-    vx.moveTo(0, mid);
-    vx.lineTo(W, mid);
-    vx.stroke();
+    });
+    // particelle di luce che salgono
+    vx.save();
+    vx.globalCompositeOperation = 'lighter';
+    dots.forEach(d => {
+      if (!REDUCED) {
+        d.y -= d.s * (1 + lvl * 3);
+        if (d.y < -0.05) { d.y = 1.05; d.x = Math.random(); }
+      }
+      const tw = 0.5 + 0.5 * Math.sin(phase * 2 + d.tw);
+      vx.beginPath();
+      vx.arc(d.x * W, d.y * H, d.r, 0, 6.29);
+      vx.fillStyle = `rgba(${crest},${(0.08 + tw * 0.25 * (0.3 + lvl)) * glow + 0.05})`;
+      vx.fill();
+    });
+    vx.restore();
   }
 
   /* ================= UI ================= */
@@ -379,6 +418,7 @@
     sw.setAttribute('aria-checked', String(s.on));
     sw.classList.toggle('loading', !!isLoading);
     sw.setAttribute('aria-label', sndName(type) + ': ' + tr(s.on ? 'on' : 'off'));
+    row.classList.toggle('on', s.on && !isLoading);
     const sl = row.querySelector('input[type=range]');
     sl.value = s.vol;
     sl.disabled = !s.on;
