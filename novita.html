@@ -59,6 +59,13 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.08</strong><time>26/11/2026</time></div>
+      <ul>
+        <li><span class="tag">Antistress</span><span data-t="e108a">Suoni rilassanti: pagina semplificata, solo interruttore e volume per ogni suono; grafica a linee che seguono bassi e acuti; suoni veri registrati (pioggia, mare, vento, ruscello, fuoco, uccelli, grilli, tuono) al posto di quelli sintetici.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.07</strong><time>24/11/2026</time></div>
       <ul>
         <li><span class="tag">Antistress</span><span data-t="e107p">Antistress: nuova pagina Suoni rilassanti, componi il tuo paesaggio sonoro con 10 suoni (pioggia, mare, vento e altri), ognuno con volume, quantità e velocità, più preset, timer e mix salvato.</span></li>
@@ -164,11 +171,15 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.07';
+    const SITE_VERSION = '1.08';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const T = {
+      e108a: { it: 'Suoni rilassanti: pagina semplificata, solo interruttore e volume per ogni suono; grafica a linee che seguono bassi e acuti; suoni veri registrati (pioggia, mare, vento, ruscello, fuoco, uccelli, grilli, tuono) al posto di quelli sintetici.',
+               de: 'Entspannende Klänge: vereinfachte Seite, nur Schalter und Lautstärke pro Klang; Linien, die Bässe und Höhen folgen; echte Aufnahmen (Regen, Meer, Wind, Bach, Feuer, Vögel, Grillen, Donner) statt synthetischer Klänge.',
+               fr: 'Sons relaxants : page simplifiée, juste un interrupteur et le volume par son ; lignes qui suivent graves et aigus ; vrais enregistrements (pluie, mer, vent, ruisseau, feu, oiseaux, grillons, tonnerre) au lieu de sons synthétiques.',
+               en: 'Relaxing sounds: simplified page, just a switch and volume per sound; lines following bass and treble; real recordings (rain, sea, wind, stream, fire, birds, crickets, thunder) instead of synthetic sounds.' },
       e103a: { it: 'SCT Tool fluido su finestre strette e mobile: niente più scroll orizzontale, titolo non più coperto dal pulsante menu, riquadri su una colonna.',
                de: 'SCT Tool flüssig auf schmalen Fenstern und mobil: kein horizontales Scrollen mehr, Titel nicht mehr vom Menüknopf verdeckt, Boxen einspaltig.',
                fr: 'SCT Tool fluide sur fenêtres étroites et mobile : plus de défilement horizontal, titre non masqué par le bouton menu, blocs sur une colonne.',

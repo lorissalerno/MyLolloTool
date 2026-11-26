@@ -26,7 +26,7 @@
   .mlt-footer a { color: inherit; text-decoration: none; font-weight: bold; }
   svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
         stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-  .wrap { max-width: 980px; margin: 0 auto; }
+  .wrap { max-width: 760px; margin: 0 auto; }
 
   /* Testata full-bleed come SCT Tool */
   header.page-head { display: flex; justify-content: space-between; align-items: center; gap: 14px;
@@ -36,14 +36,7 @@
   .page-head h1 { color: var(--text); font-size: 20px; line-height: 1.25; margin: 0; display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.4px; white-space: nowrap; }
   .page-head h1 svg { width: 20px; height: 20px; }
   .page-head .sub { color: var(--muted); font-size: 11px; margin: 1px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .page-head .right { display: flex; align-items: center; gap: 8px; flex: none; }
   @media (max-width: 600px) { .page-head .brand { margin-left: 54px; } }
-
-  .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; flex: none; }
-  .iconbtn:hover { filter: brightness(.94); }
-  .iconbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; width: auto; padding: 0 16px; gap: 8px; font: inherit; font-size: 14px; font-weight: 700; height: 40px; border-radius: 999px; }
-  body.dark .iconbtn.primary { color: #0B0B0E; }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
@@ -51,54 +44,45 @@
   .card h2 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
   .card h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-  #viz { width: 100%; height: 64px; display: block; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
-
-  .transport { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .transport .grow { flex: 1; min-width: 160px; }
-  .transport label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  #viz { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+  .listen-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+  .listen-row .grow { flex: 1; min-width: 160px; }
+  .listen-row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .listen-row label output { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
-  select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 14px; }
-  .timerwrap { display: flex; align-items: center; gap: 8px; }
-  #timerLeft { font-size: 13px; color: var(--muted); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+  #status { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  #status b { color: var(--teal); }
+  .ghostbtn { border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px;
+    padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .ghostbtn:hover { border-color: var(--accent); color: var(--accent-ink); }
 
-  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .chip { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 999px;
-    padding: 7px 13px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  .chip:hover { border-color: var(--accent); color: var(--accent-ink); }
-  .chip.ghost { opacity: .85; }
+  /* Righe suono: interruttore + volume, basta */
+  .row { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--border); }
+  .row:first-of-type { border-top: none; }
+  .row .ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; flex: none;
+    background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal); }
+  .row .txt { flex: 1; min-width: 0; }
+  .row .txt b { display: block; font-size: 15px; }
+  .row .txt small { display: block; font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .row .txt small.warn { color: #B45309; }
+  body.dark .row .txt small.warn { color: #FBBF24; }
+  .row .ctl { display: flex; align-items: center; gap: 10px; flex: none; }
+  .row input[type=range] { width: 110px; }
+  @media (max-width: 480px) { .row input[type=range] { width: 84px; } }
+  .row input[type=range]:disabled { opacity: .35; }
 
-  .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-  .snd { display: flex; gap: 10px; align-items: center; text-align: left; border: 1px solid var(--border);
-    background: var(--surface-2); color: var(--text); border-radius: 12px; padding: 10px 12px; cursor: pointer; font: inherit; width: 100%; }
-  .snd:hover { border-color: var(--accent); }
-  .snd .ic { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; flex: none;
-    background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-ink); }
-  body.dark .snd .ic { color: var(--accent); }
-  .snd b { display: block; font-size: 14px; }
-  .snd small { display: block; font-size: 11px; color: var(--muted); line-height: 1.35; }
-  .snd .plus { margin-left: auto; font-size: 20px; line-height: 1; color: var(--faint); flex: none; }
-  .snd:hover .plus { color: var(--accent); }
-  .snd .n { font-size: 11px; font-weight: 800; background: var(--accent); color: #fff; border-radius: 999px; min-width: 20px; height: 20px; display: grid; place-items: center; padding: 0 5px; }
-  body.dark .snd .n { color: #0B0B0E; }
+  /* Interruttore */
+  .sw { position: relative; width: 52px; height: 30px; flex: none; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface-2); cursor: pointer; padding: 0; transition: background .2s, border-color .2s; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--faint); transition: transform .2s, background .2s; }
+  .sw[aria-checked="true"] { background: color-mix(in srgb, var(--teal) 30%, transparent); border-color: var(--teal); }
+  .sw[aria-checked="true"]::after { transform: translateX(22px); background: var(--teal); }
+  .sw.loading::after { background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
 
-  #mixer { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .mix { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
-  .mix.active { border-color: color-mix(in srgb, var(--teal) 60%, var(--border)); }
-  .mix-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .mix-head .ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; flex: none;
-    background: color-mix(in srgb, var(--teal) 14%, transparent); color: var(--teal); }
-  .mix-head b { font-size: 14px; display: block; }
-  .mix-head small { font-size: 11px; color: var(--muted); }
-  .mix-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
-  .mix.active .mix-head .dot { background: var(--teal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 25%, transparent); }
-  .mix-head button.rm { margin-left: auto; border: none; background: transparent; color: var(--faint); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 8px; }
-  .mix-head button.rm:hover { color: #EF4444; background: color-mix(in srgb, #EF4444 10%, transparent); }
-  .mix .row { margin: 8px 0; }
-  .mix .row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
-  .mix .row label output { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
-
-  .empty { padding: 26px; text-align: center; color: var(--muted); border: 2px dashed var(--border); border-radius: 12px; font-size: 14px; grid-column: 1 / -1; }
-  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .credit { font-size: 11px; color: var(--faint); line-height: 1.6; margin-top: 10px; }
+  .credit a { color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 </style>
 </head>
@@ -108,45 +92,27 @@
   <header class="page-head">
     <div class="brand"><div>
       <h1><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span data-tk="title">Suoni rilassanti</span></h1>
-      <p class="sub" data-tk="sub">Componi il tuo paesaggio sonoro: tocca + per aggiungere suoni e regola ognuno</p>
+      <p class="sub" data-tk="sub">Accendi i suoni che vuoi e regola il volume di ognuno</p>
     </div></div>
-    <div class="right">
-      <button class="iconbtn primary" id="btnPlay"><svg viewBox="0 0 24 24" id="playIc"><polygon points="6 3 20 12 6 21 6 3"/></svg><span id="playTxt">Avvia</span></button>
-    </div>
   </header>
 
   <div class="card">
     <h2><span data-tk="listening">In ascolto</span></h2>
-    <canvas id="viz" width="900" height="64" aria-hidden="true"></canvas>
-    <div class="transport" style="margin-top:10px">
+    <canvas id="viz" width="900" height="120" aria-hidden="true"></canvas>
+    <div class="listen-row">
       <div class="grow">
         <label><span data-tk="master">Volume generale</span><output id="masterVal">70</output></label>
         <input type="range" id="master" min="0" max="100" step="1" value="70" aria-label="Volume generale">
       </div>
-      <div class="timerwrap">
-        <select id="timer" aria-label="Timer spegnimento">
-          <option value="0" data-tk="tOff">Timer: spento</option>
-          <option value="5" data-tk="t5">Timer: 5 min</option>
-          <option value="10" data-tk="t10">Timer: 10 min</option>
-          <option value="15" data-tk="t15">Timer: 15 min</option>
-          <option value="30" data-tk="t30">Timer: 30 min</option>
-          <option value="60" data-tk="t60">Timer: 60 min</option>
-        </select>
-        <span id="timerLeft"></span>
-      </div>
+      <button class="ghostbtn" id="stopAll">✕ <span data-tk="stopAll">Spegni tutto</span></button>
     </div>
-    <div class="presets" id="presets"></div>
-    <p class="hint" data-tk="hint">Tutto è generato dal vivo nel browser, nessun file audio: puoi tenere la pagina in sottofondo mentre fai altro.</p>
+    <p id="status" role="status"></p>
   </div>
 
   <div class="card">
-    <h2><span data-tk="catalog">Suoni: tocca + per aggiungere</span></h2>
-    <div class="catalog" id="catalog"></div>
-  </div>
-
-  <div class="card">
-    <h2><span data-tk="mixer">Il tuo mix</span><span id="mixCount" style="letter-spacing:0;text-transform:none"></span></h2>
-    <div id="mixer"></div>
+    <h2><span data-tk="sounds">Suoni</span></h2>
+    <div id="list"></div>
+    <p class="credit" id="credit"></p>
   </div>
 </div>
 
@@ -154,703 +120,383 @@
 (() => {
   'use strict';
 
-  /* ================= Catalogo suoni ================= */
+  /* ============ Suoni: registrazioni vere (Wikimedia Commons, CORS *) ============
+     Audio via Special:FilePath (reindirizza al file diretto). Se la rete
+     non è disponibile, parte da solo un dolce rumore di riserva generato qui. */
+  const CDN = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
   const SOUNDS = {
-    pioggia:  { icon: '<line x1="8" y1="15" x2="8.5" y2="19"/><line x1="12" y1="13" x2="12.5" y2="17"/><line x1="16" y1="15" x2="16.5" y2="19"/><path d="M20 13.5A8 8 0 0 0 4 13.5"/>' },
-    mare:     { icon: '<path d="M2 12q2.5-6 5 0t5 0t5 0t5 0"/><path d="M2 17q2.5-6 5 0t5 0t5 0t5 0"/>' },
-    vento:    { icon: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/>' },
-    ruscello: { icon: '<path d="M6 3v6a6 6 0 0 0 12 0V3"/><path d="M6 3c0 3 6 3 6 6M12 3c0 3 6 3 6 6"/>' },
-    fuoco:    { icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>' },
-    uccelli:  { icon: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="M20 7a4 4 0 0 1 1 2.9"/>' },
-    grilli:   { icon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>' },
-    tuono:    { icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
-    campane:  { icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/>' },
-    foglie:   { icon: '<path d="M11 20A7 7 0 0 1 4 13c0-4 3-8 9-9 4-.7 7 0 7 0s-.5 3.5-2 6c-2 3.5-4.5 7-7 10z"/><path d="M4 21c4-6 8-10 12-12"/>' },
+    pioggia:  { file: 'Rain (1).ogg',                  page: 'https://commons.wikimedia.org/wiki/File:Rain_(1).ogg',
+                icon: '<line x1="8" y1="15" x2="8.5" y2="19"/><line x1="12" y1="13" x2="12.5" y2="17"/><line x1="16" y1="15" x2="16.5" y2="19"/><path d="M20 13.5A8 8 0 0 0 4 13.5"/>', def: 65 },
+    mare:     { file: 'Oceanwavescrushing.ogg',         page: 'https://commons.wikimedia.org/wiki/File:Oceanwavescrushing.ogg',
+                icon: '<path d="M2 12q2.5-6 5 0t5 0t5 0t5 0"/><path d="M2 17q2.5-6 5 0t5 0t5 0t5 0"/>', def: 70 },
+    vento:    { file: 'Vento fisterra.ogg',             page: 'https://commons.wikimedia.org/wiki/File:Vento_fisterra.ogg',
+                icon: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/>', def: 55 },
+    ruscello: { file: 'Flowing-water-100019.ogg',       page: 'https://commons.wikimedia.org/wiki/File:Flowing-water-100019.ogg',
+                icon: '<path d="M6 3v6a6 6 0 0 0 12 0V3"/><path d="M6 3c0 3 6 3 6 6M12 3c0 3 6 3 6 6"/>', def: 60 },
+    fuoco:    { file: 'Campfire sound ambience.ogg',    page: 'https://commons.wikimedia.org/wiki/File:Campfire_sound_ambience.ogg',
+                icon: '<path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>', def: 60 },
+    uccelli:  { file: 'Birdsong morning 01.ogg',        page: 'https://commons.wikimedia.org/wiki/File:Birdsong_morning_01.ogg',
+                icon: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="M20 7a4 4 0 0 1 1 2.9"/>', def: 50 },
+    grilli:   { file: 'Grasshoppers.ogg',               page: 'https://commons.wikimedia.org/wiki/File:Grasshoppers.ogg',
+                icon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>', def: 45 },
+    tuono:    { file: 'Thunder.ogg',                    page: 'https://commons.wikimedia.org/wiki/File:Thunder.ogg',
+                icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', def: 50 },
   };
-  const ORDER = ['pioggia','mare','vento','ruscello','fuoco','uccelli','grilli','tuono','campane','foglie'];
-
-  const PRESETS = {
-    notte:   [ ['pioggia',60,75,35], ['tuono',45,25,60], ['fuoco',20,40,50] ],
-    riva:    [ ['mare',70,65,35], ['vento',30,30,30], ['uccelli',25,35,60] ],
-    bosco:   [ ['vento',40,45,40], ['foglie',55,60,45], ['uccelli',50,55,60], ['ruscello',45,50,45] ],
-    camino:  [ ['fuoco',65,60,45], ['pioggia',30,35,60], ['vento',20,25,25] ],
-    focus:   [ ['campane',50,45,30], ['pioggia',25,30,70], ['grilli',20,30,40] ],
-  };
+  const ORDER = ['pioggia', 'mare', 'vento', 'ruscello', 'fuoco', 'uccelli', 'grilli', 'tuono'];
 
   /* ================= i18n ================= */
   const LANG_KEY = 'mylollotool-lang';
-  const LANGS = ['it','de','fr','en'];
+  const LANGS = ['it', 'de', 'fr', 'en'];
   const T = {
-    title: { it:'Suoni rilassanti', de:'Entspannende Klänge', fr:'Sons relaxants', en:'Relaxing sounds' },
-    sub: { it:'Componi il tuo paesaggio sonoro: tocca + per aggiungere suoni e regola ognuno',
-           de:'Baue deine Klanglandschaft: tippe auf +, um Klänge hinzuzufügen und einzeln zu regeln',
-           fr:'Compose ton paysage sonore : touche + pour ajouter des sons et règle chacun',
-           en:'Build your soundscape: tap + to add sounds and tune each one' },
-    listening: { it:'In ascolto', de:'Hören', fr:'Écoute', en:'Listening' },
-    catalog: { it:'Suoni: tocca + per aggiungere', de:'Klänge: + zum Hinzufügen', fr:'Sons : touche + pour ajouter', en:'Sounds: tap + to add' },
-    mixer: { it:'Il tuo mix', de:'Dein Mix', fr:'Ton mix', en:'Your mix' },
-    master: { it:'Volume generale', de:'Gesamtlautstärke', fr:'Volume général', en:'Master volume' },
-    hint: { it:'Tutto è generato dal vivo nel browser, nessun file audio: puoi tenere la pagina in sottofondo mentre fai altro.',
-            de:'Alles wird live im Browser erzeugt, keine Audiodateien: lasse die Seite im Hintergrund laufen.',
-            fr:'Tout est généré en direct dans le navigateur, aucun fichier audio : laisse la page en fond.',
-            en:'Everything is generated live in the browser, no audio files: keep the page in the background.' },
-    play: { it:'Avvia', de:'Start', fr:'Démarrer', en:'Play' },
-    stop: { it:'Pausa', de:'Pause', fr:'Pause', en:'Pause' },
-    empty: { it:'Nessun suono nel mix: aggiungi qualcosa dal catalogo qui sopra, ad esempio Pioggia o Mare.',
-             de:'Kein Klang im Mix: füge oben etwas hinzu, z. B. Regen oder Meer.',
-             fr:'Aucun son dans le mix : ajoute quelque chose ci-dessus, par ex. Pluie ou Mer.',
-             en:'No sounds in the mix: add something from the catalog above, e.g. Rain or Sea.' },
-    vol: { it:'Volume', de:'Lautstärke', fr:'Volume', en:'Volume' },
-    remove: { it:'Togli', de:'Entfernen', fr:'Retirer', en:'Remove' },
-    tOff: { it:'Timer: spento', de:'Timer: aus', fr:'Minuteur : éteint', en:'Timer: off' },
-    t5: { it:'Timer: 5 min', de:'Timer: 5 Min', fr:'Minuteur : 5 min', en:'Timer: 5 min' },
-    t10: { it:'Timer: 10 min', de:'Timer: 10 Min', fr:'Minuteur : 10 min', en:'Timer: 10 min' },
-    t15: { it:'Timer: 15 min', de:'Timer: 15 Min', fr:'Minuteur : 15 min', en:'Timer: 15 min' },
-    t30: { it:'Timer: 30 min', de:'Timer: 30 Min', fr:'Minuteur : 30 min', en:'Timer: 30 min' },
-    t60: { it:'Timer: 60 min', de:'Timer: 60 Min', fr:'Minuteur : 60 min', en:'Timer: 60 min' },
-    pNotte: { it:'Notte di pioggia', de:'Regennacht', fr:'Nuit de pluie', en:'Rainy night' },
-    pRiva: { it:'Riva del mare', de:'Meeresküste', fr:'Bord de mer', en:'Seashore' },
-    pBosco: { it:'Bosco', de:'Wald', fr:'Forêt', en:'Forest' },
-    pCamino: { it:'Camino', de:'Kamin', fr:'Cheminée', en:'Fireplace' },
-    pFocus: { it:'Concentrazione', de:'Konzentration', fr:'Concentration', en:'Focus' },
-    pRandom: { it:'A sorpresa', de:'Überraschung', fr:'Surprise', en:'Surprise me' },
-    pClear: { it:'Svuota', de:'Leeren', fr:'Vider', en:'Clear' },
-    nPioggia: { it:'Pioggia', de:'Regen', fr:'Pluie', en:'Rain' },
-    nMare: { it:'Mare', de:'Meer', fr:'Mer', en:'Sea' },
-    nVento: { it:'Vento', de:'Wind', fr:'Vent', en:'Wind' },
-    nRuscello: { it:'Ruscello', de:'Bach', fr:'Ruisseau', en:'Stream' },
-    nFuoco: { it:'Fuoco', de:'Feuer', fr:'Feu', en:'Fire' },
-    nUccelli: { it:'Uccelli', de:'Vögel', fr:'Oiseaux', en:'Birds' },
-    nGrilli: { it:'Grilli', de:'Grillen', fr:'Grillons', en:'Crickets' },
-    nTuono: { it:'Tuono lontano', de:'Ferner Donner', fr:'Tonnerre lointain', en:'Distant thunder' },
-    nCampane: { it:'Campane tibetane', de:'Klangschalen', fr:'Bols tibétains', en:'Singing bowls' },
-    nFoglie: { it:'Foglie', de:'Blätter', fr:'Feuilles', en:'Leaves' },
-    dPioggia: { it:'Gocce fitte e morbide', de:'Dichte, weiche Tropfen', fr:'Gouttes denses et douces', en:'Dense soft drops' },
-    dMare: { it:'Onde che vanno e vengono', de:'Wellen im Wechsel', fr:'Vagues qui vont et viennent', en:'Rolling waves' },
-    dVento: { it:'Raffiche tra gli alberi', de:'Böen in den Bäumen', fr:'Rafales dans les arbres', en:'Gusts in the trees' },
-    dRuscello: { it:'Acqua che scorre sui sassi', de:'Wasser über Steine', fr:'Eau sur les cailloux', en:'Water over pebbles' },
-    dFuoco: { it:'Legna che scoppietta', de:'Knisterndes Holz', fr:'Bois qui crépite', en:'Crackling wood' },
-    dUccelli: { it:'Cinguettii nel bosco', de:'Zwitschern im Wald', fr:'Gazouillis dans les bois', en:'Chirps in the woods' },
-    dGrilli: { it:'Sera d’estate nei prati', de:'Sommerabend auf der Wiese', fr:'Soir d’été dans les prés', en:'Summer evening meadow' },
-    dTuono: { it:'Brontolii lenti e profondi', de:'Langsames, tiefes Grollen', fr:'Grondements lents et profonds', en:'Slow deep rumbles' },
-    dCampane: { it:'Vibrazioni calde e lente', de:'Warme, langsame Schwingungen', fr:'Vibrations chaudes et lentes', en:'Warm slow vibrations' },
-    dFoglie: { it:'Fruscio leggero al vento', de:'Leises Rascheln im Wind', fr:'Léger bruissement au vent', en:'Soft rustling in the wind' },
-    qPioggia: { it:'Intensità', de:'Stärke', fr:'Intensité', en:'Intensity' },
-    qMare: { it:'Altezza onde', de:'Wellenhöhe', fr:'Hauteur des vagues', en:'Wave height' },
-    qVento: { it:'Intensità', de:'Stärke', fr:'Intensité', en:'Intensity' },
-    qRuscello: { it:'Portata', de:'Wassermenge', fr:'Débit', en:'Flow' },
-    qFuoco: { it:'Crepitio', de:'Knistern', fr:'Crépitement', en:'Crackle' },
-    qUccelli: { it:'Attività', de:'Aktivität', fr:'Activité', en:'Activity' },
-    qGrilli: { it:'Numero', de:'Anzahl', fr:'Nombre', en:'Number' },
-    qTuono: { it:'Frequenza', de:'Häufigkeit', fr:'Fréquence', en:'Frequency' },
-    qCampane: { it:'Armoniche', de:'Obertöne', fr:'Harmoniques', en:'Harmonics' },
-    qFoglie: { it:'Fruscio', de:'Rascheln', fr:'Bruissement', en:'Rustle' },
-    sPioggia: { it:'Luminosità', de:'Helligkeit', fr:'Clarté', en:'Brightness' },
-    sMare: { it:'Ritmo onde', de:'Wellenrhythmus', fr:'Rythme des vagues', en:'Wave rhythm' },
-    sVento: { it:'Velocità raffiche', de:'Böentempo', fr:'Vitesse des rafales', en:'Gust speed' },
-    sRuscello: { it:'Velocità', de:'Tempo', fr:'Vitesse', en:'Speed' },
-    sFuoco: { it:'Calore', de:'Wärme', fr:'Chaleur', en:'Warmth' },
-    sUccelli: { it:'Vivacità', de:'Lebhaftigkeit', fr:'Vivacité', en:'Liveliness' },
-    sGrilli: { it:'Ritmo', de:'Rhythmus', fr:'Rythme', en:'Pulse' },
-    sTuono: { it:'Profondità', de:'Tiefe', fr:'Profondeur', en:'Depth' },
-    sCampane: { it:'Fluttuazione', de:'Schwebung', fr:'Fluctuation', en:'Drift' },
-    sFoglie: { it:'Vento', de:'Wind', fr:'Vent', en:'Wind' },
+    title: { it: 'Suoni rilassanti', de: 'Entspannende Klänge', fr: 'Sons relaxants', en: 'Relaxing sounds' },
+    sub: { it: 'Accendi i suoni che vuoi e regola il volume di ognuno',
+           de: 'Schalte die Klänge ein, die du willst, und regle die Lautstärke',
+           fr: 'Allume les sons que tu veux et règle le volume de chacun',
+           en: 'Turn on the sounds you want and set each volume' },
+    listening: { it: 'In ascolto', de: 'Hören', fr: 'Écoute', en: 'Listening' },
+    sounds: { it: 'Suoni', de: 'Klänge', fr: 'Sons', en: 'Sounds' },
+    master: { it: 'Volume generale', de: 'Gesamtlautstärke', fr: 'Volume général', en: 'Master volume' },
+    stopAll: { it: 'Spegni tutto', de: 'Alle aus', fr: 'Tout éteindre', en: 'Turn all off' },
+    on: { it: 'acceso', de: 'an', fr: 'allumé', en: 'on' },
+    off: { it: 'spento', de: 'aus', fr: 'éteint', en: 'off' },
+    loading: { it: 'caricamento…', de: 'lädt…', fr: 'chargement…', en: 'loading…' },
+    synth: { it: 'senza rete: versione di riserva', de: 'offline: Ersatzversion', fr: 'hors ligne : version de secours', en: 'offline: fallback version' },
+    tapToStart: { it: 'Tocca un interruttore per iniziare', de: 'Tippe auf einen Schalter, um zu starten', fr: 'Touche un interrupteur pour commencer', en: 'Flip a switch to start' },
+    active: { it: '{n} in riproduzione', de: '{n} laufen', fr: '{n} en écoute', en: '{n} playing' },
+    silent: { it: 'Tutto spento', de: 'Alles aus', fr: 'Tout éteint', en: 'All off' },
+    credit: { it: 'Registrazioni vere da Wikimedia Commons (pioggia, onde, vento, ruscello, falò, uccelli, cavallette, tuono). Senza rete suona una dolce riserva generata dal browser.',
+             de: 'Echte Aufnahmen von Wikimedia Commons (Regen, Wellen, Wind, Bach, Lagerfeuer, Vögel, Grashüpfer, Donner). Ohne Netz spielt eine sanfte Ersatzversion aus dem Browser.',
+             fr: 'Vrais enregistrements de Wikimedia Commons (pluie, vagues, vent, ruisseau, feu, oiseaux, sauterelles, tonnerre). Hors ligne, une douce version de secours générée par le navigateur.',
+             en: 'Real recordings from Wikimedia Commons (rain, waves, wind, stream, campfire, birds, grasshoppers, thunder). Offline, a gentle browser-made fallback plays.' },
+    nPioggia: { it: 'Pioggia', de: 'Regen', fr: 'Pluie', en: 'Rain' },
+    nMare: { it: 'Mare', de: 'Meer', fr: 'Mer', en: 'Sea' },
+    nVento: { it: 'Vento', de: 'Wind', fr: 'Vent', en: 'Wind' },
+    nRuscello: { it: 'Ruscello', de: 'Bach', fr: 'Ruisseau', en: 'Stream' },
+    nFuoco: { it: 'Fuoco', de: 'Feuer', fr: 'Feu', en: 'Fire' },
+    nUccelli: { it: 'Uccelli', de: 'Vögel', fr: 'Oiseaux', en: 'Birds' },
+    nGrilli: { it: 'Grilli', de: 'Grillen', fr: 'Grillons', en: 'Crickets' },
+    nTuono: { it: 'Tuono', de: 'Donner', fr: 'Tonnerre', en: 'Thunder' },
+    dPioggia: { it: 'Pioggia vera sui vetri', de: 'Echter Regen auf Glas', fr: 'Vraie pluie sur les vitres', en: 'Real rain on glass' },
+    dMare: { it: 'Onde vere sulla riva', de: 'Echte Wellen am Ufer', fr: 'Vraies vagues sur la rive', en: 'Real waves on the shore' },
+    dVento: { it: 'Vento vero tra gli alberi', de: 'Echter Wind in den Bäumen', fr: 'Vrai vent dans les arbres', en: 'Real wind in the trees' },
+    dRuscello: { it: 'Acqua vera che scorre', de: 'Echt fließendes Wasser', fr: 'Vraie eau qui coule', en: 'Real flowing water' },
+    dFuoco: { it: 'Falò vero che scoppietta', de: 'Echtes knisterndes Feuer', fr: 'Vrai feu qui crépite', en: 'Real crackling fire' },
+    dUccelli: { it: 'Uccelli veri del mattino', de: 'Echte Morgenvögel', fr: 'Vrais oiseaux du matin', en: 'Real morning birds' },
+    dGrilli: { it: 'Grilli veri d’estate', de: 'Echte Sommergrillen', fr: 'Vrais grillons d’été', en: 'Real summer crickets' },
+    dTuono: { it: 'Tuono vero in lontananza', de: 'Echter ferner Donner', fr: 'Vrai tonnerre lointain', en: 'Real distant thunder' },
   };
   let curLang = 'it';
   try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) curLang = g; } catch (e) {}
   const tr = k => { const e = T[k]; return (!e ? k : (e[curLang] || e.it || k)); };
   const cap = k => 'n' + k[0].toUpperCase() + k.slice(1);
-  const qLab = type => tr('q' + type[0].toUpperCase() + type.slice(1));
-  const sLab = type => tr('s' + type[0].toUpperCase() + type.slice(1));
-  const sndName = type => tr(cap(type));
-  const sndDesc = type => tr('d' + type[0].toUpperCase() + type.slice(1));
+  const sndName = t => tr(cap(t));
+  const sndDesc = t => tr('d' + t[0].toUpperCase() + t.slice(1));
 
   /* ================= Stato ================= */
-  const STORE = 'mylollotool-suoni-v1';
-  let channels = [];   // {uid,type,vol,qty,spd,audio}
-  let masterVol = 70;
-  let playing = false;
-  let uidSeq = 1;
-
+  const STORE = 'mylollotool-suoni-v2';
+  const OLD = 'mylollotool-suoni-v1';
+  const st = { master: 70, s: {} };
+  ORDER.forEach(t => { st.s[t] = { on: false, vol: SOUNDS[t].def }; });
   function save() {
-    try {
-      localStorage.setItem(STORE, JSON.stringify({
-        master: masterVol,
-        channels: channels.map(c => ({ type: c.type, vol: c.vol, qty: c.qty, spd: c.spd })),
-      }));
-    } catch (e) {}
+    try { localStorage.setItem(STORE, JSON.stringify({ master: st.master, s: st.s })); } catch (e) {}
   }
   function load() {
     try {
       const o = JSON.parse(localStorage.getItem(STORE));
-      if (o && Array.isArray(o.channels)) {
-        if (isFinite(o.master)) masterVol = Math.min(100, Math.max(0, +o.master));
-        channels = o.channels
-          .filter(c => c && SOUNDS[c.type])
-          .slice(0, 12)
-          .map(c => ({
-            uid: uidSeq++,
-            type: c.type,
-            vol: clamp(isFinite(+c.vol) ? +c.vol : 70, 0, 100),
-            qty: clamp(isFinite(+c.qty) ? +c.qty : 55, 0, 100),
-            spd: clamp(isFinite(+c.spd) ? +c.spd : 50, 0, 100),
-            audio: null,
-          }));
+      if (o && o.s) {
+        if (isFinite(o.master)) st.master = Math.min(100, Math.max(0, +o.master));
+        ORDER.forEach(t => {
+          const v = o.s[t];
+          if (v && isFinite(v.vol)) st.s[t].vol = Math.min(100, Math.max(0, +v.vol));
+          if (v && v.on === true) st.s[t].on = true;
+        });
+        return;
       }
     } catch (e) {}
+    // Prima volta: prova a riusare i volumi del vecchio mix, tutto spento
+    try {
+      const o = JSON.parse(localStorage.getItem(OLD));
+      if (o && Array.isArray(o.channels)) o.channels.forEach(c => {
+        if (st.s[c.type] && isFinite(c.vol)) st.s[c.type].vol = Math.min(100, Math.max(0, +c.vol));
+      });
+      if (o && isFinite(o.master)) st.master = Math.min(100, Math.max(0, +o.master));
+    } catch (e) {}
   }
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
   /* ================= Motore audio ================= */
   let AC = null, master = null, analyser = null, noiseBuf = null;
+  const bufs = {};      // type -> AudioBuffer (registrazione vera)
+  const loading = {};   // type -> Promise
+  const live = {};      // type -> { stop() }
+  const synthOn = {};   // type -> true se sta usando la riserva
 
-  function ctx() {
+  function ensureCtx() {
     if (!AC) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       AC = new Ctx();
       master = AC.createGain();
       analyser = AC.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.75;
       master.connect(analyser);
       analyser.connect(AC.destination);
       const len = AC.sampleRate * 2;
       noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
       const d = noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-      applyMaster(true);
+      master.gain.value = (st.master / 100) * 0.9;
     }
     if (AC.state === 'suspended') AC.resume();
     return AC;
   }
-  function applyMaster(now) {
-    if (!AC || !master) return;
-    const v = playing ? (masterVol / 100) * 0.9 : 0;
-    if (now) master.gain.value = v;
-    else master.gain.setTargetAtTime(v, AC.currentTime, 0.6);
-  }
-  function noiseSrc(rate) {
-    const s = AC.createBufferSource();
-    s.buffer = noiseBuf; s.loop = true;
-    if (rate) s.playbackRate.value = rate;
-    s.start();
-    return s;
-  }
-  function reg(a, list, n) { list.push(n); return n; }
-  function lfoTar(freq, amount, param, list) {
-    const o = AC.createOscillator(); o.frequency.value = freq;
-    const g = AC.createGain(); g.gain.value = amount;
-    o.connect(g); g.connect(param); o.start();
-    reg(0, list, o); reg(0, list, g);
-    return o;
-  }
-  function base(type) {
-    const nodes = [], timers = [];
-    const out = AC.createGain(); out.gain.value = 0;
-    out.connect(master);
-    const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
-    const every = (fn, ms) => { const id = setInterval(fn, ms); timers.push(id); return id; };
-    return { nodes, timers, out, later, every,
-      stop() {
-        timers.forEach(id => { clearTimeout(id); clearInterval(id); });
-        nodes.forEach(n => { try { if (n.stop) n.stop(); } catch (e) {} try { n.disconnect(); } catch (e) {} });
-        try { out.disconnect(); } catch (e) {}
-      } };
-  }
-  const F = (v, a, b) => a + (v / 100) * (b - a);
 
-  const BUILDERS = {
-    pioggia(ch, B) {
-      const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3800;
-      const g = AC.createGain(); g.gain.value = 0.22;
-      const src = noiseSrc(0.9); src.connect(hp); hp.connect(g); g.connect(B.out);
-      B.nodes.push(src, hp, g);
-      const l = lfoTar(0.4, 0.05, g.gain, B.nodes);
-      B.update = () => {
-        hp.frequency.setTargetAtTime(F(ch.spd, 2200, 6500), AC.currentTime, 0.3);
-        g.gain.setTargetAtTime(0.04 + (ch.qty / 100) * 0.30, AC.currentTime, 0.3);
-        src.playbackRate.setTargetAtTime(0.7 + (ch.spd / 100) * 0.8, AC.currentTime, 0.3);
-      };
-      B.update();
-    },
-    mare(ch, B) {
-      const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520;
-      const g = AC.createGain(); g.gain.value = 0.35;
-      const src = noiseSrc(0.5); src.connect(lp); lp.connect(g); g.connect(B.out);
-      B.nodes.push(src, lp, g);
-      const o = AC.createOscillator(); o.frequency.value = 0.09;
-      const og = AC.createGain(); og.gain.value = 0.18;
-      o.connect(og); og.connect(g.gain); o.start();
-      B.nodes.push(o, og);
-      B.update = () => {
-        lp.frequency.setTargetAtTime(F(ch.qty, 280, 850), AC.currentTime, 0.4);
-        g.gain.setTargetAtTime(0.12 + (ch.qty / 100) * 0.38, AC.currentTime, 0.4);
-        o.frequency.setTargetAtTime(F(ch.spd, 0.05, 0.30), AC.currentTime, 0.4);
-        og.gain.setTargetAtTime(g.gain.value * 0.55, AC.currentTime, 0.4);
-      };
-      B.update();
-    },
-    vento(ch, B) {
-      const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 480; bp.Q.value = 0.6;
-      const g = AC.createGain(); g.gain.value = 0.28;
-      const src = noiseSrc(0.7); src.connect(bp); bp.connect(g); g.connect(B.out);
-      B.nodes.push(src, bp, g);
-      const o1 = lfoTar(0.06, 260, bp.frequency, B.nodes);
-      const o2 = lfoTar(0.13, 120, bp.frequency, B.nodes);
-      const o3 = lfoTar(0.045, 0.10, g.gain, B.nodes);
-      B.update = () => {
-        bp.frequency.setTargetAtTime(F(ch.qty, 280, 750), AC.currentTime, 0.5);
-        g.gain.setTargetAtTime(0.06 + (ch.qty / 100) * 0.34, AC.currentTime, 0.4);
-        const k = F(ch.spd, 0.4, 2.2);
-        o1.frequency.setTargetAtTime(0.06 * k, AC.currentTime, 0.4);
-        o2.frequency.setTargetAtTime(0.13 * k, AC.currentTime, 0.4);
-        o3.frequency.setTargetAtTime(0.045 * k, AC.currentTime, 0.4);
-      };
-      B.update();
-    },
-    ruscello(ch, B) {
-      const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.9;
-      const g = AC.createGain(); g.gain.value = 0.16;
-      const src = noiseSrc(1.1); src.connect(bp); bp.connect(g); g.connect(B.out);
-      B.nodes.push(src, bp, g);
-      lfoTar(3.1, 0.05, g.gain, B.nodes);
-      const drop = () => {
-        if (!playing || !ch.audio) return;
-        const t = AC.currentTime;
-        const o = AC.createOscillator(); o.type = 'sine';
-        const f0 = 700 + Math.random() * 1400 * (0.7 + ch.spd / 130);
-        o.frequency.setValueAtTime(f0, t);
-        o.frequency.exponentialRampToValueAtTime(Math.max(200, f0 * 0.45), t + 0.12);
-        const og = AC.createGain();
-        og.gain.setValueAtTime(0.0001, t);
-        og.gain.exponentialRampToValueAtTime(0.05 + (ch.vol / 100) * 0.05, t + 0.015);
-        og.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-        o.connect(og); og.connect(B.out);
-        o.start(t); o.stop(t + 0.3);
-        B.nodes.push(o, og);
-        if (B.nodes.length > 40) B.nodes.splice(0, B.nodes.length - 40);
-        B.later(drop, F(100 - ch.qty, 250, 2600) * (0.5 + Math.random()));
-      };
-      B.later(drop, 400);
-      B.update = () => {
-        bp.frequency.setTargetAtTime(F(ch.spd, 1200, 3000), AC.currentTime, 0.3);
-        g.gain.setTargetAtTime(0.05 + (ch.qty / 100) * 0.20, AC.currentTime, 0.3);
-      };
-      B.update();
-    },
-    fuoco(ch, B) {
-      const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
-      const g = AC.createGain(); g.gain.value = 0.12;
-      const src = noiseSrc(0.4); src.connect(lp); lp.connect(g); g.connect(B.out);
-      B.nodes.push(src, lp, g);
-      const pop = () => {
-        if (!playing || !ch.audio) return;
-        const t = AC.currentTime;
-        const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = false;
-        s.playbackRate.value = 0.8 + Math.random() * 1.6;
-        const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
-        bp.frequency.value = F(ch.spd, 900, 4200) * (0.6 + Math.random() * 0.8);
-        bp.Q.value = 2.5;
-        const og = AC.createGain();
-        const peak = 0.10 + Math.random() * 0.30;
-        og.gain.setValueAtTime(0.0001, t);
-        og.gain.exponentialRampToValueAtTime(peak, t + 0.008);
-        og.gain.exponentialRampToValueAtTime(0.0001, t + 0.05 + Math.random() * 0.14);
-        s.connect(bp); bp.connect(og); og.connect(B.out);
-        const off = Math.random() * 1.4;
-        s.start(t, off, 0.3);
-        s.stop(t + 0.35);
-        B.nodes.push(s, bp, og);
-        if (B.nodes.length > 60) B.nodes.splice(0, B.nodes.length - 60);
-        B.later(pop, F(100 - ch.qty, 90, 1400) * (0.4 + Math.random()));
-      };
-      B.later(pop, 250);
-      B.update = () => {
-        lp.frequency.setTargetAtTime(F(ch.spd, 220, 640), AC.currentTime, 0.4);
-        g.gain.setTargetAtTime(0.05 + (ch.qty / 100) * 0.12, AC.currentTime, 0.4);
-      };
-      B.update();
-    },
-    uccelli(ch, B) {
-      const phrase = () => {
-        if (!playing || !ch.audio) return;
-        const t0 = AC.currentTime + 0.05;
-        const n = 2 + (Math.random() * 3 | 0);
-        const baseF = (2100 + Math.random() * 1400) * (0.8 + ch.spd / 250);
-        for (let i = 0; i < n; i++) {
-          const t = t0 + i * (0.14 + Math.random() * 0.1 / (0.5 + ch.spd / 60));
-          const o = AC.createOscillator(); o.type = 'sine';
-          const f = baseF * (0.9 + Math.random() * 0.35);
-          o.frequency.setValueAtTime(f, t);
-          o.frequency.exponentialRampToValueAtTime(f * (1.2 + Math.random() * 0.3), t + 0.07);
-          o.frequency.exponentialRampToValueAtTime(f * 0.9, t + 0.13);
-          const og = AC.createGain();
-          og.gain.setValueAtTime(0.0001, t);
-          og.gain.exponentialRampToValueAtTime(0.06 + (ch.vol / 100) * 0.06, t + 0.02);
-          og.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-          o.connect(og); og.connect(B.out);
-          o.start(t); o.stop(t + 0.25);
-          B.nodes.push(o, og);
-        }
-        if (B.nodes.length > 60) B.nodes.splice(0, B.nodes.length - 60);
-        B.later(phrase, F(100 - ch.qty, 900, 9000) * (0.6 + Math.random() * 0.8));
-      };
-      B.later(phrase, 700);
-      B.update = () => {};
-    },
-    grilli(ch, B) {
-      const mk = (f) => {
-        const o = AC.createOscillator(); o.type = 'sine'; o.frequency.value = f;
-        const am = AC.createGain(); am.gain.value = 0.5;
-        const l = AC.createOscillator(); l.type = 'sine'; l.frequency.value = 19;
-        const lg = AC.createGain(); lg.gain.value = 0.5;
-        l.connect(lg); lg.connect(am.gain);
-        const g = AC.createGain(); g.gain.value = 0.035;
-        o.connect(am); am.connect(g); g.connect(B.out);
-        o.start(); l.start();
-        B.nodes.push(o, am, l, lg, g);
-        return { l, g };
-      };
-      const a = mk(4250), b = mk(5380);
-      B.update = () => {
-        const rate = F(ch.spd, 12, 30);
-        a.l.frequency.setTargetAtTime(rate, AC.currentTime, 0.3);
-        b.l.frequency.setTargetAtTime(rate * 0.77, AC.currentTime, 0.3);
-        const v = 0.008 + (ch.qty / 100) * 0.075;
-        a.g.gain.setTargetAtTime(v, AC.currentTime, 0.3);
-        b.g.gain.setTargetAtTime(v * 0.6, AC.currentTime, 0.3);
-      };
-      B.update();
-    },
-    tuono(ch, B) {
-      const rumble = () => {
-        if (!playing || !ch.audio) return;
-        const t = AC.currentTime;
-        const dur = F(ch.spd, 2.5, 6.5);
-        const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
-        s.playbackRate.value = 0.22;
-        const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
-        lp.frequency.value = F(100 - ch.spd, 90, 240);
-        const og = AC.createGain();
-        og.gain.setValueAtTime(0.0001, t);
-        og.gain.exponentialRampToValueAtTime(0.22 + (ch.qty / 100) * 0.30, t + dur * 0.3);
-        og.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        s.connect(lp); lp.connect(og); og.connect(B.out);
-        s.start(t); s.stop(t + dur + 0.1);
-        B.nodes.push(s, lp, og);
-        if (B.nodes.length > 30) B.nodes.splice(0, B.nodes.length - 30);
-        B.later(rumble, F(100 - ch.qty, 9000, 42000) * (0.7 + Math.random() * 0.6));
-      };
-      B.later(rumble, 1200);
-      B.update = () => {};
-    },
-    campane(ch, B) {
-      const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900;
-      lp.connect(B.out);
-      B.nodes.push(lp);
-      const parts = [196, 294, 392, 494, 587];
-      const gs = [];
-      parts.forEach((f, i) => {
-        const o = AC.createOscillator(); o.type = 'sine'; o.frequency.value = f * (1 + (Math.random() - 0.5) * 0.002);
-        const g = AC.createGain(); g.gain.value = i < 3 ? 0.06 : 0.0;
-        o.connect(g); g.connect(lp); o.start();
-        B.nodes.push(o, g); gs.push(g);
-        lfoTar(0.05 + i * 0.04, g.gain.value * 0 + 0.02, g.gain, B.nodes);
-      });
-      B.update = () => {
-        const open = Math.round(F(ch.qty, 2, 5));
-        gs.forEach((g, i) => {
-          const target = i < open ? 0.075 - i * 0.012 : 0.0;
-          g.gain.setTargetAtTime(Math.max(0, target), AC.currentTime, 0.8);
-        });
-        B.nodes.forEach(n => {
-          if (n.frequency && n.frequency.value < 2 && n.frequency.value > 0.01) {
-            n.frequency.setTargetAtTime(n.frequency.value, AC.currentTime, 0.5);
-          }
-        });
-      };
-      B._drift = B.every(() => {
-        gs.forEach((g, i) => {
-          const w = F(ch.spd, 0.02, 0.12);
-          g.gain.setTargetAtTime(Math.max(0.004, g.gain.value + (Math.random() - 0.5) * w * 0.2), AC.currentTime, 1.2);
-        });
-      }, 4000);
-      B.update();
-    },
-    foglie(ch, B) {
-      const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 5200;
-      const g = AC.createGain(); g.gain.value = 0.10;
-      const src = noiseSrc(1.3); src.connect(hp); hp.connect(g); g.connect(B.out);
-      B.nodes.push(src, hp, g);
-      const gust = () => {
-        if (!playing || !ch.audio) return;
-        const t = AC.currentTime;
-        const peak = (0.05 + (ch.qty / 100) * 0.22) * (0.5 + Math.random() * 0.7);
-        g.gain.cancelScheduledValues(t);
-        g.gain.setTargetAtTime(peak, t, F(100 - ch.spd, 0.4, 1.6));
-        g.gain.setTargetAtTime(0.04, t + 1.2, F(100 - ch.spd, 0.6, 2.0));
-        B.later(gust, 1800 + Math.random() * F(100 - ch.spd, 1500, 5000));
-      };
-      B.later(gust, 600);
-      B.update = () => {
-        hp.frequency.setTargetAtTime(F(ch.spd, 3800, 6800), AC.currentTime, 0.4);
-      };
-      B.update();
-    },
-  };
-
-  function startChannel(ch) {
-    stopChannel(ch, true);
-    ctx();
-    const B = base(ch.type);
-    BUILDERS[ch.type](ch, B);
-    ch.audio = B;
-    const v = (ch.vol / 100) * 0.9;
-    B.out.gain.setTargetAtTime(v, AC.currentTime, 0.5);
-    if (B.update) B._chUpdate = B.update;
+  function loadReal(type) {
+    if (bufs[type]) return Promise.resolve(bufs[type]);
+    if (loading[type]) return loading[type];
+    loading[type] = fetch(CDN + encodeURIComponent(SOUNDS[type].file))
+      .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.arrayBuffer(); })
+      .then(ab => ensureCtx().decodeAudioData(ab))
+      .then(b => { bufs[type] = b; delete loading[type]; return b; })
+      .catch(err => { delete loading[type]; throw err; });
+    return loading[type];
   }
-  function stopChannel(ch, silent) {
-    if (ch.audio) {
+
+  function startReal(type) {
+    const g = AC.createGain();
+    g.gain.value = 0;
+    g.connect(master);
+    const src = AC.createBufferSource();
+    src.buffer = bufs[type]; src.loop = true;
+    src.connect(g); src.start();
+    const target = (st.s[type].vol / 100) * 0.9;
+    g.gain.setTargetAtTime(target, AC.currentTime, 0.8);
+    live[type] = { stop(fast) {
       try {
-        if (!silent) ch.audio.out.gain.setTargetAtTime(0, AC.currentTime, 0.15);
-        const B = ch.audio;
-        ch.audio = null;
-        setTimeout(() => B.stop(), silent ? 0 : 400);
-      } catch (e) { ch.audio = null; }
+        g.gain.setTargetAtTime(0, AC.currentTime, fast ? 0.05 : 0.3);
+        const s = src;
+        setTimeout(() => { try { s.stop(); } catch (e) {} try { g.disconnect(); } catch (e) {} }, fast ? 150 : 900);
+      } catch (e) {}
+      delete live[type];
+    }, gain: g };
+  }
+
+  /* Riserva senza rete: dolce rumore filtrato, uguale per tutti ma intonato */
+  const SYNTH = {
+    pioggia:  { type: 'highpass', f: 4200, v: 0.20 },
+    mare:     { type: 'lowpass',  f: 480,  v: 0.45, lfo: 0.09 },
+    vento:    { type: 'bandpass', f: 520,  v: 0.35, lfo: 0.07 },
+    ruscello: { type: 'bandpass', f: 2100, v: 0.22 },
+    fuoco:    { type: 'lowpass',  f: 360,  v: 0.20 },
+    uccelli:  { type: 'bandpass', f: 3000, v: 0.10, lfo: 0.6 },
+    grilli:   { type: 'highpass', f: 5000, v: 0.08, lfo: 1.7 },
+    tuono:    { type: 'lowpass',  f: 130,  v: 0.40, lfo: 0.05 },
+  };
+  function startSynth(type) {
+    const c = SYNTH[type];
+    const flt = AC.createBiquadFilter(); flt.type = c.type; flt.frequency.value = c.f; flt.Q.value = 0.7;
+    const g = AC.createGain(); g.gain.value = 0;
+    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    src.connect(flt); flt.connect(g); g.connect(master); src.start();
+    let lfo = null;
+    if (c.lfo) {
+      lfo = AC.createOscillator(); lfo.frequency.value = c.lfo;
+      const lg = AC.createGain(); lg.gain.value = c.v * 0.45;
+      lfo.connect(lg); lg.connect(g.gain); lfo.start();
     }
-  }
-  function refreshChannel(ch) {
-    if (!ch.audio || !AC) return;
-    ch.audio.out.gain.setTargetAtTime((ch.vol / 100) * 0.9, AC.currentTime, 0.2);
-    try { if (ch.audio.update) ch.audio.update(); } catch (e) {}
-  }
-
-  function playAll() {
-    ctx();
-    playing = true;
-    applyMaster(false);
-    channels.forEach(startChannel);
-    paintPlay();
-    drawViz();
-  }
-  function pauseAll(fade) {
-    playing = false;
-    if (AC) {
-      if (fade) {
-        master.gain.setTargetAtTime(0, AC.currentTime, 1.2);
-        setTimeout(() => { if (!playing) channels.forEach(c => stopChannel(c, true)); }, 3200);
-      } else {
-        applyMaster(false);
-        channels.forEach(c => stopChannel(c, true));
-      }
-    }
-    paintPlay();
+    g.gain.setTargetAtTime((st.s[type].vol / 100) * c.v, AC.currentTime, 0.8);
+    synthOn[type] = true; paintRow(type);
+    live[type] = { stop(fast) {
+      try {
+        g.gain.setTargetAtTime(0, AC.currentTime, 0.2);
+        setTimeout(() => {
+          try { src.stop(); } catch (e) {}
+          try { if (lfo) lfo.stop(); } catch (e) {}
+          try { g.disconnect(); flt.disconnect(); } catch (e) {}
+        }, 700);
+      } catch (e) {}
+      delete live[type];
+    }, gain: g };
   }
 
-  /* ================= Timer spegnimento ================= */
-  let timerSec = 0, timerId = null;
-  const timerSel = document.getElementById('timer');
-  const timerLeft = document.getElementById('timerLeft');
-  function fmtT(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
-  function setTimer(min) {
-    clearInterval(timerId); timerId = null; timerSec = 0; timerLeft.textContent = '';
-    if (min > 0 && playing) {
-      timerSec = min * 60;
-      timerLeft.textContent = fmtT(timerSec);
-      timerId = setInterval(() => {
-        timerSec--;
-        if (timerSec <= 0) {
-          clearInterval(timerId); timerId = null; timerLeft.textContent = '';
-          timerSel.value = '0';
-          pauseAll(true);
-          return;
-        }
-        timerLeft.textContent = fmtT(timerSec);
-      }, 1000);
-    }
+  function stopType(type, fast) {
+    if (live[type]) live[type].stop(fast);
+    if (synthOn[type]) { delete synthOn[type]; paintRow(type); }
   }
-  timerSel.addEventListener('change', () => setTimer(parseInt(timerSel.value, 10) || 0));
 
-  /* ================= UI ================= */
-  const $ = id => document.getElementById(id);
-  const catalogEl = $('catalog'), mixerEl = $('mixer');
-  const btnPlay = $('btnPlay'), playTxt = $('playTxt'), playIc = $('playIc');
-  const masterSlider = $('master'), masterVal = $('masterVal');
-
-  masterSlider.value = masterVol; masterVal.textContent = masterVol;
-  masterSlider.addEventListener('input', () => {
-    masterVol = +masterSlider.value;
-    masterVal.textContent = masterVol;
-    if (AC) applyMaster(false);
-    save();
-  });
-
-  function paintPlay() {
-    playTxt.textContent = tr(playing ? 'stop' : 'play');
-    playIc.innerHTML = playing
-      ? '<line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/>'
-      : '<polygon points="6 3 20 12 6 21 6 3"/>';
-    document.querySelectorAll('#mixer .mix').forEach(el => {
-      el.classList.toggle('active', playing);
+  function turnOn(type) {
+    ensureCtx();
+    stopType(type, true);
+    paintRow(type, true);
+    loadReal(type).then(() => {
+      if (!st.s[type].on) return; // nel frattempo è stato spento
+      if (live[type]) live[type].stop(true);
+      startReal(type);
+      paintRow(type);
+      paintStatus();
+    }).catch(() => {
+      if (!st.s[type].on) { paintRow(type); return; }
+      startSynth(type); // senza rete: riserva
+      paintStatus();
     });
   }
 
-  btnPlay.addEventListener('click', () => {
-    if (!channels.length) {
-      applyPreset('notte');
+  function refreshVol(type) {
+    if (!AC || !live[type]) return;
+    const base = live[type].gain;
+    if (synthOn[type]) base.gain.setTargetAtTime((st.s[type].vol / 100) * SYNTH[type].v, AC.currentTime, 0.15);
+    else base.gain.setTargetAtTime((st.s[type].vol / 100) * 0.9, AC.currentTime, 0.15);
+  }
+
+  /* ================= Grafica: tante linee su/giù (bassi ↔ acuti) ================= */
+  const viz = document.getElementById('viz');
+  const vx = viz.getContext('2d');
+  const N = 72;
+  const smooth = new Array(N).fill(0);
+  const freq = new Uint8Array(128);
+  let phase = 0;
+  function anyOn() { return ORDER.some(t => st.s[t].on); }
+  function drawViz() {
+    requestAnimationFrame(drawViz);
+    const W = viz.width, H = viz.height, mid = H / 2;
+    vx.clearRect(0, 0, W, H);
+    const dark = document.body.classList.contains('dark');
+    let hasAudio = false;
+    try {
+      if (analyser && anyOn() && AC && AC.state === 'running') {
+        analyser.getByteFrequencyData(freq);
+        hasAudio = true;
+      }
+    } catch (e) {}
+    phase += 0.03;
+    const col = dark ? '94,234,212' : '13,148,136';
+    vx.lineWidth = 2;
+    vx.lineCap = 'round';
+    for (let i = 0; i < N; i++) {
+      let v;
+      if (hasAudio) {
+        // sinistra = bassi, destra = acuti
+        const bin = Math.floor((i / N) * 90) + 2;
+        v = freq[bin] / 255;
+      } else {
+        v = 0.06 + 0.05 * Math.sin(phase + i * 0.35) * Math.sin(phase * 0.6 + i * 0.11);
+      }
+      smooth[i] += (v - smooth[i]) * (hasAudio ? 0.35 : 0.08);
+      const h = Math.max(3, smooth[i] * (H - 14));
+      const x = 8 + (i / (N - 1)) * (W - 16);
+      const a = anyOn() ? 0.9 : 0.35;
+      vx.strokeStyle = `rgba(${col},${a})`;
+      vx.beginPath();
+      vx.moveTo(x, mid - h / 2);
+      vx.lineTo(x, mid + h / 2);
+      vx.stroke();
     }
-    if (playing) { pauseAll(false); setTimer(0); timerSel.value = '0'; }
-    else { playAll(); setTimer(parseInt(timerSel.value, 10) || 0); }
-  });
-
-  function countByType(type) { return channels.filter(c => c.type === type).length; }
-
-  function renderCatalog() {
-    catalogEl.innerHTML = ORDER.map(type => `
-      <button class="snd" data-add="${type}">
-        <span class="ic"><svg viewBox="0 0 24 24">${SOUNDS[type].icon}</svg></span>
-        <span><b>${sndName(type)}</b><small>${sndDesc(type)}</small></span>
-        ${countByType(type) ? `<span class="n">${countByType(type)}</span>` : '<span class="plus">+</span>'}
-      </button>`).join('');
-  }
-  catalogEl.addEventListener('click', e => {
-    const b = e.target.closest('[data-add]');
-    if (!b) return;
-    addSound(b.dataset.add);
-  });
-
-  function addSound(type, preset) {
-    if (!SOUNDS[type] || channels.length >= 12) return;
-    const ch = {
-      uid: uidSeq++,
-      type,
-      vol: preset ? preset[0] : 65,
-      qty: preset ? preset[1] : 55,
-      spd: preset ? preset[2] : 50,
-      audio: null,
-    };
-    channels.push(ch);
-    if (playing) startChannel(ch);
-    save(); renderAll();
-  }
-  function removeSound(uid) {
-    const i = channels.findIndex(c => c.uid === uid);
-    if (i < 0) return;
-    stopChannel(channels[i]);
-    channels.splice(i, 1);
-    if (!channels.length && playing) pauseAll(false);
-    save(); renderAll();
+    // linea centrale d'ascolto
+    vx.strokeStyle = `rgba(${col},${anyOn() ? 0.25 : 0.15})`;
+    vx.lineWidth = 1;
+    vx.beginPath();
+    vx.moveTo(0, mid);
+    vx.lineTo(W, mid);
+    vx.stroke();
   }
 
-  function sliderRow(uid, key, label, val) {
-    return `<div class="row"><label><span>${label}</span><output id="o-${uid}-${key}">${val}</output></label>
-      <input type="range" min="0" max="100" step="1" value="${val}" data-ch="${uid}" data-k="${key}" aria-label="${label}"></div>`;
+  /* ================= UI ================= */
+  const $ = id => document.getElementById(id);
+  const listEl = $('list'), statusEl = $('status');
+  const masterSlider = $('master'), masterVal = $('masterVal');
+
+  function activeCount() { return ORDER.filter(t => st.s[t].on).length; }
+
+  function paintStatus() {
+    const n = activeCount();
+    if (!AC || AC.state !== 'running') { statusEl.innerHTML = tr('tapToStart'); return; }
+    statusEl.innerHTML = n === 0
+      ? tr('silent')
+      : '<b>♪ ' + tr('active').replace('{n}', n) + '</b>';
   }
 
-  function renderMixer() {
-    $('mixCount').textContent = channels.length ? ' · ' + channels.length : '';
-    if (!channels.length) {
-      mixerEl.innerHTML = `<div class="empty">${tr('empty')}</div>`;
-      return;
-    }
-    mixerEl.innerHTML = channels.map(ch => `
-      <div class="mix${playing ? ' active' : ''}" data-mix="${ch.uid}">
-        <div class="mix-head">
-          <span class="dot"></span>
-          <span class="ic"><svg viewBox="0 0 24 24">${SOUNDS[ch.type].icon}</svg></span>
-          <span><b>${sndName(ch.type)}</b><small>${sndDesc(ch.type)}</small></span>
-          <button class="rm" data-rm="${ch.uid}" title="${tr('remove')}" aria-label="${tr('remove')} ${sndName(ch.type)}">×</button>
-        </div>
-        ${sliderRow(ch.uid, 'vol', tr('vol'), ch.vol)}
-        ${sliderRow(ch.uid, 'qty', qLab(ch.type), ch.qty)}
-        ${sliderRow(ch.uid, 'spd', sLab(ch.type), ch.spd)}
+  function paintRow(type, isLoading) {
+    const s = st.s[type];
+    const row = listEl.querySelector(`[data-row="${type}"]`);
+    if (!row) return;
+    const sw = row.querySelector('.sw');
+    sw.setAttribute('aria-checked', String(s.on));
+    sw.classList.toggle('loading', !!isLoading);
+    sw.setAttribute('aria-label', sndName(type) + ': ' + tr(s.on ? 'on' : 'off'));
+    const sl = row.querySelector('input[type=range]');
+    sl.value = s.vol;
+    sl.disabled = !s.on;
+    row.querySelector('output').textContent = s.vol;
+    let note = sndDesc(type);
+    let warn = false;
+    if (isLoading) { note = tr('loading'); }
+    else if (synthOn[type]) { note = tr('synth'); warn = true; }
+    const sm = row.querySelector('small');
+    sm.textContent = note;
+    sm.classList.toggle('warn', warn);
+  }
+
+  function renderList() {
+    listEl.innerHTML = ORDER.map(t => `
+      <div class="row" data-row="${t}">
+        <span class="ic"><svg viewBox="0 0 24 24">${SOUNDS[t].icon}</svg></span>
+        <span class="txt"><b>${sndName(t)}</b><small></small></span>
+        <span class="ctl">
+          <input type="range" min="0" max="100" step="1" value="${st.s[t].vol}" aria-label="${sndName(t)} volume">
+          <output style="font-size:12px;color:var(--muted);min-width:24px;text-align:right;font-variant-numeric:tabular-nums">${st.s[t].vol}</output>
+          <button class="sw" role="switch" data-sw="${t}" aria-checked="false" aria-label="${sndName(t)}"></button>
+        </span>
       </div>`).join('');
+    ORDER.forEach(t => paintRow(t));
   }
 
-  mixerEl.addEventListener('input', e => {
-    const inp = e.target.closest('input[data-ch]');
+  listEl.addEventListener('click', e => {
+    const b = e.target.closest('[data-sw]');
+    if (!b) return;
+    const t = b.dataset.sw;
+    st.s[t].on = !st.s[t].on;
+    if (st.s[t].on) turnOn(t);
+    else { if (AC) stopType(t); paintRow(t); }
+    save(); paintStatus();
+  });
+  listEl.addEventListener('input', e => {
+    const inp = e.target.closest('input[type=range]');
     if (!inp) return;
-    const ch = channels.find(c => c.uid === +inp.dataset.ch);
-    if (!ch) return;
-    ch[inp.dataset.k] = +inp.value;
-    const o = document.getElementById(`o-${ch.uid}-${inp.dataset.k}`);
-    if (o) o.textContent = inp.value;
-    refreshChannel(ch);
+    const row = inp.closest('[data-row]');
+    const t = row.dataset.row;
+    st.s[t].vol = +inp.value;
+    row.querySelector('output').textContent = inp.value;
+    refreshVol(t);
     save();
   });
-  mixerEl.addEventListener('click', e => {
-    const b = e.target.closest('[data-rm]');
-    if (b) removeSound(+b.dataset.rm);
+
+  masterSlider.value = st.master; masterVal.textContent = st.master;
+  masterSlider.addEventListener('input', () => {
+    st.master = +masterSlider.value;
+    masterVal.textContent = st.master;
+    if (AC) master.gain.setTargetAtTime((st.master / 100) * 0.9, AC.currentTime, 0.15);
+    save();
   });
 
-  /* Preset */
-  const PRESET_DEF = [
-    ['notte', 'pNotte'], ['riva', 'pRiva'], ['bosco', 'pBosco'], ['camino', 'pCamino'], ['focus', 'pFocus'],
-  ];
-  function renderPresets() {
-    $('presets').innerHTML =
-      PRESET_DEF.map(([id, k]) => `<button class="chip" data-preset="${id}">✦ ${tr(k)}</button>`).join('') +
-      `<button class="chip ghost" data-rnd="1">🎲 ${tr('pRandom')}</button>
-       <button class="chip ghost" data-clear="1">✕ ${tr('pClear')}</button>`;
-  }
-  function applyPreset(id) {
-    const def = PRESETS[id];
-    if (!def) return;
-    channels.forEach(c => stopChannel(c, true));
-    channels = def.map(([type, vol, qty, spd]) => ({ uid: uidSeq++, type, vol, qty, spd, audio: null }));
-    if (playing) channels.forEach(startChannel);
-    save(); renderAll();
-  }
-  $('presets').addEventListener('click', e => {
-    const p = e.target.closest('[data-preset]');
-    if (p) { applyPreset(p.dataset.preset); return; }
-    if (e.target.closest('[data-clear]')) {
-      channels.forEach(c => stopChannel(c, true));
-      channels = [];
-      if (playing) pauseAll(false);
-      save(); renderAll(); return;
-    }
-    if (e.target.closest('[data-rnd]')) {
-      channels.forEach(c => stopChannel(c, true));
-      const pool = [...ORDER].sort(() => Math.random() - 0.5).slice(0, 3 + (Math.random() * 2 | 0));
-      channels = pool.map(type => ({
-        uid: uidSeq++, type,
-        vol: 35 + Math.round(Math.random() * 40),
-        qty: 35 + Math.round(Math.random() * 45),
-        spd: 30 + Math.round(Math.random() * 45),
-        audio: null,
-      }));
-      if (playing) channels.forEach(startChannel);
-      save(); renderAll();
-    }
+  $('stopAll').addEventListener('click', () => {
+    ORDER.forEach(t => { st.s[t].on = false; if (AC) stopType(t); paintRow(t); });
+    save(); paintStatus();
   });
 
-  function renderAll() { renderCatalog(); renderMixer(); paintPlay(); }
-
-  /* ================= Visualizer ================= */
-  const viz = $('viz'), vx = viz.getContext('2d');
-  const vizData = new Uint8Array(64);
-  function drawViz() {
-    if (!playing) {
-      vx.clearRect(0, 0, viz.width, viz.height);
-      return;
-    }
-    requestAnimationFrame(drawViz);
-    try {
-      analyser.getByteFrequencyData(vizData);
-    } catch (e) { return; }
-    vx.clearRect(0, 0, viz.width, viz.height);
-    const dark = document.body.classList.contains('dark');
-    const n = 48, w = viz.width / n;
-    for (let i = 0; i < n; i++) {
-      const v = vizData[Math.floor(i / n * vizData.length)] / 255;
-      const h = 4 + v * (viz.height - 10);
-      vx.fillStyle = dark ? 'rgba(94,234,212,.75)' : 'rgba(13,148,136,.7)';
-      const x = i * w + 1, y = (viz.height - h) / 2;
-      vx.beginPath();
-      if (vx.roundRect) vx.roundRect(x, y, w - 2, h, 3); else vx.rect(x, y, w - 2, h);
-      vx.fill();
-    }
+  // Primo tocco: fa partire i suoni rimasti accesi dal salvataggio
+  function kickstart() {
+    if (!anyOn()) { paintStatus(); return; }
+    ensureCtx();
+    ORDER.forEach(t => { if (st.s[t].on && !live[t]) turnOn(t); });
+    paintStatus();
   }
+  addEventListener('pointerdown', function once() {
+    if (AC && AC.state === 'running') return;
+    kickstart();
+  });
+  addEventListener('keydown', function once() {
+    if (AC && AC.state === 'running') return;
+    kickstart();
+  });
 
   /* ================= Tema + lingua globali ================= */
   (function syncTheme() {
@@ -876,21 +522,16 @@
     try { localStorage.setItem(LANG_KEY, curLang); } catch (e) {}
     document.title = tr('title');
     document.querySelectorAll('[data-tk]').forEach(el => { el.textContent = tr(el.dataset.tk); });
-    timerSel.querySelectorAll('option').forEach(op => {
-      const k = op.dataset.tk;
-      if (k) op.textContent = tr(k);
-    });
-    renderPresets(); renderCatalog(); renderMixer(); paintPlay();
+    renderList();
+    $('credit').textContent = tr('credit');
+    paintStatus();
   }
 
   /* ================= Boot ================= */
   load();
-  masterSlider.value = masterVol; masterVal.textContent = masterVol;
+  masterSlider.value = st.master; masterVal.textContent = st.master;
   applyLang(curLang);
-  if (!channels.length) {
-    channels = PRESETS.bosco.map(([type, vol, qty, spd]) => ({ uid: uidSeq++, type, vol, qty, spd, audio: null }));
-  }
-  renderAll();
+  drawViz();
 })();
 </script>
 <footer class="mlt-footer">© Copyright <span class="mlt-year">2026</span>&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20Suoni">Feedback</a></footer>
