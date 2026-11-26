@@ -55,6 +55,11 @@
   .listen-row label output { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
   #status { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  #resume { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+    background: var(--teal); color: #fff; border: none; border-radius: 999px; padding: 12px 16px;
+    font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+  body.dark #resume { color: #06231f; }
+  #resume:hover { filter: brightness(1.06); }
   #status b { color: var(--teal); }
   .ghostbtn { border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px;
     padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -115,6 +120,7 @@
       <button class="ghostbtn" id="stopAll">✕ <span data-tk="stopAll">Spegni tutto</span></button>
     </div>
     <p id="status" role="status"></p>
+    <button id="resume" hidden><svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg><span data-tk="resume">Riprendi l’ascolto</span></button>
   </div>
 
   <div class="card">
@@ -166,7 +172,8 @@
     off: { it: 'spento', de: 'aus', fr: 'éteint', en: 'off' },
     loading: { it: 'caricamento…', de: 'lädt…', fr: 'chargement…', en: 'loading…' },
     err: { it: 'file non caricato, riprova', de: 'Datei nicht geladen, erneut versuchen', fr: 'fichier non chargé, réessaie', en: 'file not loaded, try again' },
-    tapToStart: { it: 'Tocca un interruttore per iniziare', de: 'Tippe auf einen Schalter, um zu starten', fr: 'Touche un interrupteur pour commencer', en: 'Flip a switch to start' },
+    tapToStart: { it: 'Tocca Riprendi per continuare l’ascolto', de: 'Tippe auf Fortsetzen, um weiterzuhören', fr: 'Touche Reprendre pour continuer l’écoute', en: 'Tap Resume to keep listening' },
+    resume: { it: 'Riprendi l’ascolto', de: 'Weiterhören', fr: 'Reprendre l’écoute', en: 'Resume listening' },
     active: { it: '{n} in riproduzione', de: '{n} laufen', fr: '{n} en écoute', en: '{n} playing' },
     silent: { it: 'Tutto spento', de: 'Alles aus', fr: 'Tout éteint', en: 'All off' },
     credit: { it: 'Registrazioni vere di Mixkit (licenza gratuita): pioggia, onde, vento, ruscello, falò, uccelli, grilli e tuono, salvate in questa pagina.',
@@ -341,20 +348,24 @@
         live = true;
       }
     } catch (e) {}
-    if (!REDUCED) phase += 0.016;
-    const tgt = live ? [bandAvg(2, 9), bandAvg(10, 38), bandAvg(39, 95)] : [0.05, 0.05, 0.05];
-    eB.v += (tgt[0] - eB.v) * 0.12;
-    eM.v += (tgt[1] - eM.v) * 0.10;
-    eT.v += (tgt[2] - eT.v) * 0.14;
+    const idle = !live;
+    const n = activeCount();
+    if (!REDUCED && live) phase += 0.016; // da ferme: righe dritte e ferme
+    const tgt = live ? [bandAvg(2, 9), bandAvg(10, 38), bandAvg(39, 95)] : [0, 0, 0];
+    const sp = idle ? 0.3 : 0.12; // da spente si appiattiscono in fretta
+    eB.v += (tgt[0] - eB.v) * sp;
+    eM.v += (tgt[1] - eM.v) * (idle ? 0.3 : 0.10);
+    eT.v += (tgt[2] - eT.v) * (idle ? 0.3 : 0.14);
     const lvl = (eB.v + eM.v + eT.v) / 3;
+    const k = Math.min(1.15, 0.45 + 0.18 * n); // più suoni, più movimento (ma non troppo)
     const col = dark ? '94,234,212' : '13,148,136';
     const crest = dark ? '190,255,246' : '10,110,100';
     const glow = (anyOn() && live) ? 1 : 0.35;
     vx.lineCap = 'round';
     const layers = [
-      { y: 0.68, a: 10 + eB.v * 46, k1: 0.008, k2: 0.021, s1: 0.7, s2: 1.3, al: 0.20, lw: 1.4 },
-      { y: 0.59, a: 8 + eM.v * 38, k1: 0.011, k2: 0.027, s1: 0.9, s2: 1.1, al: 0.28, lw: 1.4 },
-      { y: 0.50, a: 6 + eT.v * 30, k1: 0.014, k2: 0.033, s1: 1.1, s2: 0.9, al: 0.36, lw: 2 },
+      { y: 0.68, a: ((idle ? 1.2 : 10) + eB.v * 46) * k, k1: 0.008, k2: 0.021, s1: 0.7, s2: 1.3, al: 0.20, lw: 1.4 },
+      { y: 0.59, a: ((idle ? 1.2 : 8) + eM.v * 38) * k, k1: 0.011, k2: 0.027, s1: 0.9, s2: 1.1, al: 0.28, lw: 1.4 },
+      { y: 0.50, a: ((idle ? 1.2 : 6) + eT.v * 30) * k, k1: 0.014, k2: 0.033, s1: 1.1, s2: 0.9, al: 0.36, lw: 2 },
     ];
     layers.forEach((L, li) => {
       const baseY = H * L.y;
@@ -378,7 +389,8 @@
       vx.lineWidth = L.lw;
       vx.stroke();
     });
-    // particelle di luce che salgono
+    // particelle di luce che salgono (solo mentre suona)
+    if (!idle) {
     vx.save();
     vx.globalCompositeOperation = 'lighter';
     dots.forEach(d => {
@@ -393,21 +405,28 @@
       vx.fill();
     });
     vx.restore();
+    } // fine particelle (solo mentre suona)
   }
 
   /* ================= UI ================= */
   const $ = id => document.getElementById(id);
   const listEl = $('list'), statusEl = $('status');
   const masterSlider = $('master'), masterVal = $('masterVal');
+  const resumeBtn = $('resume');
 
   function activeCount() { return ORDER.filter(t => st.s[t].on).length; }
 
+  function paintResume() {
+    resumeBtn.hidden = !(activeCount() > 0 && (!AC || AC.state !== 'running'));
+  }
+
   function paintStatus() {
     const n = activeCount();
-    if (!AC || AC.state !== 'running') { statusEl.innerHTML = tr('tapToStart'); return; }
+    if (!AC || AC.state !== 'running') { statusEl.innerHTML = tr('tapToStart'); paintResume(); return; }
     statusEl.innerHTML = n === 0
       ? tr('silent')
       : '<b>♪ ' + tr('active').replace('{n}', n) + '</b>';
+    paintResume();
   }
 
   function paintRow(type, isLoading) {
@@ -479,13 +498,17 @@
     save(); paintStatus();
   });
 
-  // Primo tocco: fa partire i suoni rimasti accesi dal salvataggio
+  // Primo tocco: fa partire i suoni rimasti accesi dal salvataggio.
+  // I browser bloccano l'audio prima di un tocco: si prova l'avvio
+  // automatico e, se bloccato, resta il tasto Riprendi ben visibile.
   function kickstart() {
     if (!anyOn()) { paintStatus(); return; }
     ensureCtx();
+    if (AC.state === 'suspended') { try { AC.resume(); } catch (e) {} }
     ORDER.forEach(t => { if (st.s[t].on && !live[t]) turnOn(t); });
     paintStatus();
   }
+  resumeBtn.addEventListener('click', () => kickstart());
   addEventListener('pointerdown', function once() {
     if (AC && AC.state === 'running') return;
     kickstart();
@@ -528,6 +551,17 @@
   load();
   masterSlider.value = st.master; masterVal.textContent = st.master;
   applyLang(curLang);
+  // Precarica i file dei suoni rimasti accesi: la ripresa al primo tocco è immediata
+  if (anyOn()) ORDER.forEach(t => { if (st.s[t].on) loadReal(t).catch(() => {}); });
+  // Tentativo di avvio automatico (riuscito solo se il browser lo permette)
+  (async () => {
+    if (!anyOn()) return;
+    try { ensureCtx(); await AC.resume(); } catch (e) {}
+    if (AC && AC.state === 'running') {
+      ORDER.forEach(t => { if (st.s[t].on && !live[t]) turnOn(t); });
+      paintStatus();
+    }
+  })();
   drawViz();
 })();
 </script>
