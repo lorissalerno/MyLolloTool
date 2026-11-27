@@ -354,8 +354,11 @@
     for (let i = lo; i <= hi; i++) s += freq[i];
     return s / ((hi - lo + 1) * 255);
   }
-  function drawViz() {
-    if (!REDUCED) requestAnimationFrame(drawViz);
+  let lastFrame = 0;
+  function drawViz(now) {
+    requestAnimationFrame(drawViz);
+    const dt = Math.min(0.1, lastFrame ? (now - lastFrame) / 1000 : 0.016);
+    lastFrame = now;
     const W = viz.width, H = viz.height;
     vx.clearRect(0, 0, W, H);
     const dark = document.body.classList.contains('dark');
@@ -368,14 +371,14 @@
     } catch (e) {}
     const idle = !live;
     const n = activeCount();
-    if (!REDUCED && live) phase += 0.016; // da ferme: righe dritte e ferme
+    if (live) phase += dt * (REDUCED ? 0.22 : 0.96); // con riduci-movimento: deriva lenta e calma
     const tgt = live ? [bandAvg(2, 9), bandAvg(10, 38), bandAvg(39, 95)] : [0, 0, 0];
     const sp = idle ? 0.3 : 0.12; // da spente si appiattiscono in fretta
     eB.v += (tgt[0] - eB.v) * sp;
     eM.v += (tgt[1] - eM.v) * (idle ? 0.3 : 0.10);
     eT.v += (tgt[2] - eT.v) * (idle ? 0.3 : 0.14);
     const lvl = (eB.v + eM.v + eT.v) / 3;
-    const k = Math.min(1.15, 0.45 + 0.18 * n); // più suoni, più movimento (ma non troppo)
+    const k = Math.min(1.15, 0.45 + 0.18 * n) * (REDUCED ? 0.6 : 1); // con riduci-movimento: escursioni ridotte
     const col = dark ? '94,234,212' : '13,148,136';
     const crest = dark ? '190,255,246' : '10,110,100';
     const glow = (anyOn() && live) ? 1 : 0.35;
@@ -425,16 +428,13 @@
     vx.restore();
     } // fine particelle (solo mentre suona)
   }
-  // Con "riduci movimento" il loop qui sopra è fermo: avanza a scatti sobri
-  // (2 al secondo, stessa velocità di deriva ma senza animazione continua)
-  // così la barra resta viva anche lì. Il watchdog ripropone il tasto
-  // Riprendi se l'audio si blocca da solo (chiamata, risparmio energetico).
+  // Watchdog: se l'audio si sospende da solo (chiamata, risparmio energetico)
+  // con suoni accesi, ripropone il tasto Riprendi.
   setInterval(() => {
     try {
-      if (REDUCED) { phase += 0.5; drawViz(); }
       if (anyOn() && AC && AC.state !== 'running') paintStatus();
     } catch (e) {}
-  }, 500);
+  }, 1000);
 
   /* ================= UI ================= */
   const $ = id => document.getElementById(id);
@@ -455,9 +455,6 @@
       ? tr('silent')
       : '<b>♪ ' + tr('active').replace('{n}', n) + '</b>';
     paintResume();
-    // Con "riduci movimento" ridisegna subito (il loop è fermo e drawViz
-    // in quel caso non riprogramma requestAnimationFrame: nessun doppio loop).
-    if (REDUCED) { try { drawViz(); } catch (e) {} }
   }
 
   function paintRow(type, isLoading) {
@@ -593,7 +590,7 @@
       paintStatus();
     }
   })();
-  drawViz();
+  requestAnimationFrame(drawViz);
 })();
 </script>
 <footer class="mlt-footer">© Copyright <span class="mlt-year">2026</span>&nbsp;&nbsp;|&nbsp;&nbsp;Loris Salerno SCS-B2C-CUC-SCT-OP2&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:loris.salerno@swisscom.com?subject=Feedback%20Suoni">Feedback</a></footer>
