@@ -135,7 +135,8 @@
 (() => {
   'use strict';
 
-  /* Suoni veri: registrazioni Mixkit (licenza gratuita, file MP3 in audio/). */
+  /* Suoni veri: registrazioni Mixkit (licenza gratuita, file MP3 in audio/).
+     Rane: coro di rane di JogiAsad da Wikimedia Commons (CC BY-SA 4.0). */
   const SOUNDS = {
     pioggia:  { file: 'audio/pioggia.mp3',  page: 'https://mixkit.co/free-sound-effects/rain/',
                 icon: '<path d="M6.8 13.5h10.7a3.6 3.6 0 0 0 .7-7.1 5.3 5.3 0 0 0-10.3-1.3A3.7 3.7 0 0 0 6.8 13.5z"/><path d="M9.2 16.3l-1.1 3M13.5 16.3l-1.1 3M17.8 16.3l-1.1 3"/>', def: 65 },
@@ -155,7 +156,7 @@
                 icon: '<path d="M7 9.5a3.5 3.5 0 0 1-.5-6.9A5 5 0 0 1 16 1.9a3.4 3.4 0 0 1 1 6.6H7z"/><path d="M13 9.5L9 15.5h3L11 21l5-6.8h-3l1-4.7z"/>', def: 50 },
     foresta:  { file: 'audio/foresta.mp3',  page: 'https://mixkit.co/free-sound-effects/forest/',
                 icon: '<path d="M12 3l5 7h-3l4 6H6l4-6H7z"/><path d="M12 16v5"/>', def: 55 },
-    rane:     { file: 'audio/rane.mp3',     page: 'https://mixkit.co/free-sound-effects/nature/',
+    rane:     { file: 'audio/rane.mp3',     page: 'https://commons.wikimedia.org/wiki/File:Frogs_croak_calling_chorus_at_night.ogg',
                 icon: '<ellipse cx="12" cy="14.5" rx="6" ry="4"/><circle cx="8.5" cy="9.5" r="1.8"/><circle cx="15.5" cy="9.5" r="1.8"/><path d="M9.5 14.5c.8.9 1.6 1.3 2.5 1.3s1.7-.4 2.5-1.3"/>', def: 50 },
     tetto:    { file: 'audio/tetto.mp3',    page: 'https://mixkit.co/free-sound-effects/rain/',
                 icon: '<path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M9.5 16.5l-.8 2M12.8 16.5l-.8 2M16.1 16.5l-.8 2"/>', def: 65 },
@@ -185,10 +186,10 @@
     resume: { it: 'Riprendi l’ascolto', de: 'Weiterhören', fr: 'Reprendre l’écoute', en: 'Resume listening' },
     active: { it: '{n} in riproduzione', de: '{n} laufen', fr: '{n} en écoute', en: '{n} playing' },
     silent: { it: 'Tutto spento', de: 'Alles aus', fr: 'Tout éteint', en: 'All off' },
-    credit: { it: 'Registrazioni vere di Mixkit (licenza gratuita): pioggia, onde, vento, ruscello, falò, uccelli, grilli, tuono, foresta, rane, pioggia sul tetto e vento d’inverno, salvate in questa pagina.',
-             de: 'Echte Aufnahmen von Mixkit (kostenlose Lizenz): Regen, Wellen, Wind, Bach, Lagerfeuer, Vögel, Grillen, Donner, Wald, Frösche, Regen auf dem Dach und Winterwind, auf dieser Seite gespeichert.',
-             fr: 'Vrais enregistrements de Mixkit (licence gratuite) : pluie, vagues, vent, ruisseau, feu, oiseaux, grillons, tonnerre, forêt, grenouilles, pluie sur le toit et vent d’hiver, enregistrés dans cette page.',
-             en: 'Real Mixkit recordings (free license): rain, waves, wind, stream, campfire, birds, crickets, thunder, forest, frogs, rain on the roof and winter wind, stored in this page.' },
+    credit: { it: 'Registrazioni vere di Mixkit (licenza gratuita): pioggia, onde, vento, ruscello, falò, uccelli, grilli, tuono, foresta, rane, pioggia sul tetto e vento d’inverno, salvate in questa pagina. Rane: coro di rane di JogiAsad da Wikimedia Commons (CC BY-SA 4.0).',
+             de: 'Echte Aufnahmen von Mixkit (kostenlose Lizenz): Regen, Wellen, Wind, Bach, Lagerfeuer, Vögel, Grillen, Donner, Wald, Frösche, Regen auf dem Dach und Winterwind, auf dieser Seite gespeichert. Frösche: Froschchor von JogiAsad von Wikimedia Commons (CC BY-SA 4.0).',
+             fr: 'Vrais enregistrements de Mixkit (licence gratuite) : pluie, vagues, vent, ruisseau, feu, oiseaux, grillons, tonnerre, forêt, grenouilles, pluie sur le toit et vent d’hiver, enregistrés dans cette page. Grenouilles : chœur de grenouilles de JogiAsad via Wikimedia Commons (CC BY-SA 4.0).',
+             en: 'Real Mixkit recordings (free license): rain, waves, wind, stream, campfire, birds, crickets, thunder, forest, frogs, rain on the roof and winter wind, stored in this page. Frogs: frog chorus by JogiAsad from Wikimedia Commons (CC BY-SA 4.0).' },
     nPioggia: { it: 'Pioggia', de: 'Regen', fr: 'Pluie', en: 'Rain' },
     nMare: { it: 'Mare', de: 'Meer', fr: 'Mer', en: 'Sea' },
     nVento: { it: 'Vento', de: 'Wind', fr: 'Vent', en: 'Wind' },
