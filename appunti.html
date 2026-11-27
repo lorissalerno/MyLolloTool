@@ -252,6 +252,20 @@
     #v-body { font-size: 14px; line-height: 1.6; word-break: break-word; }
     #v-body ul, #v-body ol { padding-left: 22px; margin: 6px 0; }
     #v-body a { color: #2563EB; }
+    /* Fogli: le note lunghe (spartiti) non allungano la pagina, si sfogliano in orizzontale */
+    #v-body.sheets { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+      padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+    #v-body.sheets .sheet { flex: 0 0 100%; scroll-snap-align: start; background: #FFFFFF;
+      border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      padding: 16px 18px; min-height: 280px; max-height: 52vh; overflow: hidden; }
+    #v-body.sheets .sheet img { max-width: 100%; height: auto; object-fit: contain; }
+    #v-body.sheets .sheet.overflow { overflow-y: auto; }
+    body.dark #v-body.sheets .sheet { background: #1A1A1F; border-color: #2A2A35; }
+    #v-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 8px 2px 0; }
+    #v-nav .vcount { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #4B5563; }
+    body.dark #v-nav .vcount { color: #9898A8; }
+    #v-nav .iconbtn:disabled { opacity: .35; cursor: default; }
     #v-tel .note-num { font-size: 18px; margin: 4px 0 8px; }
     #v-tel .note-num a { color: inherit; text-decoration: none; }
     #v-tel .note-num a:hover { text-decoration: underline; color: #2563EB; }
@@ -360,6 +374,11 @@
         <div class="sched" id="v-sched"></div>
       </div>
       <div id="v-body"></div>
+      <div id="v-nav" hidden>
+        <button type="button" class="iconbtn" id="v-prev" data-t-title="sheetPrev" title="Foglio precedente"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="vcount" id="v-count"></span>
+        <button type="button" class="iconbtn" id="v-next" data-t-title="sheetNext" title="Foglio successivo"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
       <div class="actions">
         <span class="status" id="v-date"></span>
         <button type="button" class="iconbtn" id="btn-vpin" data-t-title="pin" title="Appunta in alto"></button>
@@ -458,6 +477,9 @@
       tagTel:   { it: 'Telefono', de: 'Telefon', fr: 'Téléphone', en: 'Phone' },
       pin:      { it: 'Appunta in alto', de: 'Oben anheften', fr: 'Épingler en haut', en: 'Pin to top' },
       unpin:    { it: 'Togli dagli appuntati', de: 'Lösen', fr: 'Désépingler', en: 'Unpin' },
+      sheetPrev:{ it: 'Foglio precedente', de: 'Vorheriges Blatt', fr: 'Feuille précédente', en: 'Previous sheet' },
+      sheetNext:{ it: 'Foglio successivo', de: 'Nächstes Blatt', fr: 'Feuille suivante', en: 'Next sheet' },
+      sheetPage:{ it: 'Foglio {cur} di {tot}', de: 'Blatt {cur} von {tot}', fr: 'Feuille {cur} sur {tot}', en: 'Sheet {cur} of {tot}' },
     };
     let curLang = (function() {
       try { const g = localStorage.getItem(LANG_KEY); if (LANGS.includes(g)) return g; } catch (e) {}
@@ -1362,14 +1384,90 @@
         $('v-sched').innerHTML = lines.map(l => `<div>${esc(l)}</div>`).join('') || (a.orario ? esc(a.orario) : '');
       }
       const vb = $('v-body');
+      viewer.classList.remove('fs');
+      viewer.hidden = false;
       vb.innerHTML = sanitizePreview(a.html, true);
       // link esterni in nuova scheda
       vb.querySelectorAll('a[href^="http"]').forEach(l => { l.target = '_blank'; l.rel = 'noopener'; });
+      buildSheets();
       $('v-date').textContent = fmtDate(a.updated);
-      viewer.classList.remove('fs');
       paintVFull();
       paintVPin();
-      viewer.hidden = false;
+    }
+    // ===== Fogli: note lunghe impaginate, niente pagina infinita =====
+    // Se il contenuto supera ~1.5 fogli, lo spezza in .sheet affiancati
+    // con scorrimento orizzontale + frecce in basso (← →).
+    let sheetIdx = 0;
+    function pageBudget() { return window.innerWidth < 600 ? 360 : 440; }
+    function sheetCount() { return $('v-body').querySelectorAll('.sheet').length; }
+    function paintVNav() {
+      const nav = $('v-nav'), vb = $('v-body');
+      const n = sheetCount();
+      if (!vb.classList.contains('sheets') || n < 2) { nav.hidden = true; return; }
+      nav.hidden = false;
+      $('v-count').textContent = t('sheetPage', { cur: Math.min(sheetIdx + 1, n), tot: n });
+      $('v-prev').disabled = sheetIdx <= 0;
+      $('v-next').disabled = sheetIdx >= n - 1;
+      $('v-prev').title = t('sheetPrev');
+      $('v-next').title = t('sheetNext');
+    }
+    function goSheet(i) {
+      const vb = $('v-body');
+      const sheets = vb.querySelectorAll('.sheet');
+      if (!sheets.length) return;
+      sheetIdx = Math.max(0, Math.min(sheets.length - 1, i));
+      const target = sheets[sheetIdx];
+      vb.scrollTo({ left: target.offsetLeft - vb.offsetLeft - 6, behavior: 'smooth' });
+      paintVNav();
+    }
+    function buildSheets() {
+      const vb = $('v-body'), nav = $('v-nav');
+      vb.classList.remove('sheets');
+      nav.hidden = true;
+      sheetIdx = 0;
+      const nodes = [...vb.childNodes];
+      if (!nodes.length) return;
+      // misura: se tutto sta in un foglio, resta vista normale (niente frecce)
+      const budget = pageBudget();
+      vb.style.visibility = 'hidden';
+      const fullH = vb.scrollHeight;
+      vb.style.visibility = '';
+      if (fullH <= budget * 1.4) return;
+      // impagina: sposta i nodi un po' per volta finché il foglio resta sotto budget
+      vb.innerHTML = '';
+      vb.classList.add('sheets');
+      const mkSheet = () => {
+        const s = document.createElement('div');
+        s.className = 'sheet';
+        vb.appendChild(s);
+        return s;
+      };
+      let cur = mkSheet();
+      const overflow = (el) => el.scrollHeight > budget + 24;
+      nodes.forEach(n => {
+        cur.appendChild(n);
+        if (overflow(cur) && cur.childNodes.length > 1) {
+          const last = cur.lastChild;
+          cur.removeChild(last);
+          cur = mkSheet();
+          cur.appendChild(last);
+          // singolo blocco più alto di un foglio (es. immagine/spartito lungo):
+          // resta nel suo foglio con scroll verticale interno, la pagina non si allunga
+          if (overflow(cur)) cur.classList.add('overflow');
+          else cur.classList.remove('overflow');
+        }
+      });
+      vb.querySelectorAll('.sheet').forEach(s => { if (overflow(s)) s.classList.add('overflow'); });
+      if (sheetCount() < 2) {
+        // un solo foglio bastava: torna a vista normale
+        const only = vb.querySelector('.sheet');
+        vb.classList.remove('sheets');
+        if (only) { while (only.firstChild) vb.appendChild(only.firstChild); only.remove(); }
+        nav.hidden = true;
+        return;
+      }
+      vb.scrollLeft = 0;
+      paintVNav();
     }
     // Checkbox cliccabili nel visualizzatore: salva lo stato senza aprire Modifica
     $('v-body').addEventListener('change', e => {
@@ -1402,8 +1500,33 @@
     $('v-body').addEventListener('click', e => {
       if (e.target.closest('input[type="checkbox"]')) e.stopPropagation();
     });
-    function closeViewer() { viewId = null; viewer.hidden = true; viewer.classList.remove('fs'); }
+    function closeViewer() { viewId = null; viewer.hidden = true; viewer.classList.remove('fs'); sheetIdx = 0; }
     $('btn-vclose').onclick = closeViewer;
+    // Frecce fogli + swipe: scorri a destra/sinistra tra un foglio e l'altro
+    $('v-prev').onclick = e => { e.stopPropagation(); goSheet(sheetIdx - 1); };
+    $('v-next').onclick = e => { e.stopPropagation(); goSheet(sheetIdx + 1); };
+    (function () {
+      let raf = 0;
+      $('v-body').addEventListener('scroll', () => {
+        if (!$('v-body').classList.contains('sheets')) return;
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const vb = $('v-body');
+          const sheets = [...vb.querySelectorAll('.sheet')];
+          if (!sheets.length) return;
+          const x = vb.scrollLeft + vb.clientWidth / 2;
+          let best = 0, bd = Infinity;
+          sheets.forEach((s, i) => {
+            const c = (s.offsetLeft - vb.offsetLeft) + s.clientWidth / 2;
+            const d = Math.abs(c - vb.scrollLeft - vb.clientWidth / 2);
+            if (d < bd) { bd = d; best = i; }
+            void x;
+          });
+          if (best !== sheetIdx) { sheetIdx = best; paintVNav(); }
+        });
+      }, { passive: true });
+    })();
     // Tutto schermo nel visualizzatore: SVG angoli in fuori/dentro
     function paintVFull() {
       const b = $('btn-vfull');
@@ -1493,6 +1616,16 @@
     };
 
     document.addEventListener('keydown', e => {
+      if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !viewer.hidden && modal.hidden) {
+        if ($('v-body').classList.contains('sheets') && sheetCount() > 1) {
+          const tag = (document.activeElement && document.activeElement.tagName) || '';
+          if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !(document.activeElement && document.activeElement.isContentEditable)) {
+            e.preventDefault();
+            goSheet(sheetIdx + (e.key === 'ArrowRight' ? 1 : -1));
+            return;
+          }
+        }
+      }
       if (e.key !== 'Escape') return;
       if (tools.classList.contains('open')) { tools.classList.remove('open'); return; }
       if (!viewer.hidden) {
@@ -1530,6 +1663,7 @@
       fBody.dataset.ph = t('bodyPh');
       try { paintExpandBtn(); } catch (e) {}
       try { paintVFull(); } catch (e) {}
+      try { paintVNav(); } catch (e) {}
       try { if (viewId) paintVPin(); } catch (e) {}
       render();
     }

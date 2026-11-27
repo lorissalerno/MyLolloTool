@@ -59,6 +59,13 @@
   </header>
 
     <section class="entry">
+      <div class="entry-head"><strong>v1.09</strong><time>27/11/2026</time></div>
+      <ul>
+        <li><span class="tag">Appunti</span><span data-t="e109a">Appunti: le note lunghe (spartiti) non allungano più la pagina, si sfogliano a fogli con le frecce in basso o scorrendo di lato.</span></li>
+      </ul>
+    </section>
+
+    <section class="entry">
       <div class="entry-head"><strong>v1.08</strong><time>26/11/2026</time></div>
       <ul>
         <li><span class="tag">Antistress</span><span data-t="e108f">Suoni rilassanti: 4 nuovi suoni veri da Mixkit (foresta, rane, pioggia sul tetto, vento d’inverno), sempre su due colonne strette.</span></li>
@@ -176,11 +183,15 @@
 
   <script>
     // Versione sito: aumentare di +0.01 solo una volta al giorno e solo con modifica funzionale (vedi AGENTS.md).
-    const SITE_VERSION = '1.08';
+    const SITE_VERSION = '1.09';
 
     const LANG_KEY = 'mylollotool-lang';
     const LANGS = ['it', 'de', 'fr', 'en'];
     const T = {
+      e109a: { it: 'Appunti: le note lunghe (spartiti) non allungano più la pagina, si sfogliano a fogli con le frecce in basso o scorrendo di lato.',
+               de: 'Notizen: Lange Notizen (Partituren) verlängern die Seite nicht mehr, sie werden in Blättern mit den Pfeilen unten oder seitlichem Wischen geblättert.',
+               fr: 'Notes : les notes longues (partitions) n’allongent plus la page, on les feuillette avec les flèches en bas ou en faisant défiler sur le côté.',
+               en: 'Notes: long notes (scores) no longer stretch the page, flip through sheets with the arrows at the bottom or by swiping sideways.' },
       e108f: { it: 'Suoni rilassanti: 4 nuovi suoni veri da Mixkit (foresta, rane, pioggia sul tetto, vento d’inverno), sempre su due colonne strette.',
                de: 'Entspannende Klänge: 4 neue echte Klänge von Mixkit (Wald, Frösche, Regen auf dem Dach, Winterwind), weiterhin in zwei schmalen Spalten.',
                fr: 'Sons relaxants : 4 nouveaux vrais sons de Mixkit (forêt, grenouilles, pluie sur le toit, vent d’hiver), toujours sur deux colonnes étroites.',
