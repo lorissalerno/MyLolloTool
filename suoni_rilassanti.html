@@ -425,6 +425,10 @@
     vx.restore();
     } // fine particelle (solo mentre suona)
   }
+  // Con "riduci movimento" il loop qui sopra è fermo: aggiorna sobriamente
+  // 2 volte al secondo così la barra segue comunque i suoni (solo livelli,
+  // nessuna animazione continua). Senza riduci-movimento il loop gira già.
+  if (REDUCED) setInterval(() => { try { drawViz(); } catch (e) {} }, 500);
 
   /* ================= UI ================= */
   const $ = id => document.getElementById(id);
@@ -445,6 +449,9 @@
       ? tr('silent')
       : '<b>♪ ' + tr('active').replace('{n}', n) + '</b>';
     paintResume();
+    // Con "riduci movimento" ridisegna subito (il loop è fermo e drawViz
+    // in quel caso non riprogramma requestAnimationFrame: nessun doppio loop).
+    if (REDUCED) { try { drawViz(); } catch (e) {} }
   }
 
   function paintRow(type, isLoading) {
