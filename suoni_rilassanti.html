@@ -425,10 +425,16 @@
     vx.restore();
     } // fine particelle (solo mentre suona)
   }
-  // Con "riduci movimento" il loop qui sopra è fermo: aggiorna sobriamente
-  // 2 volte al secondo così la barra segue comunque i suoni (solo livelli,
-  // nessuna animazione continua). Senza riduci-movimento il loop gira già.
-  if (REDUCED) setInterval(() => { try { drawViz(); } catch (e) {} }, 500);
+  // Con "riduci movimento" il loop qui sopra è fermo: avanza a scatti sobri
+  // (2 al secondo, stessa velocità di deriva ma senza animazione continua)
+  // così la barra resta viva anche lì. Il watchdog ripropone il tasto
+  // Riprendi se l'audio si blocca da solo (chiamata, risparmio energetico).
+  setInterval(() => {
+    try {
+      if (REDUCED) { phase += 0.5; drawViz(); }
+      if (anyOn() && AC && AC.state !== 'running') paintStatus();
+    } catch (e) {}
+  }, 500);
 
   /* ================= UI ================= */
   const $ = id => document.getElementById(id);
