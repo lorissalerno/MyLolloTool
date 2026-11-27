@@ -133,11 +133,11 @@
 </head>
 <body>
 
-<div class="wrap">
+<div class="wrap expanded">
 
   <header class="page-head">
     <div class="brand"><div><h1><svg viewBox="0 0 24 24"><path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg><span data-t="title">Antistress</span></h1><p class="sub" data-t="sub">Piccole pause per staccare la testa: apri una pagina e rilassati</p></div></div>
-    <div class="right"><span class="pill" id="countPill"></span><button class="iconbtn" id="btn-expand" title="Allarga a tutta pagina"><span data-i="expand"></span></button></div>
+    <div class="right"><span class="pill" id="countPill"></span></div>
   </header>
 
   <div class="toolbar">
@@ -420,9 +420,9 @@
       try { localStorage.setItem(EXP_KEY, ex ? '1' : '0'); } catch (e) {}
       paintExpandBtn();
     }
-    try { applyExpand(localStorage.getItem(EXP_KEY) === '1'); } catch (e) {}
-    $('btn-expand').onclick = () =>
-      applyExpand(!document.querySelector('.wrap').classList.contains('expanded'));
+    try { applyExpand(localStorage.getItem(EXP_KEY) !== '0'); } catch (e) { applyExpand(true); }
+    { const b = $('btn-expand'); if (b) b.onclick = () =>
+      applyExpand(!document.querySelector('.wrap').classList.contains('expanded')); }
 
     // ===== Visualizzatore integrato =====
     function openViewer(p) {
